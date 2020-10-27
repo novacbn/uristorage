@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/overlays/index.ts"],
+  "sourcesContent": ["export * from \"./base_overlay\";\nexport * from \"./file_system\";\n"],
+  "mappings": "AAAA;AACA;",
+  "names": []
+}

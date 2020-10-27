@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/util/glob.ts"],
+  "sourcesContent": ["import globToRegExp from \"glob-to-regexp\";\n\n/**\n * Returns a [Bash Shell Glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern processed into a [Regular Expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp)\n * @param pattern\n */\nexport function make_glob(pattern: string): RegExp {\n    return globToRegExp(pattern, {extended: true, globstar: true});\n}\n"],
+  "mappings": "AAAA;AAMO,mBAAmB;AACtB,SAAO,aAAa,SAAS,CAAC,UAAU,MAAM,UAAU;AAAA;",
+  "names": []
+}

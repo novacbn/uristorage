@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/adapters/index.ts"],
+  "sourcesContent": ["export * from \"./base_adapter\";\n\nexport * from \"./shared_memory\";\n\nexport * from \"./whatwg_indexeddb\";\nexport * from \"./whatwg_webstorage\";\n"],
+  "mappings": "AAAA;AAEA;AAEA;AACA;",
+  "names": []
+}

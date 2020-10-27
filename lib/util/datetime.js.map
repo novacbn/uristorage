@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/util/datetime.ts"],
+  "sourcesContent": ["/**\n * Returns the current timestamp in milliseconds, since the UNIX Epoch (January 1, 1970, 00:00:00 UTC)\n *\n * @internal\n */\nexport function get_epoch_timestamp(): number {\n    return Date.now();\n}\n"],
+  "mappings": ";;;;;;;;;AAAA;AAAA;AAAA;AAKO;AACH,SAAO,KAAK;AAAA;",
+  "names": []
+}

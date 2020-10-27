@@ -1,0 +1,157 @@
+<html>
+	<head>
+		<title>URIStorage Global :: novacbn/uristorage</title>
+
+		<script type="application/javascript" src="../dist/uristorage.umd.js"></script>
+
+		<link rel="stylesheet" href="./chota.min.css" />
+
+		<script>
+			console.log("[DEBUG] Configuring built-in Adapters with their default options...");
+
+			window._indexedAdapter = new URIStorage.IndexedDBAdapter();
+			window._localAdapter = new URIStorage.LocalStorageAdapter();
+			window._memoryAdapter = new URIStorage.MemoryAdapter();
+			window._sessionAdapter = new URIStorage.SessionStorageAdapter();
+
+			window._indexedFS = new URIStorage.FileSystemOverlay(window._indexedAdapter);
+			window._localFS = new URIStorage.FileSystemOverlay(window._localAdapter);
+			window._memoryFS = new URIStorage.FileSystemOverlay(window._memoryAdapter);
+			window._sessionFS = new URIStorage.FileSystemOverlay(window._sessionAdapter);
+
+			async function mount_adapter(adapters) {
+				for (const [name, adapter] of adapters) {
+					await adapter.mount();
+
+					console.log("[DEBUG MOUNT]", name, "Mounted!");
+				}
+			}
+
+			async function subscribe_adapter(adapters) {
+				for (const [name, adapter] of adapters) {
+					const event = await adapter.watch();
+					
+					event.subscribe((event) => {
+						console.log("[DEBUG WATCH-ADAPTER]", name, "Event:");
+						
+						// NOTE: Copied event struct to keep consistent order in logs
+						console.log(JSON.stringify({
+							path: event.path,
+							type: event.type,
+							method: event.method
+						}, null, 4));
+					});
+					
+					console.log("[DEBUG WATCH-ADAPTER]", name, "Subscribed!");
+				}
+			}
+
+			async function subscribe_fs(adapters) {
+				for (const [name, fs] of adapters) {
+					const event = await fs.watch_directory("/", {recursive: true});
+					
+					event.subscribe((event) => {
+						console.log("[DEBUG WATCH-FS]", name, "Event:");
+						
+						// NOTE: Copied event struct to keep consistent order in logs
+						console.log(JSON.stringify({
+							path: event.path,
+							type: event.type,
+							change: event.change
+						}, null, 4));
+					});
+					
+					console.log("[DEBUG WATCH-FS]", name, "Subscribed");
+				}
+			}
+
+			(async () => {
+				console.log("\n[DEBUG]", "Mounting Adapters...")
+				await mount_adapter([["IndexedDBAdapter", window._indexedAdapter]]);
+
+				console.log("\n[DEBUG]", "Subscribing to Adapter events...");
+				await subscribe_adapter([
+					["IndexedDBAdapter", window._indexedAdapter],
+					["LocalStorageAdapter", window._localAdapter],
+					["MemoryStorageAdapter", window._memoryAdapter],
+					["SessionStorageAdapter", window._sessionAdapter]
+				]);
+
+				console.log("\n[DEBUG]", "Subscribing to FileSystemOverlay events...");
+				await subscribe_fs([
+					["IndexedDBAdapter", window._indexedFS],
+					["LocalStorageAdapter", window._localFS],
+					["MemoryStorageAdapter", window._memoryFS],
+					["SessionStorageAdapter", window._sessionFS]
+				]);
+
+				console.log("\n[DEBUG]", "All Adapters / Overlays are ready for testing!");
+			})();
+		</script>
+
+		<style>
+			.container {
+				max-width: 720px;
+			}
+		</style>
+	</head>
+	
+	<body>
+		<main class="container">
+			<h1>URIStorage Test Page</h1>
+			<p>
+				Open <b>devtools</b> and access the current build via <code>URIStorage</code> or other globals.
+			</p>
+
+			<h3>Sample</h3>
+
+			<pre><code>const markdown = "# This is a sample Markdown file!";
+
+await window._indexedFS.write_file_text("test.md", markdown);
+console.log(await window._indexedFS.read_file_text("test.md"));</code></pre>
+
+			<h3>Documentation</h3>
+			<p>
+				View documentation at <a href="https://novacbn.github.io/uristorage">novacbn.github.io/uristorage</a>.
+			</p>
+			
+			<h3>Other Globals</h3>
+
+			<p>
+				These globals are pre-initialized with their default options, such as <i>namespace</i>, so you can easily test.
+			</p>
+
+			<h4>Adapters</h4>
+			<p>
+				<ul>
+					<li><code>window._indexedAdapter</code> &#x2014; <code>IndexedDBAdapter</code></li>
+					<li><code>window._localAdapter</code> &#x2014; <code>LocalStorageAdapter</code></li>
+					<li><code>window._memoryAdapter</code> &#x2014; <code>MemoryAdapter</code></li>
+					<li><code>window._sessionAdapter</code> &#x2014; <code>SessionStorageAdapter</code></li>
+				</ul>
+			</p>
+
+			<h4>Overlays</h4>
+			<p>
+				<ul>
+					<li><code>window._indexedFS</code> &#x2014; <code>FileSystemOverlay</code></li>
+					<li><code>window._localFS</code> &#x2014; <code>FileSystemOverlay</code></li>
+					<li><code>window._memoryFS</code> &#x2014; <code>FileSystemOverlay</code></li>
+					<li><code>window._sessionFS</code> &#x2014; <code>FileSystemOverlay</code></li>
+				</ul>
+			</p>
+			
+			<h3>Test Link</h3>
+			<p>
+				<a id="anchor_test" href="#">This is a test link</a>, open <b>devtools</b> and modify it via <code>anchor_test</code> global.
+			</p>
+
+
+
+			<pre><code>const object = await window._indexedFS.create_url_object("test.md");
+
+// HINT: Call `object.destroy` for cleanup when done with the URL Object
+window.anchor_test.href = object.url;</code></pre>
+		</main>
+	</body>
+</html>

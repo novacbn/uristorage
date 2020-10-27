@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/util/mime_types.ts"],
+  "sourcesContent": ["import MIME_TYPES from \"../data/mime_types.json\";\n\nimport {extname} from \"./path\";\n\n// NOTE: Abstracted for backend / package changes while remaining API-compatible\n\n/**\n * Returns the mime type for the given path's extension, returns `null` if not applicable\n * @param path\n */\nexport function get_mime_type(path: string): string | null {\n    const extension = extname(\"x.\" + path)\n        .toLowerCase()\n        .substr(1);\n\n    if (!extension) return null;\n\n    const mime_type = (MIME_TYPES as {[key: string]: string | undefined})[extension];\n    return mime_type ? mime_type : null;\n}\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA,mBAAuB;AAEvB,aAAsB;AAQf,uBAAuB;AAC1B,QAAM,YAAY,aAAQ,OAAO,OAC5B,cACA,OAAO;AAEZ,MAAI,CAAC;AAAW,WAAO;AAEvB,QAAM,YAAa,mBAAmD;AACtE,SAAO,YAAY,YAAY;AAAA;",
+  "names": []
+}
