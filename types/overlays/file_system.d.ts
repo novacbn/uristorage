@@ -1,8 +1,18 @@
-import { IURLObject } from "../adapters/base_adapter";
+import { BaseAdapter, IURLObject } from "../adapters/base_adapter";
 import { NODE_TYPES } from "../util/constants";
 import { IEvent } from "../util/event";
 import { IJSONReplacer, IJSONReviver, IJSONTypes } from "../util/types";
 import { BaseOverlay } from "./base_overlay";
+/**
+ * ...
+ *
+ * @internal
+ */
+declare type IScopeJoin = (part: string) => string;
+/**
+ * Represents a scope of the File System that should prefix all operation paths
+ */
+export declare type IFileSystemScope = IScopeJoin | string;
 /**
  * Represents the struct returned to queries and events as a result
  */
@@ -44,6 +54,17 @@ export interface IFileSystemEntryStats {
      * Represents a timestamp in milliseconds since UNIX Epoch when the File System Entry was last modified
      */
     mtime: number;
+}
+/**
+ * Represents the options passable to [[FileSystemOverlay]]
+ */
+export interface IFileSystemOptions {
+    /**
+     * Represents the prefixing path scope the File System should operate at
+     *
+     * > **NOTE**: When used, [[IFileSystemQueryOptions.regex]] will not respect the configured value
+     */
+    scope: IFileSystemScope;
 }
 /**
  * Represents the options passable to [[FileSystemOverlay.read_directory]]
@@ -141,6 +162,22 @@ export declare enum FILE_SYSTEM_CHANGES {
  */
 export declare class FileSystemOverlay extends BaseOverlay {
     /**
+     * Represents the join function used for prefixing paths with the scope
+     *
+     * @internal
+     */
+    scope: IScopeJoin;
+    /**
+     * Represents the standardized options passed into the constructor
+     */
+    options: IFileSystemOptions;
+    constructor(adapter: BaseAdapter, options?: Partial<IFileSystemOptions>);
+    /**
+     * Returns a new [[FileSystemOverlay]] instance scoped to the given `path`
+     * @param path
+     */
+    create_scope(path: string): FileSystemOverlay;
+    /**
      * Returns a embedable URL representing a File in the File System
      *
      * > **NOTE**: Will not work with if the configured Adapter's [[BaseAdapter.can_hotlink]] is `false`
@@ -229,3 +266,4 @@ export declare class FileSystemOverlay extends BaseOverlay {
      */
     write_file_text(file_path: string, text: string): Promise<void>;
 }
+export {};

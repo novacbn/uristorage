@@ -1,11 +1,23 @@
-import {INode, IQueryResult, IURLObject, IWatchEvent} from "../adapters/base_adapter";
+import {BaseAdapter, IQueryResult, IURLObject, IWatchEvent} from "../adapters/base_adapter";
 import {NODE_CHANGES, NODE_TYPES} from "../util/constants";
 import {decode_utf8, encode_utf8} from "../util/encoding";
 import {IEvent, event} from "../util/event";
-import {dirname, normalize} from "../util/path";
+import {dirname, join, normalize} from "../util/path";
 import {IJSONReplacer, IJSONReviver, IJSONTypes} from "../util/types";
 
 import {BaseOverlay} from "./base_overlay";
+
+/**
+ * ...
+ *
+ * @internal
+ */
+type IScopeJoin = (part: string) => string;
+
+/**
+ * Represents a scope of the File System that should prefix all operation paths
+ */
+export type IFileSystemScope = IScopeJoin | string;
 
 /**
  * Represents the struct returned to queries and events as a result
@@ -55,6 +67,18 @@ export interface IFileSystemEntryStats {
      * Represents a timestamp in milliseconds since UNIX Epoch when the File System Entry was last modified
      */
     mtime: number;
+}
+
+/**
+ * Represents the options passable to [[FileSystemOverlay]]
+ */
+export interface IFileSystemOptions {
+    /**
+     * Represents the prefixing path scope the File System should operate at
+     *
+     * > **NOTE**: When used, [[IFileSystemQueryOptions.regex]] will not respect the configured value
+     */
+    scope: IFileSystemScope;
 }
 
 /**
@@ -174,6 +198,15 @@ const PATTERN_SEPARATOR_SEARCH = /\//g;
  *
  * @internal
  *
+ * @param part
+ */
+const SCOPE_NOOP = (part: string) => part;
+
+/**
+ * ...
+ *
+ * @internal
+ *
  * @param path
  */
 function count_slashes(path: string): number {
@@ -183,10 +216,53 @@ function count_slashes(path: string): number {
     return matches.length;
 }
 
+function FileSystemOptions(options: Partial<IFileSystemOptions> = {}): IFileSystemOptions {
+    let {scope = SCOPE_NOOP} = options;
+
+    if (typeof scope === "string") {
+        const prefix = normalize(scope);
+
+        scope = (part) => join(prefix, part);
+    }
+
+    return {scope};
+}
+
 /**
  * Represents a URIStorage Overlay that treats the configured Adapter as a psuedo File System
  */
 export class FileSystemOverlay extends BaseOverlay {
+    /**
+     * Represents the join function used for prefixing paths with the scope
+     *
+     * @internal
+     */
+    scope: IScopeJoin;
+
+    /**
+     * Represents the standardized options passed into the constructor
+     */
+    options: IFileSystemOptions;
+
+    constructor(adapter: BaseAdapter, options: Partial<IFileSystemOptions> = {}) {
+        super(adapter);
+
+        this.options = FileSystemOptions(options);
+        this.scope = this.options.scope as IScopeJoin;
+    }
+
+    /**
+     * Returns a new [[FileSystemOverlay]] instance scoped to the given `path`
+     * @param path
+     */
+    create_scope(path: string): FileSystemOverlay {
+        const filesystem = new FileSystemOverlay(this.adapter, {
+            scope: this.scope(path),
+        });
+
+        return filesystem;
+    }
+
     /**
      * Returns a embedable URL representing a File in the File System
      *
@@ -200,6 +276,8 @@ export class FileSystemOverlay extends BaseOverlay {
                 "bad dispatch to 'create_url_object' (adapter does not support feature)"
             );
         }
+
+        file_path = this.scope(file_path);
 
         const {adapter} = this;
         const node = await adapter.get(file_path);
@@ -226,6 +304,7 @@ export class FileSystemOverlay extends BaseOverlay {
 
         const {adapter} = this;
 
+        directory_path = this.scope(directory_path);
         directory_path = normalize(directory_path);
         if (directory_path === "/") {
             throw new Error(
@@ -270,6 +349,7 @@ export class FileSystemOverlay extends BaseOverlay {
      * @param path
      */
     async exists(path: string): Promise<boolean> {
+        path = this.scope(path);
         const node = await this.adapter.get(path);
 
         return !!node;
@@ -280,6 +360,7 @@ export class FileSystemOverlay extends BaseOverlay {
      * @param path
      */
     async get_stats(path: string): Promise<IFileSystemEntryStats> {
+        path = this.scope(path);
         const node = await this.adapter.get(path);
         if (!node) {
             throw new Error("bad argument #0 to 'get_stats' (path not found)");
@@ -313,7 +394,9 @@ export class FileSystemOverlay extends BaseOverlay {
 
         let results: IQueryResult[];
         if (path || path === "") {
-            const directory_path = normalize(path);
+            let directory_path = this.scope(path);
+            directory_path = normalize(directory_path);
+
             const node = await adapter.get(directory_path);
 
             if (directory_path !== "/") {
@@ -338,7 +421,10 @@ export class FileSystemOverlay extends BaseOverlay {
         } else if (glob) {
             results = await adapter.query({
                 type,
-                path: {glob},
+                path: {
+                    // NOTE: This **should** work, hopefully not missing any edge cases
+                    glob: this.scope(glob),
+                },
             });
         } else if (regex) {
             results = await adapter.query({
@@ -350,7 +436,7 @@ export class FileSystemOverlay extends BaseOverlay {
                 type,
                 path: {
                     recursive,
-                    path: "/",
+                    path: this.scope("/"),
                 },
             });
         }
@@ -373,8 +459,9 @@ export class FileSystemOverlay extends BaseOverlay {
      */
     async read_file(file_path: string): Promise<Uint8Array> {
         const {adapter} = this;
-        const node = await adapter.get(file_path);
+        file_path = this.scope(file_path);
 
+        const node = await adapter.get(file_path);
         if (!node) {
             throw new Error("bad argument #0 to 'read_file' (file path not found)");
         } else if (node.type !== NODE_TYPES.file) {
@@ -406,6 +493,7 @@ export class FileSystemOverlay extends BaseOverlay {
         const {adapter} = this;
         const {recursive = false} = options;
 
+        directory_path = this.scope(directory_path);
         directory_path = normalize(directory_path);
         if (directory_path === "/") {
             throw new Error("bad argument #0 to 'remove_directory' (directory path not found)");
@@ -458,8 +546,9 @@ export class FileSystemOverlay extends BaseOverlay {
         }
 
         const {adapter} = this;
-        const node = await adapter.get(file_path);
+        file_path = this.scope(file_path);
 
+        const node = await adapter.get(file_path);
         if (!node) {
             throw new Error("bad argument #0 to 'remove_file' (file path not found)");
         } else if (node.type !== NODE_TYPES.file) {
@@ -489,6 +578,7 @@ export class FileSystemOverlay extends BaseOverlay {
         const {adapter} = this;
         const {recursive} = options;
 
+        directory_path = this.scope(directory_path);
         directory_path = normalize(directory_path);
         if (directory_path !== "/") {
             const node = await adapter.get(directory_path);
@@ -556,8 +646,9 @@ export class FileSystemOverlay extends BaseOverlay {
         }
 
         const {adapter} = this;
-        const node = await adapter.get(file_path);
+        file_path = this.scope(file_path);
 
+        const node = await adapter.get(file_path);
         if (!node) {
             throw new Error("bad argument #0 to 'watch_file' (file path not found)");
         } else if (node.type !== NODE_TYPES.file) {
@@ -609,6 +700,7 @@ export class FileSystemOverlay extends BaseOverlay {
 
         const {adapter} = this;
 
+        file_path = this.scope(file_path);
         file_path = normalize(file_path);
         if (file_path === "/") {
             throw new Error("bad argument #0 to 'write_file' (file path is not a file)");
