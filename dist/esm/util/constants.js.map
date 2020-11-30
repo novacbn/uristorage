@@ -1,7 +1,7 @@
 {
   "version": 3,
-  "sources": ["src/util/constants.ts"],
+  "sources": ["../../../src/util/constants.ts"],
   "sourcesContent": ["/**\n * Represents the default [Mime Type](https://en.wikipedia.org/wiki/Media_type#Mime.types) to use whenever one is not\n * specified, or could not be queried\n */\nexport const DEFAULT_MIME_TYPE = \"application/octet-stream\";\n\n/**\n * Represents encoding modes supported by various functions, e.g. [[decompress]]\n */\nexport enum ENCODING_MODE {\n    /**\n     * Represents that the input or output should be encoded into a `Uint8Array` byte array\n     */\n    bytes = \"MODE_BYTES\",\n\n    /**\n     * Represents that the input or output should be encoded into a `string`\n     */\n    text = \"MODE_TEXT\",\n}\n\nexport enum NODE_CHANGES {\n    attached = \"CHANGE_ATTACHED\",\n\n    created = \"CHANGE_CREATED\",\n\n    updated = \"CHANGE_UPDATED\",\n\n    removed = \"CHANGE_REMOVED\",\n}\n\n/**\n * Represents the standard Node types supported by URIStorage Adapters\n */\nexport enum NODE_TYPES {\n    /**\n     * Represents that the Node should be processed as a Directory of Nodes\n     */\n    directory = \"NODE_DIRECTORY\",\n\n    /**\n     * Represents that the Node should be processed as a File payload\n     */\n    file = \"NODE_FILE\",\n\n    /**\n     * Represents that the Node has no instrinic representation\n     */\n    undefined = \"NODE_UNDEFINED\",\n}\n"],
-  "mappings": "AAIO,MAAM,oBAAoB;AAK1B,IAAK;AAAL,UAAK;AAIR,4BAAQ;AAKR,2BAAO;AAAA,GATC;AAYL,IAAK;AAAL,UAAK;AACR,8BAAW;AAEX,6BAAU;AAEV,6BAAU;AAEV,6BAAU;AAAA,GAPF;AAaL,IAAK;AAAL,UAAK;AAIR,6BAAY;AAKZ,wBAAO;AAKP,6BAAY;AAAA,GAdJ;",
+  "mappings": "AAIO,MAAM,oBAAoB;AAK1B;AAAA;AAIH,4BAAQ;AAKR,2BAAO;AAAA,GATC;AAYL;AAAA;AACH,8BAAW;AAEX,6BAAU;AAEV,6BAAU;AAEV,6BAAU;AAAA,GAPF;AAaL;AAAA;AAIH,6BAAY;AAKZ,wBAAO;AAKP,6BAAY;AAAA,GAdJ;",
   "names": []
 }

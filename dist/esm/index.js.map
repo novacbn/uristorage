@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "sources": ["src/index.ts"],
+  "sources": ["../../src/index.ts"],
   "sourcesContent": ["export * from \"./adapters\";\nexport * from \"./overlays\";\n\nexport * from \"./util/compression\";\nexport * from \"./util/encoding\";\nexport * from \"./util/glob\";\nexport * from \"./util/mime_types\";\nexport * from \"./util/path\";\n\nexport * from \"./storage_registry\";\n"],
   "mappings": "AAAA;AACA;AAEA;AACA;AACA;AACA;AACA;AAEA;",
   "names": []

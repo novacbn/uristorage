@@ -24,7 +24,7 @@ const OPTIONS_NODE = {
     ...OPTIONS_DEFAULT,
 
     platform: "node",
-    entryPoints: glob.sync("./src/**/*.ts"),
+    entryPoints: [...glob.sync("./src/**/*.ts"), ...glob.sync("./src/**/*.json")],
 };
 
 (async () => {
