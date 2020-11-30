@@ -1,7 +1,7 @@
 import {NODE_CHANGES, NODE_TYPES} from "../util/constants";
 import {decode_utf8, encode_utf8} from "../util/encoding";
 import {event as event2} from "../util/event";
-import {dirname, normalize} from "../util/path";
+import {dirname, join, normalize} from "../util/path";
 import {BaseOverlay} from "./base_overlay";
 var FILE_SYSTEM_CHANGES;
 (function(FILE_SYSTEM_CHANGES2) {
@@ -10,17 +10,38 @@ var FILE_SYSTEM_CHANGES;
   FILE_SYSTEM_CHANGES2["updated"] = "CHANGE_UPDATED";
 })(FILE_SYSTEM_CHANGES || (FILE_SYSTEM_CHANGES = {}));
 const PATTERN_SEPARATOR_SEARCH = /\//g;
+const SCOPE_NOOP = (part) => part;
 function count_slashes(path2) {
   const matches = path2.match(PATTERN_SEPARATOR_SEARCH);
   if (!matches)
     return 0;
   return matches.length;
 }
+function FileSystemOptions(options = {}) {
+  let {scope = SCOPE_NOOP} = options;
+  if (typeof scope === "string") {
+    const prefix = normalize(scope);
+    scope = (part) => join(prefix, part);
+  }
+  return {scope};
+}
 class FileSystemOverlay extends BaseOverlay {
+  constructor(adapter, options = {}) {
+    super(adapter);
+    this.options = FileSystemOptions(options);
+    this.scope = this.options.scope;
+  }
+  create_scope(path2) {
+    const filesystem = new FileSystemOverlay(this.adapter, {
+      scope: this.scope(path2)
+    });
+    return filesystem;
+  }
   async create_url_object(file_path) {
     if (!this.has_feature("can_hotlink")) {
       throw new Error("bad dispatch to 'create_url_object' (adapter does not support feature)");
     }
+    file_path = this.scope(file_path);
     const {adapter} = this;
     const node = await adapter.get(file_path);
     if (!node) {
@@ -35,6 +56,7 @@ class FileSystemOverlay extends BaseOverlay {
       throw new Error("bad dispatch to 'create_directory' (adapter does not support feature)");
     }
     const {adapter} = this;
+    directory_path = this.scope(directory_path);
     directory_path = normalize(directory_path);
     if (directory_path === "/") {
       throw new Error("bad argument #0 to 'create_directory' (directory path is already a directory)");
@@ -60,10 +82,12 @@ class FileSystemOverlay extends BaseOverlay {
     return adapter.put(directory_path, NODE_TYPES.directory);
   }
   async exists(path2) {
+    path2 = this.scope(path2);
     const node = await this.adapter.get(path2);
     return !!node;
   }
   async get_stats(path2) {
+    path2 = this.scope(path2);
     const node = await this.adapter.get(path2);
     if (!node) {
       throw new Error("bad argument #0 to 'get_stats' (path not found)");
@@ -88,7 +112,8 @@ class FileSystemOverlay extends BaseOverlay {
       type = [NODE_TYPES.directory, NODE_TYPES.file];
     let results;
     if (path2 || path2 === "") {
-      const directory_path = normalize(path2);
+      let directory_path = this.scope(path2);
+      directory_path = normalize(directory_path);
       const node = await adapter.get(directory_path);
       if (directory_path !== "/") {
         if (!node) {
@@ -107,7 +132,9 @@ class FileSystemOverlay extends BaseOverlay {
     } else if (glob) {
       results = await adapter.query({
         type,
-        path: {glob}
+        path: {
+          glob: this.scope(glob)
+        }
       });
     } else if (regex) {
       results = await adapter.query({
@@ -119,7 +146,7 @@ class FileSystemOverlay extends BaseOverlay {
         type,
         path: {
           recursive,
-          path: "/"
+          path: this.scope("/")
         }
       });
     }
@@ -134,6 +161,7 @@ class FileSystemOverlay extends BaseOverlay {
   }
   async read_file(file_path) {
     const {adapter} = this;
+    file_path = this.scope(file_path);
     const node = await adapter.get(file_path);
     if (!node) {
       throw new Error("bad argument #0 to 'read_file' (file path not found)");
@@ -149,6 +177,7 @@ class FileSystemOverlay extends BaseOverlay {
     }
     const {adapter} = this;
     const {recursive = false} = options;
+    directory_path = this.scope(directory_path);
     directory_path = normalize(directory_path);
     if (directory_path === "/") {
       throw new Error("bad argument #0 to 'remove_directory' (directory path not found)");
@@ -183,6 +212,7 @@ class FileSystemOverlay extends BaseOverlay {
       throw new Error("bad dispatch to 'remove_file' (adapter does not support feature)");
     }
     const {adapter} = this;
+    file_path = this.scope(file_path);
     const node = await adapter.get(file_path);
     if (!node) {
       throw new Error("bad argument #0 to 'remove_file' (file path not found)");
@@ -200,6 +230,7 @@ class FileSystemOverlay extends BaseOverlay {
     }
     const {adapter} = this;
     const {recursive} = options;
+    directory_path = this.scope(directory_path);
     directory_path = normalize(directory_path);
     if (directory_path !== "/") {
       const node = await adapter.get(directory_path);
@@ -249,6 +280,7 @@ class FileSystemOverlay extends BaseOverlay {
       throw new Error("bad dispatch to 'watch_file' (adapter does not support feature)");
     }
     const {adapter} = this;
+    file_path = this.scope(file_path);
     const node = await adapter.get(file_path);
     if (!node) {
       throw new Error("bad argument #0 to 'watch_file' (file path not found)");
@@ -287,6 +319,7 @@ class FileSystemOverlay extends BaseOverlay {
       throw new Error("bad dispatch to 'write_file' (adapter does not support feature)");
     }
     const {adapter} = this;
+    file_path = this.scope(file_path);
     file_path = normalize(file_path);
     if (file_path === "/") {
       throw new Error("bad argument #0 to 'write_file' (file path is not a file)");
