@@ -6,6 +6,52 @@ Provides a collection of Adapters that abstract various backends into simplistic
 
 > **NOTE**: This library provides utilities for working with compression, encoding, UNIX Glob patterns, filesystem paths, and mime types. Please use those, as they are tested to work with the library and _should_ be fully Browser-compatible.
 
+## Sample
+
+```javascript
+import {FileSystemOverlay, LocalStorageAdapter, MemoryAdapter} from "uristorage";
+
+// Some Browsers may not support `window.localStorage`, or are otherwise in
+// Private Browsing mode. So we need to default to another Adapter when not available.
+const adapter = LocalStorageAdapter.is_available
+    ? // With `LocalStorageAdapter`, we target `window.localStorage` for persistence. Thus
+      // when the page is navigated away from, data is saved.
+      new LocalStorageAdapter({
+          // Option to use LZ77 compression before storing binary objects
+          compressed: true, // default
+
+          // Option to how to namespace your Adapter's access
+          namespace: "uristorage", // default
+      })
+    : // with `MemoryAdapter`, we target RAM Memory for persistence. Thus
+      // when the page is navigated away from, data is not saved.
+      new MemoryAdapter({
+          // Option to use LZ77 compression before storing binary objects
+          compressed: false, // default
+      });
+
+// Using the Adapter we chose as the backend, we can create a
+// File System-like abstraction as an Overlay
+const filesystem = new FileSystemOverlay(adapter);
+
+// Using the Overlay, you can see how we can perform File System-like operations
+await filesystem.write_file_text("README.md", "# Hello World");
+
+const content = await filesystem.read_file_text("README.md");
+console.log(content); // prints `# Hello World`
+
+// And even have directories, and query them with things like Glob Patterns
+const entries = await filesystem.read_directory({
+    glob: "*.md",
+});
+
+for (const entry of entries) {
+    const {is_file, path} = entry;
+
+    console.log({is_file, path}); // prints `{is_file: true, path: "/README.md"}`
+}
+```
+
 ## Developer
 
 ### Installation
@@ -14,6 +60,12 @@ Open your terminal and install via `npm`:
 
 ```sh
 npm install git+https://github.com/novacbn/uristorage#0.0.2
+```
+
+Download current in-development code:
+
+```sh
+npm install git+https://github.com/novacbn/uristorage
 ```
 
 ### Documentation
