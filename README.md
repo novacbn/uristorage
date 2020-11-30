@@ -13,7 +13,7 @@ Provides a collection of Adapters that abstract various backends into simplistic
 Open your terminal and install via `npm`:
 
 ```sh
-npm install git+https://github.com/novacbn/uristorage#0.0.1
+npm install git+https://github.com/novacbn/uristorage#0.0.2
 ```
 
 ### Documentation
@@ -77,6 +77,7 @@ See TypeDoc documentation at [novacbn.github.io/uristorage](https://novacbn.gith
     -   [`FileSystemOverlay`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html) — **shared**
 
         -   [`FileSystemOverlay.create_directory`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#create_directory)
+        -   [`FileSystemOverlay.create_scope`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#create_scope)
         -   [`FileSystemOverlay.create_url_object`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#create_url_object)
         -   [`FileSystemOverlay.exists`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#exists)
         -   [`FileSystemOverlay.get_stats`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#get_stats)
