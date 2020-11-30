@@ -78,6 +78,7 @@ See TypeDoc documentation at [novacbn.github.io/uristorage](https://novacbn.gith
 
         -   [`FileSystemOverlay.create_directory`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#create_directory)
         -   [`FileSystemOverlay.create_url_object`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#create_url_object)
+        -   [`FileSystemOverlay.exists`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#exists)
         -   [`FileSystemOverlay.get_stats`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#get_stats)
         -   [`FileSystemOverlay.read_directory`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#read_directory)
         -   [`FileSystemOverlay.read_file`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#read_file)
