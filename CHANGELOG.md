@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.0.3 (2020/12/07)
+
+-   Fixed bug where `WebStorageAdapter` would not remove directories
+
 ## v0.0.2 (2020/11/30)
 
 -   Added `FileSystemOverlay.create_scope(path: string): FileSystemOverlay`, which returns a new `FileSystemOverlay` instance scoped to the given path

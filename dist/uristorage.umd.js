@@ -10655,11 +10655,12 @@ var URIStorage = (() => {
     }
     remove(path5) {
       const {storage} = this;
-      const item = storage.getItem(path5);
+      const key_node = this.prefix_node + path5;
+      const item = storage.getItem(key_node);
       if (!item)
         return false;
       const node = JSON.parse(item);
-      storage.removeItem(this.prefix_node + path5);
+      storage.removeItem(key_node);
       storage.removeItem(this.prefix_payload + path5);
       this.EVENT_WATCH.dispatch({
         change: NODE_CHANGES.removed,

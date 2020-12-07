@@ -59,7 +59,7 @@ for (const entry of entries) {
 Open your terminal and install via `npm`:
 
 ```sh
-npm install git+https://github.com/novacbn/uristorage#0.0.2
+npm install git+https://github.com/novacbn/uristorage#0.0.3
 ```
 
 Download current in-development code:

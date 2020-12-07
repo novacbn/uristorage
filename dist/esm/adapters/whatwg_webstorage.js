@@ -87,11 +87,12 @@ class WebStorage {
   }
   remove(path) {
     const {storage} = this;
-    const item = storage.getItem(path);
+    const key_node = this.prefix_node + path;
+    const item = storage.getItem(key_node);
     if (!item)
       return false;
     const node = JSON.parse(item);
-    storage.removeItem(this.prefix_node + path);
+    storage.removeItem(key_node);
     storage.removeItem(this.prefix_payload + path);
     this.EVENT_WATCH.dispatch({
       change: NODE_CHANGES.removed,
