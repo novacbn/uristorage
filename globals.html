@@ -60,6 +60,50 @@
 			<blockquote>
 				<p><strong>NOTE</strong>: This library provides utilities for working with compression, encoding, UNIX Glob patterns, filesystem paths, and mime types. Please use those, as they are tested to work with the library and <em>should</em> be fully Browser-compatible.</p>
 			</blockquote>
+			<a href="#sample" id="sample" style="color: inherit; text-decoration: none;">
+				<h2>Sample</h2>
+			</a>
+			<pre><code class="language-javascript"><span class="hljs-keyword">import</span> {FileSystemOverlay, LocalStorageAdapter, MemoryAdapter} <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;uristorage&quot;</span>;
+
+<span class="hljs-comment">// Some Browsers may not support `window.localStorage`, or are otherwise in</span>
+<span class="hljs-comment">// Private Browsing mode. So we need to default to another Adapter when not available.</span>
+<span class="hljs-keyword">const</span> adapter = LocalStorageAdapter.is_available
+    ? <span class="hljs-comment">// With `LocalStorageAdapter`, we target `window.localStorage` for persistence. Thus</span>
+      <span class="hljs-comment">// when the page is navigated away from, data is saved.</span>
+      <span class="hljs-keyword">new</span> LocalStorageAdapter({
+          <span class="hljs-comment">// Option to use LZ77 compression before storing binary objects</span>
+          <span class="hljs-attr">compressed</span>: <span class="hljs-literal">true</span>, <span class="hljs-comment">// default</span>
+
+          <span class="hljs-comment">// Option to how to namespace your Adapter&#x27;s access</span>
+          <span class="hljs-attr">namespace</span>: <span class="hljs-string">&quot;uristorage&quot;</span>, <span class="hljs-comment">// default</span>
+      })
+    : <span class="hljs-comment">// with `MemoryAdapter`, we target RAM Memory for persistence. Thus</span>
+      <span class="hljs-comment">// when the page is navigated away from, data is not saved.</span>
+      <span class="hljs-keyword">new</span> MemoryAdapter({
+          <span class="hljs-comment">// Option to use LZ77 compression before storing binary objects</span>
+          <span class="hljs-attr">compressed</span>: <span class="hljs-literal">false</span>, <span class="hljs-comment">// default</span>
+      });
+
+<span class="hljs-comment">// Using the Adapter we chose as the backend, we can create a</span>
+<span class="hljs-comment">// File System-like abstraction as an Overlay</span>
+<span class="hljs-keyword">const</span> filesystem = <span class="hljs-keyword">new</span> FileSystemOverlay(adapter);
+
+<span class="hljs-comment">// Using the Overlay, you can see how we can perform File System-like operations</span>
+<span class="hljs-keyword">await</span> filesystem.write_file_text(<span class="hljs-string">&quot;README.md&quot;</span>, <span class="hljs-string">&quot;# Hello World&quot;</span>);
+
+<span class="hljs-keyword">const</span> content = <span class="hljs-keyword">await</span> filesystem.read_file_text(<span class="hljs-string">&quot;README.md&quot;</span>);
+<span class="hljs-built_in">console</span>.log(content); <span class="hljs-comment">// prints `# Hello World`</span>
+
+<span class="hljs-comment">// And even have directories, and query them with things like Glob Patterns</span>
+<span class="hljs-keyword">const</span> entries = <span class="hljs-keyword">await</span> filesystem.read_directory({
+    <span class="hljs-attr">glob</span>: <span class="hljs-string">&quot;*.md&quot;</span>,
+});
+
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> entry <span class="hljs-keyword">of</span> entries) {
+    <span class="hljs-keyword">const</span> {is_file, path} = entry;
+
+    <span class="hljs-built_in">console</span>.log({is_file, path}); <span class="hljs-comment">// prints `{is_file: true, path: &quot;/README.md&quot;}`</span>
+}</code></pre>
 			<a href="#developer" id="developer" style="color: inherit; text-decoration: none;">
 				<h2>Developer</h2>
 			</a>
@@ -67,7 +111,9 @@
 				<h3>Installation</h3>
 			</a>
 			<p>Open your terminal and install via <code>npm</code>:</p>
-			<pre><code class="language-sh">npm install git+https://github.com/novacbn/uristorage<span class="hljs-comment">#0.0.2</span></code></pre>
+			<pre><code class="language-sh">npm install git+https://github.com/novacbn/uristorage<span class="hljs-comment">#0.0.3</span></code></pre>
+			<p>Download current in-development code:</p>
+			<pre><code class="language-sh">npm install git+https://github.com/novacbn/uristorage</code></pre>
 			<a href="#documentation" id="documentation" style="color: inherit; text-decoration: none;">
 				<h3>Documentation</h3>
 			</a>
