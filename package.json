@@ -1,10 +1,10 @@
 {
     "name": "uristorage",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Provides abstractions for working with different backends as a simplistic Object Storage",
     "author": "novacbn",
     "main": "lib/index.js",
-    "module": "dist/esm/index.js",
+    "module": "lib/index.mjs",
     "global": "URIStorage",
     "typings": "types/index.d.ts",
     "keywords": [

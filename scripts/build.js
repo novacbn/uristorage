@@ -31,7 +31,7 @@ const OPTIONS_NODE = {
     const service = await startService();
 
     try {
-        let x = await Promise.all([
+        await Promise.all([
             service.build({
                 ...OPTIONS_NODE,
                 format: "cjs",
@@ -41,6 +41,7 @@ const OPTIONS_NODE = {
                 ...OPTIONS_NODE,
                 format: "esm",
                 outdir: dirname(PACKAGE.module),
+                outExtension: {".js": ".mjs"},
             }),
 
             service.build({
