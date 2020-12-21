@@ -7,7 +7,9 @@
     -   Supports all `FileSystemOverlay` methods, selecting the appropriate registered `FileSystemOverlay` by URI protocol
 -   Updated `StorageRegistry.(delete / set)` to `StorageRegistry.(register / unregister)`
     -   Updated `StorageRegistry.unregister` to unmount Storage nodes
--   Updated `StorageRegister.resolve` to return `null` on non-registered protocols
+-   Updated `StorageRegister.resolve`
+    -   Updated to accept `URL` instances
+    -   Updated to return `null` on non-registered protocols
 -   Updated mimetypes build script to export a TypeScript (`.ts`) file instead of a JSON (`.json`) file
 -   Updated build script to export ECMAScript Module (`.mjs`) files instead of separate directory
 
