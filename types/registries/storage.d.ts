@@ -27,5 +27,5 @@ export declare class StorageRegistry<T extends IStorage = IStorage, V extends IR
     clear(): void;
     register(namespace: string, storage: T): this | Promise<this>;
     unregister(namespace: string): this | Promise<this>;
-    resolve(uri: string): (V & IRegistryResolveResult) | null;
+    resolve(uri: string | URL): (V & IRegistryResolveResult) | null;
 }

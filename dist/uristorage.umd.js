@@ -9664,7 +9664,7 @@ var URIStorage = (() => {
         throw new Error(`bad argument #0 to 'register' (namespace '${namespace}' already registered)`);
       }
       const node = {namespace, storage: storage2};
-      super.set(namespace, node);
+      this.set(namespace, node);
       storage2.EVENT_MOUNTED.subscribe(() => this.EVENT_MOUNTED.dispatch({namespace, storage: storage2}));
       storage2.EVENT_UNMOUNTED.subscribe(() => this.EVENT_UNMOUNTED.dispatch({namespace, storage: storage2}));
       this.EVENT_REGISTERED.dispatch({namespace, storage: storage2});
@@ -9675,22 +9675,23 @@ var URIStorage = (() => {
       if (!node) {
         throw new Error(`bad argument #0 to 'unregister' (namespace '${namespace}' not registered)`);
       }
-      super.delete(namespace);
+      this.delete(namespace);
       this.EVENT_UNREGISTERED.dispatch({namespace, storage: node.storage});
       return this;
     }
     resolve(uri) {
-      let url;
-      try {
-        url = new URL(uri);
-      } catch (err) {
-        return null;
+      if (typeof uri === "string") {
+        try {
+          uri = new URL(uri);
+        } catch (err) {
+          return null;
+        }
       }
-      const namespace = url.protocol.slice(0, -1);
+      const namespace = uri.protocol.slice(0, -1);
       const node = this.get(namespace);
       if (!node)
         return null;
-      return {...node, path: url.pathname};
+      return {...node, path: uri.pathname};
     }
   }
 

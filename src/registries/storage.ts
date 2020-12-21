@@ -72,7 +72,7 @@ export class StorageRegistry<
 
         // @ts-ignore
         const node: V = {namespace, storage};
-        super.set(namespace, node);
+        this.set(namespace, node);
 
         storage.EVENT_MOUNTED.subscribe(() => this.EVENT_MOUNTED.dispatch({namespace, storage}));
         storage.EVENT_UNMOUNTED.subscribe(() =>
@@ -91,23 +91,24 @@ export class StorageRegistry<
             );
         }
 
-        super.delete(namespace);
+        this.delete(namespace);
         this.EVENT_UNREGISTERED.dispatch({namespace, storage: node.storage});
         return this;
     }
 
-    resolve(uri: string): (V & IRegistryResolveResult) | null {
-        let url: URL;
-        try {
-            url = new URL(uri);
-        } catch (err) {
-            return null;
+    resolve(uri: string | URL): (V & IRegistryResolveResult) | null {
+        if (typeof uri === "string") {
+            try {
+                uri = new URL(uri);
+            } catch (err) {
+                return null;
+            }
         }
 
-        const namespace = url.protocol.slice(0, -1);
+        const namespace = uri.protocol.slice(0, -1);
         const node = this.get(namespace);
-        if (!node) return null;
 
-        return {...node, path: url.pathname};
+        if (!node) return null;
+        return {...node, path: uri.pathname};
     }
 }
