@@ -39,16 +39,16 @@ var URIStorage = (() => {
       if (typeof glob3 !== "string") {
         throw new TypeError("Expected a string");
       }
-      var str2 = String(glob3);
+      var str = String(glob3);
       var reStr = "";
       var extended = opts ? !!opts.extended : false;
       var globstar = opts ? !!opts.globstar : false;
       var inGroup = false;
       var flags = opts && typeof opts.flags === "string" ? opts.flags : "";
-      var c2;
-      for (var i = 0, len = str2.length; i < len; i++) {
-        c2 = str2[i];
-        switch (c2) {
+      var c;
+      for (var i = 0, len = str.length; i < len; i++) {
+        c = str[i];
+        switch (c) {
           case "/":
           case "$":
           case "^":
@@ -59,7 +59,7 @@ var URIStorage = (() => {
           case "=":
           case "!":
           case "|":
-            reStr += "\\" + c2;
+            reStr += "\\" + c;
             break;
           case "?":
             if (extended) {
@@ -69,7 +69,7 @@ var URIStorage = (() => {
           case "[":
           case "]":
             if (extended) {
-              reStr += c2;
+              reStr += c;
               break;
             }
           case "{":
@@ -89,16 +89,16 @@ var URIStorage = (() => {
               reStr += "|";
               break;
             }
-            reStr += "\\" + c2;
+            reStr += "\\" + c;
             break;
           case "*":
-            var prevChar = str2[i - 1];
+            var prevChar = str[i - 1];
             var starCount = 1;
-            while (str2[i + 1] === "*") {
+            while (str[i + 1] === "*") {
               starCount++;
               i++;
             }
-            var nextChar = str2[i + 1];
+            var nextChar = str[i + 1];
             if (!globstar) {
               reStr += ".*";
             } else {
@@ -112,7 +112,7 @@ var URIStorage = (() => {
             }
             break;
           default:
-            reStr += c2;
+            reStr += c;
         }
       }
       if (!flags || !~flags.indexOf("g")) {
@@ -131,7 +131,7 @@ var URIStorage = (() => {
       }
     }
     function normalizeStringPosix(path5, allowAboveRoot) {
-      var res2 = "";
+      var res = "";
       var lastSegmentLength = 0;
       var lastSlash = -1;
       var dots = 0;
@@ -146,23 +146,23 @@ var URIStorage = (() => {
         if (code === 47) {
           if (lastSlash === i - 1 || dots === 1) {
           } else if (lastSlash !== i - 1 && dots === 2) {
-            if (res2.length < 2 || lastSegmentLength !== 2 || res2.charCodeAt(res2.length - 1) !== 46 || res2.charCodeAt(res2.length - 2) !== 46) {
-              if (res2.length > 2) {
-                var lastSlashIndex = res2.lastIndexOf("/");
-                if (lastSlashIndex !== res2.length - 1) {
+            if (res.length < 2 || lastSegmentLength !== 2 || res.charCodeAt(res.length - 1) !== 46 || res.charCodeAt(res.length - 2) !== 46) {
+              if (res.length > 2) {
+                var lastSlashIndex = res.lastIndexOf("/");
+                if (lastSlashIndex !== res.length - 1) {
                   if (lastSlashIndex === -1) {
-                    res2 = "";
+                    res = "";
                     lastSegmentLength = 0;
                   } else {
-                    res2 = res2.slice(0, lastSlashIndex);
-                    lastSegmentLength = res2.length - 1 - res2.lastIndexOf("/");
+                    res = res.slice(0, lastSlashIndex);
+                    lastSegmentLength = res.length - 1 - res.lastIndexOf("/");
                   }
                   lastSlash = i;
                   dots = 0;
                   continue;
                 }
-              } else if (res2.length === 2 || res2.length === 1) {
-                res2 = "";
+              } else if (res.length === 2 || res.length === 1) {
+                res = "";
                 lastSegmentLength = 0;
                 lastSlash = i;
                 dots = 0;
@@ -170,17 +170,17 @@ var URIStorage = (() => {
               }
             }
             if (allowAboveRoot) {
-              if (res2.length > 0)
-                res2 += "/..";
+              if (res.length > 0)
+                res += "/..";
               else
-                res2 = "..";
+                res = "..";
               lastSegmentLength = 2;
             }
           } else {
-            if (res2.length > 0)
-              res2 += "/" + path5.slice(lastSlash + 1, i);
+            if (res.length > 0)
+              res += "/" + path5.slice(lastSlash + 1, i);
             else
-              res2 = path5.slice(lastSlash + 1, i);
+              res = path5.slice(lastSlash + 1, i);
             lastSegmentLength = i - lastSlash - 1;
           }
           lastSlash = i;
@@ -191,18 +191,18 @@ var URIStorage = (() => {
           dots = -1;
         }
       }
-      return res2;
+      return res;
     }
     function _format(sep3, pathObject) {
-      var dir2 = pathObject.dir || pathObject.root;
+      var dir = pathObject.dir || pathObject.root;
       var base = pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
-      if (!dir2) {
+      if (!dir) {
         return base;
       }
-      if (dir2 === pathObject.root) {
-        return dir2 + base;
+      if (dir === pathObject.root) {
+        return dir + base;
       }
-      return dir2 + sep3 + base;
+      return dir + sep3 + base;
     }
     var posix = {
       resolve: function resolve3() {
@@ -370,18 +370,18 @@ var URIStorage = (() => {
           return "//";
         return path5.slice(0, end);
       },
-      basename: function basename3(path5, ext2) {
-        if (ext2 !== void 0 && typeof ext2 !== "string")
+      basename: function basename3(path5, ext) {
+        if (ext !== void 0 && typeof ext !== "string")
           throw new TypeError('"ext" argument must be a string');
         assertPath(path5);
         var start = 0;
         var end = -1;
         var matchedSlash = true;
         var i;
-        if (ext2 !== void 0 && ext2.length > 0 && ext2.length <= path5.length) {
-          if (ext2.length === path5.length && ext2 === path5)
+        if (ext !== void 0 && ext.length > 0 && ext.length <= path5.length) {
+          if (ext.length === path5.length && ext === path5)
             return "";
-          var extIdx = ext2.length - 1;
+          var extIdx = ext.length - 1;
           var firstNonSlashEnd = -1;
           for (i = path5.length - 1; i >= 0; --i) {
             var code = path5.charCodeAt(i);
@@ -396,7 +396,7 @@ var URIStorage = (() => {
                 firstNonSlashEnd = i + 1;
               }
               if (extIdx >= 0) {
-                if (code === ext2.charCodeAt(extIdx)) {
+                if (code === ext.charCodeAt(extIdx)) {
                   if (--extIdx === -1) {
                     end = i;
                   }
@@ -738,14 +738,14 @@ var URIStorage = (() => {
           var NodeStream = require("stream");
           var compressionStream = new NodeStream.Transform({decodeStrings: true, highWaterMark: 65536});
           compressionStream._transform = function(data, encoding3, done) {
-            var buffer2;
+            var buffer;
             try {
-              buffer2 = LZUTF82.BufferTools.uint8ArrayToBuffer(compressor.compressBlock(LZUTF82.BufferTools.bufferToUint8Array(data)));
+              buffer = LZUTF82.BufferTools.uint8ArrayToBuffer(compressor.compressBlock(LZUTF82.BufferTools.bufferToUint8Array(data)));
             } catch (e) {
               compressionStream.emit("error", e);
               return;
             }
-            compressionStream.push(buffer2);
+            compressionStream.push(buffer);
             done();
           };
           return compressionStream;
@@ -815,14 +815,14 @@ var URIStorage = (() => {
           var NodeStream = require("stream");
           var decompressionStream = new NodeStream.Transform({decodeStrings: true, highWaterMark: 65536});
           decompressionStream._transform = function(data, encoding3, done) {
-            var buffer2;
+            var buffer;
             try {
-              buffer2 = LZUTF82.BufferTools.uint8ArrayToBuffer(decompressor.decompressBlock(LZUTF82.BufferTools.bufferToUint8Array(data)));
+              buffer = LZUTF82.BufferTools.uint8ArrayToBuffer(decompressor.decompressBlock(LZUTF82.BufferTools.bufferToUint8Array(data)));
             } catch (e) {
               decompressionStream.emit("error", e);
               return;
             }
-            decompressionStream.push(buffer2);
+            decompressionStream.push(buffer);
             done();
           };
           return decompressionStream;
@@ -1075,12 +1075,12 @@ var URIStorage = (() => {
     (function(LZUTF82) {
       var CompressionCommon;
       (function(CompressionCommon2) {
-        CompressionCommon2.getCroppedBuffer = function(buffer2, cropStartOffset, cropLength, additionalCapacity) {
+        CompressionCommon2.getCroppedBuffer = function(buffer, cropStartOffset, cropLength, additionalCapacity) {
           if (additionalCapacity === void 0) {
             additionalCapacity = 0;
           }
           var croppedBuffer = new Uint8Array(cropLength + additionalCapacity);
-          croppedBuffer.set(buffer2.subarray(cropStartOffset, cropStartOffset + cropLength));
+          croppedBuffer.set(buffer.subarray(cropStartOffset, cropStartOffset + cropLength));
           return croppedBuffer;
         };
         CompressionCommon2.getCroppedAndAppendedByteArray = function(bytes, cropStartOffset, cropLength, byteArrayToAppend) {
@@ -1224,13 +1224,13 @@ var URIStorage = (() => {
     (function(LZUTF82) {
       var ObjectTools;
       (function(ObjectTools2) {
-        ObjectTools2.override = function(obj2, newPropertyValues) {
-          return ObjectTools2.extend(obj2, newPropertyValues);
+        ObjectTools2.override = function(obj, newPropertyValues) {
+          return ObjectTools2.extend(obj, newPropertyValues);
         };
-        ObjectTools2.extend = function(obj2, newProperties) {
-          if (obj2 == null)
+        ObjectTools2.extend = function(obj, newProperties) {
+          if (obj == null)
             throw new TypeError("obj is null or undefined");
-          if (typeof obj2 !== "object")
+          if (typeof obj !== "object")
             throw new TypeError("obj is not an object");
           if (newProperties == null)
             newProperties = {};
@@ -1238,9 +1238,9 @@ var URIStorage = (() => {
             throw new TypeError("newProperties is not an object");
           if (newProperties != null) {
             for (var property in newProperties)
-              obj2[property] = newProperties[property];
+              obj[property] = newProperties[property];
           }
-          return obj2;
+          return obj;
         };
       })(ObjectTools = LZUTF82.ObjectTools || (LZUTF82.ObjectTools = {}));
     })(LZUTF8 || (LZUTF8 = {}));
@@ -1282,9 +1282,9 @@ var URIStorage = (() => {
           for (var i = 0, length_1 = charCodes.length; i < length_1; i++)
             this.appendCharCode(charCodes[i]);
         };
-        StringBuilder2.prototype.appendString = function(str2) {
-          for (var i = 0, length_2 = str2.length; i < length_2; i++)
-            this.appendCharCode(str2.charCodeAt(i));
+        StringBuilder2.prototype.appendString = function(str) {
+          for (var i = 0, length_2 = str.length; i < length_2; i++)
+            this.appendCharCode(str.charCodeAt(i));
         };
         StringBuilder2.prototype.appendCodePoint = function(codePoint) {
           if (codePoint <= 65535) {
@@ -1756,28 +1756,28 @@ var URIStorage = (() => {
             }
             if (!inputBytes || inputBytes.length == 0)
               return "";
-            var map4 = charCodeMap;
+            var map3 = charCodeMap;
             var output = new LZUTF82.StringBuilder();
             var uint24;
             for (var readPosition = 0, length_5 = inputBytes.length; readPosition < length_5; readPosition += 3) {
               if (readPosition <= length_5 - 3) {
                 uint24 = inputBytes[readPosition] << 16 | inputBytes[readPosition + 1] << 8 | inputBytes[readPosition + 2];
-                output.appendCharCode(map4[uint24 >>> 18 & 63]);
-                output.appendCharCode(map4[uint24 >>> 12 & 63]);
-                output.appendCharCode(map4[uint24 >>> 6 & 63]);
-                output.appendCharCode(map4[uint24 & 63]);
+                output.appendCharCode(map3[uint24 >>> 18 & 63]);
+                output.appendCharCode(map3[uint24 >>> 12 & 63]);
+                output.appendCharCode(map3[uint24 >>> 6 & 63]);
+                output.appendCharCode(map3[uint24 & 63]);
                 uint24 = 0;
               } else if (readPosition === length_5 - 2) {
                 uint24 = inputBytes[readPosition] << 16 | inputBytes[readPosition + 1] << 8;
-                output.appendCharCode(map4[uint24 >>> 18 & 63]);
-                output.appendCharCode(map4[uint24 >>> 12 & 63]);
-                output.appendCharCode(map4[uint24 >>> 6 & 63]);
+                output.appendCharCode(map3[uint24 >>> 18 & 63]);
+                output.appendCharCode(map3[uint24 >>> 12 & 63]);
+                output.appendCharCode(map3[uint24 >>> 6 & 63]);
                 if (addPadding)
                   output.appendCharCode(paddingCharCode);
               } else if (readPosition === length_5 - 1) {
                 uint24 = inputBytes[readPosition] << 16;
-                output.appendCharCode(map4[uint24 >>> 18 & 63]);
-                output.appendCharCode(map4[uint24 >>> 12 & 63]);
+                output.appendCharCode(map3[uint24 >>> 18 & 63]);
+                output.appendCharCode(map3[uint24 >>> 12 & 63]);
                 if (addPadding) {
                   output.appendCharCode(paddingCharCode);
                   output.appendCharCode(paddingCharCode);
@@ -1894,12 +1894,12 @@ var URIStorage = (() => {
       (function(Encoding2) {
         var CodePoint;
         (function(CodePoint2) {
-          CodePoint2.encodeFromString = function(str2, position) {
-            var charCode = str2.charCodeAt(position);
+          CodePoint2.encodeFromString = function(str, position) {
+            var charCode = str.charCodeAt(position);
             if (charCode < 55296 || charCode > 56319)
               return charCode;
             else {
-              var nextCharCode = str2.charCodeAt(position + 1);
+              var nextCharCode = str.charCodeAt(position + 1);
               if (nextCharCode >= 56320 && nextCharCode <= 57343)
                 return 65536 + ((charCode - 55296 << 10) + (nextCharCode - 56320));
               else
@@ -1956,15 +1956,15 @@ var URIStorage = (() => {
         (function(UTF82) {
           var nativeTextEncoder;
           var nativeTextDecoder;
-          UTF82.encode = function(str2) {
-            if (!str2 || str2.length == 0)
+          UTF82.encode = function(str) {
+            if (!str || str.length == 0)
               return new Uint8Array(0);
             if (LZUTF82.runningInNodeJS()) {
-              return LZUTF82.BufferTools.bufferToUint8Array(new Buffer(str2, "utf8"));
+              return LZUTF82.BufferTools.bufferToUint8Array(new Buffer(str, "utf8"));
             } else if (UTF82.createNativeTextEncoderAndDecoderIfAvailable()) {
-              return nativeTextEncoder.encode(str2);
+              return nativeTextEncoder.encode(str);
             } else {
-              return UTF82.encodeWithJS(str2);
+              return UTF82.encodeWithJS(str);
             }
           };
           UTF82.decode = function(utf8Bytes) {
@@ -1978,14 +1978,14 @@ var URIStorage = (() => {
               return UTF82.decodeWithJS(utf8Bytes);
             }
           };
-          UTF82.encodeWithJS = function(str2, outputArray) {
-            if (!str2 || str2.length == 0)
+          UTF82.encodeWithJS = function(str, outputArray) {
+            if (!str || str.length == 0)
               return new Uint8Array(0);
             if (!outputArray)
-              outputArray = new Uint8Array(str2.length * 4);
+              outputArray = new Uint8Array(str.length * 4);
             var writeIndex = 0;
-            for (var readIndex = 0; readIndex < str2.length; readIndex++) {
-              var charCode = Encoding2.CodePoint.encodeFromString(str2, readIndex);
+            for (var readIndex = 0; readIndex < str.length; readIndex++) {
+              var charCode = Encoding2.CodePoint.encodeFromString(str, readIndex);
               if (charCode <= 127) {
                 outputArray[writeIndex++] = charCode;
               } else if (charCode <= 2047) {
@@ -2142,8 +2142,8 @@ var URIStorage = (() => {
         return LZUTF82.AsyncDecompressor.createDecompressionStream();
       }
       LZUTF82.createDecompressionStream = createDecompressionStream;
-      function encodeUTF8(str2) {
-        return LZUTF82.Encoding.UTF8.encode(str2);
+      function encodeUTF8(str) {
+        return LZUTF82.Encoding.UTF8.encode(str);
       }
       LZUTF82.encodeUTF8 = encodeUTF8;
       function decodeUTF8(input) {
@@ -2154,24 +2154,24 @@ var URIStorage = (() => {
         return LZUTF82.Encoding.Base64.encode(input);
       }
       LZUTF82.encodeBase64 = encodeBase64;
-      function decodeBase64(str2) {
-        return LZUTF82.Encoding.Base64.decode(str2);
+      function decodeBase64(str) {
+        return LZUTF82.Encoding.Base64.decode(str);
       }
       LZUTF82.decodeBase64 = decodeBase64;
       function encodeBinaryString(input) {
         return LZUTF82.Encoding.BinaryString.encode(input);
       }
       LZUTF82.encodeBinaryString = encodeBinaryString;
-      function decodeBinaryString(str2) {
-        return LZUTF82.Encoding.BinaryString.decode(str2);
+      function decodeBinaryString(str) {
+        return LZUTF82.Encoding.BinaryString.decode(str);
       }
       LZUTF82.decodeBinaryString = decodeBinaryString;
       function encodeStorageBinaryString(input) {
         return LZUTF82.Encoding.StorageBinaryString.encode(input);
       }
       LZUTF82.encodeStorageBinaryString = encodeStorageBinaryString;
-      function decodeStorageBinaryString(str2) {
-        return LZUTF82.Encoding.StorageBinaryString.decode(str2);
+      function decodeStorageBinaryString(str) {
+        return LZUTF82.Encoding.StorageBinaryString.decode(str);
       }
       LZUTF82.decodeStorageBinaryString = decodeStorageBinaryString;
     })(LZUTF8 || (LZUTF8 = {}));
@@ -2304,16 +2304,16 @@ var URIStorage = (() => {
       const encoder = new TextEncoder();
       return encoder.encode(string);
     }
-    function fromBuffer(buffer2) {
+    function fromBuffer(buffer) {
       const decoder = new TextDecoder();
-      return decoder.decode(buffer2);
+      return decoder.decode(buffer);
     }
-    function encodeBuffer(buffer2) {
+    function encodeBuffer(buffer) {
       var enctable = alphabets.enc;
-      var padding = buffer2.length % 4 === 0 ? 0 : 4 - buffer2.length % 4;
+      var padding = buffer.length % 4 === 0 ? 0 : 4 - buffer.length % 4;
       var result = "";
-      for (var i = 0; i < buffer2.length; i += 4) {
-        var num = (buffer2[i] << 24 >>> 0) + ((i + 1 > buffer2.length ? 0 : buffer2[i + 1]) << 16 >>> 0) + ((i + 2 > buffer2.length ? 0 : buffer2[i + 2]) << 8 >>> 0) + ((i + 3 > buffer2.length ? 0 : buffer2[i + 3]) << 0 >>> 0);
+      for (var i = 0; i < buffer.length; i += 4) {
+        var num = (buffer[i] << 24 >>> 0) + ((i + 1 > buffer.length ? 0 : buffer[i + 1]) << 16 >>> 0) + ((i + 2 > buffer.length ? 0 : buffer[i + 2]) << 8 >>> 0) + ((i + 3 > buffer.length ? 0 : buffer[i + 3]) << 0 >>> 0);
         var block = [];
         for (var j = 0; j < 5; ++j) {
           block.unshift(enctable[num % 85]);
@@ -2327,9 +2327,9 @@ var URIStorage = (() => {
       }
       return ASCII85_ENC_START + result.substring(0, result.length - padding) + ASCII85_ENC_END;
     }
-    function decodeBuffer(buffer2) {
+    function decodeBuffer(buffer) {
       var dectable = alphabets.dec;
-      var dataLength = buffer2.length;
+      var dataLength = buffer.length;
       dataLength -= ASCII85_ENC_START.length + ASCII85_ENC_END.length;
       var padding = dataLength % 5 === 0 ? 0 : 5 - dataLength % 5;
       var bufferStart = ASCII85_ENC_START.length;
@@ -2337,7 +2337,7 @@ var URIStorage = (() => {
       var result = new Uint8Array(4 * Math.ceil((bufferEnd - bufferStart) / 5));
       var nextValidByte = function(index) {
         if (index < bufferEnd) {
-          while (IGNORE_CHARS.indexOf(buffer2[index]) !== -1) {
+          while (IGNORE_CHARS.indexOf(buffer[index]) !== -1) {
             padding = (padding + 1) % 5;
             index++;
           }
@@ -2348,15 +2348,15 @@ var URIStorage = (() => {
       for (var i = bufferStart; i < bufferEnd; ) {
         var num = 0;
         i = nextValidByte(i);
-        num = dectable[buffer2[i]] * QUAD85;
+        num = dectable[buffer[i]] * QUAD85;
         i = nextValidByte(i + 1);
-        num += (i >= bufferEnd ? 84 : dectable[buffer2[i]]) * TRIO85;
+        num += (i >= bufferEnd ? 84 : dectable[buffer[i]]) * TRIO85;
         i = nextValidByte(i + 1);
-        num += (i >= bufferEnd ? 84 : dectable[buffer2[i]]) * DUO85;
+        num += (i >= bufferEnd ? 84 : dectable[buffer[i]]) * DUO85;
         i = nextValidByte(i + 1);
-        num += (i >= bufferEnd ? 84 : dectable[buffer2[i]]) * SING85;
+        num += (i >= bufferEnd ? 84 : dectable[buffer[i]]) * SING85;
         i = nextValidByte(i + 1);
-        num += i >= bufferEnd ? 84 : dectable[buffer2[i]];
+        num += i >= bufferEnd ? 84 : dectable[buffer[i]];
         i = nextValidByte(i + 1);
         if (num > NUM_MAXVALUE || num < 0) {
           return false;
@@ -2394,6 +2394,7 @@ var URIStorage = (() => {
       BaseOverlay: () => BaseOverlay,
       FILE_SYSTEM_CHANGES: () => FILE_SYSTEM_CHANGES,
       FileSystemOverlay: () => FileSystemOverlay,
+      FileSystemRegistry: () => FileSystemRegistry,
       IndexedDBAdapter: () => IndexedDBAdapter,
       LocalStorageAdapter: () => LocalStorageAdapter,
       MemoryAdapter: () => MemoryAdapter,
@@ -2452,13 +2453,13 @@ var URIStorage = (() => {
     const dispatch = (details) => {
       if (subscribers.length > 0) {
         for (let index = 0; index < subscribers.length; index++) {
-          const [run2] = subscribers[index];
-          run2(details);
+          const [run] = subscribers[index];
+          run(details);
         }
       }
     };
-    const subscribe = (run2) => {
-      const subscriber = [run2];
+    const subscribe = (run) => {
+      const subscriber = [run];
       subscribers.push(subscriber);
       if (start && subscribers.length === 1)
         stop = start(dispatch);
@@ -2492,17 +2493,17 @@ var URIStorage = (() => {
   const join2 = _path.join;
   const relative2 = _path.relative;
   const resolve2 = _path.resolve;
-  function dirname2(p2) {
-    p2 = _path.dirname(p2);
-    return p2 === "." ? sep2 : p2;
+  function dirname2(p) {
+    p = _path.dirname(p);
+    return p === "." ? sep2 : p;
   }
-  function normalize2(p2) {
-    p2 = _path.normalize(p2);
-    if (p2 === "." || p2 === sep2)
+  function normalize2(p) {
+    p = _path.normalize(p);
+    if (p === "." || p === sep2)
       return sep2;
-    if (p2.slice(0, 1) !== sep2)
-      p2 = sep2 + p2;
-    return p2.replace(REGEX_TRAILING_SLASH, "");
+    if (p.slice(0, 1) !== sep2)
+      p = sep2 + p;
+    return p.replace(REGEX_TRAILING_SLASH, "");
   }
 
   // src/adapters/base_adapter.ts
@@ -2641,22 +2642,22 @@ var URIStorage = (() => {
 
   // src/util/compression.ts
   const lzutf8 = __toModule(require_lzutf8());
-  function compress(buffer2, options = {}) {
+  function compress(buffer, options = {}) {
     const {mode = ENCODING_MODE.bytes} = options;
     switch (mode) {
       case ENCODING_MODE.bytes:
-        return lzutf8.compress(buffer2, {outputEncoding: "ByteArray"});
+        return lzutf8.compress(buffer, {outputEncoding: "ByteArray"});
       default:
         throw new Error(`bad option 'options.mode' to 'compress' (encoding mode '${mode}' not available)`);
     }
   }
-  function decompress(buffer2, options = {}) {
+  function decompress(buffer, options = {}) {
     const {mode = ENCODING_MODE.bytes} = options;
     switch (mode) {
       case ENCODING_MODE.bytes:
-        return lzutf8.decompress(buffer2, {outputEncoding: "ByteArray"});
+        return lzutf8.decompress(buffer, {outputEncoding: "ByteArray"});
       case ENCODING_MODE.text:
-        return lzutf8.decompress(buffer2, {outputEncoding: "String"});
+        return lzutf8.decompress(buffer, {outputEncoding: "String"});
       default:
         throw new Error(`bad option 'options.mode' to 'decompress' (encoding mode '${mode}' not available)`);
     }
@@ -2704,2320 +2705,1164 @@ var URIStorage = (() => {
     }
   }
 
-  // src/data/mime_types.json
-  var _23 = "application/vnd.lotus-1-2-3";
-  var ez = "application/andrew-inset";
-  var aw = "application/applixware";
-  var atom = "application/atom+xml";
-  var atomcat = "application/atomcat+xml";
-  var atomdeleted = "application/atomdeleted+xml";
-  var atomsvc = "application/atomsvc+xml";
-  var dwd = "application/atsc-dwd+xml";
-  var held = "application/atsc-held+xml";
-  var rsat = "application/atsc-rsat+xml";
-  var bdoc = "application/bdoc";
-  var xcs = "application/calendar+xml";
-  var ccxml = "application/ccxml+xml";
-  var cdfx = "application/cdfx+xml";
-  var cdmia = "application/cdmi-capability";
-  var cdmic = "application/cdmi-container";
-  var cdmid = "application/cdmi-domain";
-  var cdmio = "application/cdmi-object";
-  var cdmiq = "application/cdmi-queue";
-  var cu = "application/cu-seeme";
-  var mpd = "application/dash+xml";
-  var davmount = "application/davmount+xml";
-  var dbk = "application/docbook+xml";
-  var dssc = "application/dssc+der";
-  var xdssc = "application/dssc+xml";
-  var ecma = "application/ecmascript";
-  var es = "application/ecmascript";
-  var emma = "application/emma+xml";
-  var emotionml = "application/emotionml+xml";
-  var epub = "application/epub+zip";
-  var exi = "application/exi";
-  var fdt = "application/fdt+xml";
-  var pfr = "application/font-tdpfr";
-  var geojson = "application/geo+json";
-  var gml = "application/gml+xml";
-  var gpx = "application/gpx+xml";
-  var gxf = "application/gxf";
-  var gz = "application/gzip";
-  var hjson = "application/hjson";
-  var stk = "application/hyperstudio";
-  var ink = "application/inkml+xml";
-  var inkml = "application/inkml+xml";
-  var ipfix = "application/ipfix";
-  var its = "application/its+xml";
-  var jar = "application/java-archive";
-  var war = "application/java-archive";
-  var ear = "application/java-archive";
-  var ser = "application/java-serialized-object";
-  var class2 = "application/java-vm";
-  var js = "application/javascript";
-  var mjs = "application/javascript";
-  var json = "application/json";
-  var map = "application/json";
-  var json5 = "application/json5";
-  var jsonml = "application/jsonml+json";
-  var jsonld = "application/ld+json";
-  var lgr = "application/lgr+xml";
-  var lostxml = "application/lost+xml";
-  var hqx = "application/mac-binhex40";
-  var cpt = "application/mac-compactpro";
-  var mads = "application/mads+xml";
-  var webmanifest = "application/manifest+json";
-  var mrc = "application/marc";
-  var mrcx = "application/marcxml+xml";
-  var ma = "application/mathematica";
-  var nb = "application/mathematica";
-  var mb = "application/mathematica";
-  var mathml = "application/mathml+xml";
-  var mbox = "application/mbox";
-  var mscml = "application/mediaservercontrol+xml";
-  var metalink = "application/metalink+xml";
-  var meta4 = "application/metalink4+xml";
-  var mets = "application/mets+xml";
-  var maei = "application/mmt-aei+xml";
-  var musd = "application/mmt-usd+xml";
-  var mods = "application/mods+xml";
-  var m21 = "application/mp21";
-  var mp21 = "application/mp21";
-  var mp4s = "application/mp4";
-  var m4p = "application/mp4";
-  var xdf = "application/mrb-consumer+xml";
-  var doc = "application/msword";
-  var dot = "application/msword";
-  var mxf = "application/mxf";
-  var nq = "application/n-quads";
-  var nt = "application/n-triples";
-  var cjs = "application/node";
-  var bin = "application/octet-stream";
-  var dms = "application/octet-stream";
-  var lrf = "application/octet-stream";
-  var mar = "application/octet-stream";
-  var so = "application/octet-stream";
-  var dist = "application/octet-stream";
-  var distz = "application/octet-stream";
-  var pkg = "application/octet-stream";
-  var bpk = "application/octet-stream";
-  var dump = "application/octet-stream";
-  var elc = "application/octet-stream";
-  var deploy = "application/octet-stream";
-  var exe = "application/x-msdos-program";
-  var dll = "application/x-msdownload";
-  var deb = "application/x-debian-package";
-  var dmg = "application/x-apple-diskimage";
-  var iso = "application/x-iso9660-image";
-  var img = "application/octet-stream";
-  var msi = "application/x-msdownload";
-  var msp = "application/octet-stream";
-  var msm = "application/octet-stream";
-  var buffer = "application/octet-stream";
-  var oda = "application/oda";
-  var opf = "application/oebps-package+xml";
-  var ogx = "application/ogg";
-  var omdoc = "application/omdoc+xml";
-  var onetoc = "application/onenote";
-  var onetoc2 = "application/onenote";
-  var onetmp = "application/onenote";
-  var onepkg = "application/onenote";
-  var oxps = "application/oxps";
-  var relo = "application/p2p-overlay+xml";
-  var xer = "application/patch-ops-error+xml";
-  var pdf = "application/pdf";
-  var pgp = "application/pgp-encrypted";
-  var asc = "application/pgp-signature";
-  var sig = "application/pgp-signature";
-  var prf = "application/pics-rules";
-  var p10 = "application/pkcs10";
-  var p7m = "application/pkcs7-mime";
-  var p7c = "application/pkcs7-mime";
-  var p7s = "application/pkcs7-signature";
-  var p8 = "application/pkcs8";
-  var ac = "application/pkix-attr-cert";
-  var cer = "application/pkix-cert";
-  var crl = "application/pkix-crl";
-  var pkipath = "application/pkix-pkipath";
-  var pki = "application/pkixcmp";
-  var pls = "application/pls+xml";
-  var ai = "application/postscript";
-  var eps = "application/postscript";
-  var ps = "application/postscript";
-  var provx = "application/provenance+xml";
-  var cww = "application/prs.cww";
-  var pskcxml = "application/pskc+xml";
-  var raml = "application/raml+yaml";
-  var rdf = "application/rdf+xml";
-  var owl = "application/rdf+xml";
-  var rif = "application/reginfo+xml";
-  var rnc = "application/relax-ng-compact-syntax";
-  var rl = "application/resource-lists+xml";
-  var rld = "application/resource-lists-diff+xml";
-  var rs = "application/rls-services+xml";
-  var rapd = "application/route-apd+xml";
-  var sls = "application/route-s-tsid+xml";
-  var rusd = "application/route-usd+xml";
-  var gbr = "application/rpki-ghostbusters";
-  var mft = "application/rpki-manifest";
-  var roa = "application/rpki-roa";
-  var rsd = "application/rsd+xml";
-  var rss = "application/rss+xml";
-  var rtf = "application/rtf";
-  var sbml = "application/sbml+xml";
-  var scq = "application/scvp-cv-request";
-  var scs = "application/scvp-cv-response";
-  var spq = "application/scvp-vp-request";
-  var spp = "application/scvp-vp-response";
-  var sdp = "application/sdp";
-  var senmlx = "application/senml+xml";
-  var sensmlx = "application/sensml+xml";
-  var setpay = "application/set-payment-initiation";
-  var setreg = "application/set-registration-initiation";
-  var shf = "application/shf+xml";
-  var siv = "application/sieve";
-  var sieve = "application/sieve";
-  var smi = "application/smil+xml";
-  var smil = "application/smil+xml";
-  var rq = "application/sparql-query";
-  var srx = "application/sparql-results+xml";
-  var gram = "application/srgs";
-  var grxml = "application/srgs+xml";
-  var sru = "application/sru+xml";
-  var ssdl = "application/ssdl+xml";
-  var ssml = "application/ssml+xml";
-  var swidtag = "application/swid+xml";
-  var tei = "application/tei+xml";
-  var teicorpus = "application/tei+xml";
-  var tfi = "application/thraud+xml";
-  var tsd = "application/timestamped-data";
-  var toml = "application/toml";
-  var ttml = "application/ttml+xml";
-  var rsheet = "application/urc-ressheet+xml";
-  var _km = "application/vnd.1000minds.decision-model+xml";
-  var plb = "application/vnd.3gpp.pic-bw-large";
-  var psb = "application/vnd.3gpp.pic-bw-small";
-  var pvb = "application/vnd.3gpp.pic-bw-var";
-  var tcap = "application/vnd.3gpp2.tcap";
-  var pwn = "application/vnd.3m.post-it-notes";
-  var aso = "application/vnd.accpac.simply.aso";
-  var imp = "application/vnd.accpac.simply.imp";
-  var acu = "application/vnd.acucobol";
-  var atc = "application/vnd.acucorp";
-  var acutc = "application/vnd.acucorp";
-  var air = "application/vnd.adobe.air-application-installer-package+zip";
-  var fcdt = "application/vnd.adobe.formscentral.fcdt";
-  var fxp = "application/vnd.adobe.fxp";
-  var fxpl = "application/vnd.adobe.fxp";
-  var xdp = "application/vnd.adobe.xdp+xml";
-  var xfdf = "application/vnd.adobe.xfdf";
-  var ahead = "application/vnd.ahead.space";
-  var azf = "application/vnd.airzip.filesecure.azf";
-  var azs = "application/vnd.airzip.filesecure.azs";
-  var azw = "application/vnd.amazon.ebook";
-  var acc = "application/vnd.americandynamics.acc";
-  var ami = "application/vnd.amiga.ami";
-  var apk = "application/vnd.android.package-archive";
-  var cii = "application/vnd.anser-web-certificate-issue-initiation";
-  var fti = "application/vnd.anser-web-funds-transfer-initiation";
-  var atx = "application/vnd.antix.game-component";
-  var mpkg = "application/vnd.apple.installer+xml";
-  var keynote = "application/vnd.apple.keynote";
-  var m3u8 = "application/vnd.apple.mpegurl";
-  var numbers = "application/vnd.apple.numbers";
-  var pages = "application/vnd.apple.pages";
-  var pkpass = "application/vnd.apple.pkpass";
-  var swi = "application/vnd.aristanetworks.swi";
-  var iota = "application/vnd.astraea-software.iota";
-  var aep = "application/vnd.audiograph";
-  var bmml = "application/vnd.balsamiq.bmml+xml";
-  var mpm = "application/vnd.blueice.multipass";
-  var bmi = "application/vnd.bmi";
-  var rep = "application/vnd.businessobjects";
-  var cdxml = "application/vnd.chemdraw+xml";
-  var mmd = "application/vnd.chipnuts.karaoke-mmd";
-  var cdy = "application/vnd.cinderella";
-  var csl = "application/vnd.citationstyles.style+xml";
-  var cla = "application/vnd.claymore";
-  var rp9 = "application/vnd.cloanto.rp9";
-  var c4g = "application/vnd.clonk.c4group";
-  var c4d = "application/vnd.clonk.c4group";
-  var c4f = "application/vnd.clonk.c4group";
-  var c4p = "application/vnd.clonk.c4group";
-  var c4u = "application/vnd.clonk.c4group";
-  var c11amc = "application/vnd.cluetrust.cartomobile-config";
-  var c11amz = "application/vnd.cluetrust.cartomobile-config-pkg";
-  var csp = "application/vnd.commonspace";
-  var cdbcmsg = "application/vnd.contact.cmsg";
-  var cmc = "application/vnd.cosmocaller";
-  var clkx = "application/vnd.crick.clicker";
-  var clkk = "application/vnd.crick.clicker.keyboard";
-  var clkp = "application/vnd.crick.clicker.palette";
-  var clkt = "application/vnd.crick.clicker.template";
-  var clkw = "application/vnd.crick.clicker.wordbank";
-  var wbs = "application/vnd.criticaltools.wbs+xml";
-  var pml = "application/vnd.ctc-posml";
-  var ppd = "application/vnd.cups-ppd";
-  var car = "application/vnd.curl.car";
-  var pcurl = "application/vnd.curl.pcurl";
-  var dart = "application/vnd.dart";
-  var rdz = "application/vnd.data-vision.rdz";
-  var uvf = "application/vnd.dece.data";
-  var uvvf = "application/vnd.dece.data";
-  var uvd = "application/vnd.dece.data";
-  var uvvd = "application/vnd.dece.data";
-  var uvt = "application/vnd.dece.ttml+xml";
-  var uvvt = "application/vnd.dece.ttml+xml";
-  var uvx = "application/vnd.dece.unspecified";
-  var uvvx = "application/vnd.dece.unspecified";
-  var uvz = "application/vnd.dece.zip";
-  var uvvz = "application/vnd.dece.zip";
-  var fe_launch = "application/vnd.denovo.fcselayout-link";
-  var dna = "application/vnd.dna";
-  var mlp = "application/vnd.dolby.mlp";
-  var dpg = "application/vnd.dpgraph";
-  var dfac = "application/vnd.dreamfactory";
-  var kpxx = "application/vnd.ds-keypoint";
-  var ait = "application/vnd.dvb.ait";
-  var svc = "application/vnd.dvb.service";
-  var geo = "application/vnd.dynageo";
-  var mag = "application/vnd.ecowin.chart";
-  var nml = "application/vnd.enliven";
-  var esf = "application/vnd.epson.esf";
-  var msf = "application/vnd.epson.msf";
-  var qam = "application/vnd.epson.quickanime";
-  var slt = "application/vnd.epson.salt";
-  var ssf = "application/vnd.epson.ssf";
-  var es3 = "application/vnd.eszigno3+xml";
-  var et3 = "application/vnd.eszigno3+xml";
-  var ez2 = "application/vnd.ezpix-album";
-  var ez3 = "application/vnd.ezpix-package";
-  var fdf = "application/vnd.fdf";
-  var mseed = "application/vnd.fdsn.mseed";
-  var seed = "application/vnd.fdsn.seed";
-  var dataless = "application/vnd.fdsn.seed";
-  var gph = "application/vnd.flographit";
-  var ftc = "application/vnd.fluxtime.clip";
-  var fm = "application/vnd.framemaker";
-  var frame = "application/vnd.framemaker";
-  var maker = "application/vnd.framemaker";
-  var book = "application/vnd.framemaker";
-  var fnc = "application/vnd.frogans.fnc";
-  var ltf = "application/vnd.frogans.ltf";
-  var fsc = "application/vnd.fsc.weblaunch";
-  var oas = "application/vnd.fujitsu.oasys";
-  var oa2 = "application/vnd.fujitsu.oasys2";
-  var oa3 = "application/vnd.fujitsu.oasys3";
-  var fg5 = "application/vnd.fujitsu.oasysgp";
-  var bh2 = "application/vnd.fujitsu.oasysprs";
-  var ddd = "application/vnd.fujixerox.ddd";
-  var xdw = "application/vnd.fujixerox.docuworks";
-  var xbd = "application/vnd.fujixerox.docuworks.binder";
-  var fzs = "application/vnd.fuzzysheet";
-  var txd = "application/vnd.genomatix.tuxedo";
-  var ggb = "application/vnd.geogebra.file";
-  var ggt = "application/vnd.geogebra.tool";
-  var gex = "application/vnd.geometry-explorer";
-  var gre = "application/vnd.geometry-explorer";
-  var gxt = "application/vnd.geonext";
-  var g2w = "application/vnd.geoplan";
-  var g3w = "application/vnd.geospace";
-  var gmx = "application/vnd.gmx";
-  var gdoc = "application/vnd.google-apps.document";
-  var gslides = "application/vnd.google-apps.presentation";
-  var gsheet = "application/vnd.google-apps.spreadsheet";
-  var kml = "application/vnd.google-earth.kml+xml";
-  var kmz = "application/vnd.google-earth.kmz";
-  var gqf = "application/vnd.grafeq";
-  var gqs = "application/vnd.grafeq";
-  var gac = "application/vnd.groove-account";
-  var ghf = "application/vnd.groove-help";
-  var gim = "application/vnd.groove-identity-message";
-  var grv = "application/vnd.groove-injector";
-  var gtm = "application/vnd.groove-tool-message";
-  var tpl = "application/vnd.groove-tool-template";
-  var vcg = "application/vnd.groove-vcard";
-  var hal = "application/vnd.hal+xml";
-  var zmm = "application/vnd.handheld-entertainment+xml";
-  var hbci = "application/vnd.hbci";
-  var les = "application/vnd.hhe.lesson-player";
-  var hpgl = "application/vnd.hp-hpgl";
-  var hpid = "application/vnd.hp-hpid";
-  var hps = "application/vnd.hp-hps";
-  var jlt = "application/vnd.hp-jlyt";
-  var pcl = "application/vnd.hp-pcl";
-  var pclxl = "application/vnd.hp-pclxl";
-  var sfd_hdstx = "application/vnd.hydrostatix.sof-data";
-  var mpy = "application/vnd.ibm.minipay";
-  var afp = "application/vnd.ibm.modcap";
-  var listafp = "application/vnd.ibm.modcap";
-  var list3820 = "application/vnd.ibm.modcap";
-  var irm = "application/vnd.ibm.rights-management";
-  var sc = "application/vnd.ibm.secure-container";
-  var icc = "application/vnd.iccprofile";
-  var icm = "application/vnd.iccprofile";
-  var igl = "application/vnd.igloader";
-  var ivp = "application/vnd.immervision-ivp";
-  var ivu = "application/vnd.immervision-ivu";
-  var igm = "application/vnd.insors.igm";
-  var xpw = "application/vnd.intercon.formnet";
-  var xpx = "application/vnd.intercon.formnet";
-  var i2g = "application/vnd.intergeo";
-  var qbo = "application/vnd.intu.qbo";
-  var qfx = "application/vnd.intu.qfx";
-  var rcprofile = "application/vnd.ipunplugged.rcprofile";
-  var irp = "application/vnd.irepository.package+xml";
-  var xpr = "application/vnd.is-xpr";
-  var fcs = "application/vnd.isac.fcs";
-  var jam = "application/vnd.jam";
-  var rms = "application/vnd.jcp.javame.midlet-rms";
-  var jisp = "application/vnd.jisp";
-  var joda = "application/vnd.joost.joda-archive";
-  var ktz = "application/vnd.kahootz";
-  var ktr = "application/vnd.kahootz";
-  var karbon = "application/vnd.kde.karbon";
-  var chrt = "application/vnd.kde.kchart";
-  var kfo = "application/vnd.kde.kformula";
-  var flw = "application/vnd.kde.kivio";
-  var kon = "application/vnd.kde.kontour";
-  var kpr = "application/vnd.kde.kpresenter";
-  var kpt = "application/vnd.kde.kpresenter";
-  var ksp = "application/vnd.kde.kspread";
-  var kwd = "application/vnd.kde.kword";
-  var kwt = "application/vnd.kde.kword";
-  var htke = "application/vnd.kenameaapp";
-  var kia = "application/vnd.kidspiration";
-  var kne = "application/vnd.kinar";
-  var knp = "application/vnd.kinar";
-  var skp = "application/vnd.koan";
-  var skd = "application/vnd.koan";
-  var skt = "application/vnd.koan";
-  var skm = "application/vnd.koan";
-  var sse = "application/vnd.kodak-descriptor";
-  var lasxml = "application/vnd.las.las+xml";
-  var lbd = "application/vnd.llamagraphics.life-balance.desktop";
-  var lbe = "application/vnd.llamagraphics.life-balance.exchange+xml";
-  var apr = "application/vnd.lotus-approach";
-  var pre = "application/vnd.lotus-freelance";
-  var nsf = "application/vnd.lotus-notes";
-  var org = "application/vnd.lotus-organizer";
-  var scm = "application/vnd.lotus-screencam";
-  var lwp = "application/vnd.lotus-wordpro";
-  var portpkg = "application/vnd.macports.portpkg";
-  var mcd = "application/vnd.mcd";
-  var mc1 = "application/vnd.medcalcdata";
-  var cdkey = "application/vnd.mediastation.cdkey";
-  var mwf = "application/vnd.mfer";
-  var mfm = "application/vnd.mfmp";
-  var flo = "application/vnd.micrografx.flo";
-  var igx = "application/vnd.micrografx.igx";
-  var mif = "application/vnd.mif";
-  var daf = "application/vnd.mobius.daf";
-  var dis = "application/vnd.mobius.dis";
-  var mbk = "application/vnd.mobius.mbk";
-  var mqy = "application/vnd.mobius.mqy";
-  var msl = "application/vnd.mobius.msl";
-  var plc = "application/vnd.mobius.plc";
-  var txf = "application/vnd.mobius.txf";
-  var mpn = "application/vnd.mophun.application";
-  var mpc = "application/vnd.mophun.certificate";
-  var xul = "application/vnd.mozilla.xul+xml";
-  var cil = "application/vnd.ms-artgalry";
-  var cab = "application/vnd.ms-cab-compressed";
-  var xls = "application/vnd.ms-excel";
-  var xlm = "application/vnd.ms-excel";
-  var xla = "application/vnd.ms-excel";
-  var xlc = "application/vnd.ms-excel";
-  var xlt = "application/vnd.ms-excel";
-  var xlw = "application/vnd.ms-excel";
-  var xlam = "application/vnd.ms-excel.addin.macroenabled.12";
-  var xlsb = "application/vnd.ms-excel.sheet.binary.macroenabled.12";
-  var xlsm = "application/vnd.ms-excel.sheet.macroenabled.12";
-  var xltm = "application/vnd.ms-excel.template.macroenabled.12";
-  var eot = "application/vnd.ms-fontobject";
-  var chm = "application/vnd.ms-htmlhelp";
-  var ims = "application/vnd.ms-ims";
-  var lrm = "application/vnd.ms-lrm";
-  var thmx = "application/vnd.ms-officetheme";
-  var msg = "application/vnd.ms-outlook";
-  var cat = "application/vnd.ms-pki.seccat";
-  var stl = "model/stl";
-  var ppt = "application/vnd.ms-powerpoint";
-  var pps = "application/vnd.ms-powerpoint";
-  var pot = "application/vnd.ms-powerpoint";
-  var ppam = "application/vnd.ms-powerpoint.addin.macroenabled.12";
-  var pptm = "application/vnd.ms-powerpoint.presentation.macroenabled.12";
-  var sldm = "application/vnd.ms-powerpoint.slide.macroenabled.12";
-  var ppsm = "application/vnd.ms-powerpoint.slideshow.macroenabled.12";
-  var potm = "application/vnd.ms-powerpoint.template.macroenabled.12";
-  var mpp = "application/vnd.ms-project";
-  var mpt = "application/vnd.ms-project";
-  var docm = "application/vnd.ms-word.document.macroenabled.12";
-  var dotm = "application/vnd.ms-word.template.macroenabled.12";
-  var wps = "application/vnd.ms-works";
-  var wks = "application/vnd.ms-works";
-  var wcm = "application/vnd.ms-works";
-  var wdb = "application/vnd.ms-works";
-  var wpl = "application/vnd.ms-wpl";
-  var xps = "application/vnd.ms-xpsdocument";
-  var mseq = "application/vnd.mseq";
-  var mus = "application/vnd.musician";
-  var msty = "application/vnd.muvee.style";
-  var taglet = "application/vnd.mynfc";
-  var nlu = "application/vnd.neurolanguage.nlu";
-  var ntf = "application/vnd.nitf";
-  var nitf = "application/vnd.nitf";
-  var nnd = "application/vnd.noblenet-directory";
-  var nns = "application/vnd.noblenet-sealer";
-  var nnw = "application/vnd.noblenet-web";
-  var ngdat = "application/vnd.nokia.n-gage.data";
-  var n_gage = "application/vnd.nokia.n-gage.symbian.install";
-  var rpst = "application/vnd.nokia.radio-preset";
-  var rpss = "application/vnd.nokia.radio-presets";
-  var edm = "application/vnd.novadigm.edm";
-  var edx = "application/vnd.novadigm.edx";
-  var ext = "application/vnd.novadigm.ext";
-  var odc = "application/vnd.oasis.opendocument.chart";
-  var otc = "application/vnd.oasis.opendocument.chart-template";
-  var odb = "application/vnd.oasis.opendocument.database";
-  var odf = "application/vnd.oasis.opendocument.formula";
-  var odft = "application/vnd.oasis.opendocument.formula-template";
-  var odg = "application/vnd.oasis.opendocument.graphics";
-  var otg = "application/vnd.oasis.opendocument.graphics-template";
-  var odi = "application/vnd.oasis.opendocument.image";
-  var oti = "application/vnd.oasis.opendocument.image-template";
-  var odp = "application/vnd.oasis.opendocument.presentation";
-  var otp = "application/vnd.oasis.opendocument.presentation-template";
-  var ods = "application/vnd.oasis.opendocument.spreadsheet";
-  var ots = "application/vnd.oasis.opendocument.spreadsheet-template";
-  var odt = "application/vnd.oasis.opendocument.text";
-  var odm = "application/vnd.oasis.opendocument.text-master";
-  var ott = "application/vnd.oasis.opendocument.text-template";
-  var oth = "application/vnd.oasis.opendocument.text-web";
-  var xo = "application/vnd.olpc-sugar";
-  var dd2 = "application/vnd.oma.dd2+xml";
-  var obgx = "application/vnd.openblox.game+xml";
-  var oxt = "application/vnd.openofficeorg.extension";
-  var osm = "application/vnd.openstreetmap.data+xml";
-  var pptx = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-  var sldx = "application/vnd.openxmlformats-officedocument.presentationml.slide";
-  var ppsx = "application/vnd.openxmlformats-officedocument.presentationml.slideshow";
-  var potx = "application/vnd.openxmlformats-officedocument.presentationml.template";
-  var xlsx = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-  var xltx = "application/vnd.openxmlformats-officedocument.spreadsheetml.template";
-  var docx = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-  var dotx = "application/vnd.openxmlformats-officedocument.wordprocessingml.template";
-  var mgp = "application/vnd.osgeo.mapguide.package";
-  var dp = "application/vnd.osgi.dp";
-  var esa = "application/vnd.osgi.subsystem";
-  var pdb = "application/vnd.palm";
-  var pqa = "application/vnd.palm";
-  var oprc = "application/vnd.palm";
-  var paw = "application/vnd.pawaafile";
-  var str = "application/vnd.pg.format";
-  var ei6 = "application/vnd.pg.osasli";
-  var efif = "application/vnd.picsel";
-  var wg = "application/vnd.pmi.widget";
-  var plf = "application/vnd.pocketlearn";
-  var pbd = "application/vnd.powerbuilder6";
-  var box = "application/vnd.previewsystems.box";
-  var mgz = "application/vnd.proteus.magazine";
-  var qps = "application/vnd.publishare-delta-tree";
-  var ptid = "application/vnd.pvi.ptid1";
-  var qxd = "application/vnd.quark.quarkxpress";
-  var qxt = "application/vnd.quark.quarkxpress";
-  var qwd = "application/vnd.quark.quarkxpress";
-  var qwt = "application/vnd.quark.quarkxpress";
-  var qxl = "application/vnd.quark.quarkxpress";
-  var qxb = "application/vnd.quark.quarkxpress";
-  var bed = "application/vnd.realvnc.bed";
-  var mxl = "application/vnd.recordare.musicxml";
-  var musicxml = "application/vnd.recordare.musicxml+xml";
-  var cryptonote = "application/vnd.rig.cryptonote";
-  var cod = "application/vnd.rim.cod";
-  var rm = "application/vnd.rn-realmedia";
-  var rmvb = "application/vnd.rn-realmedia-vbr";
-  var link66 = "application/vnd.route66.link66+xml";
-  var st = "application/vnd.sailingtracker.track";
-  var see = "application/vnd.seemail";
-  var sema = "application/vnd.sema";
-  var semd = "application/vnd.semd";
-  var semf = "application/vnd.semf";
-  var ifm = "application/vnd.shana.informed.formdata";
-  var itp = "application/vnd.shana.informed.formtemplate";
-  var iif = "application/vnd.shana.informed.interchange";
-  var ipk = "application/vnd.shana.informed.package";
-  var twd = "application/vnd.simtech-mindmapper";
-  var twds = "application/vnd.simtech-mindmapper";
-  var mmf = "application/vnd.smaf";
-  var teacher = "application/vnd.smart.teacher";
-  var fo = "application/vnd.software602.filler.form+xml";
-  var sdkm = "application/vnd.solent.sdkm+xml";
-  var sdkd = "application/vnd.solent.sdkm+xml";
-  var dxp = "application/vnd.spotfire.dxp";
-  var sfs = "application/vnd.spotfire.sfs";
-  var sdc = "application/vnd.stardivision.calc";
-  var sda = "application/vnd.stardivision.draw";
-  var sdd = "application/vnd.stardivision.impress";
-  var smf = "application/vnd.stardivision.math";
-  var sdw = "application/vnd.stardivision.writer";
-  var vor = "application/vnd.stardivision.writer";
-  var sgl = "application/vnd.stardivision.writer-global";
-  var smzip = "application/vnd.stepmania.package";
-  var sm = "application/vnd.stepmania.stepchart";
-  var wadl = "application/vnd.sun.wadl+xml";
-  var sxc = "application/vnd.sun.xml.calc";
-  var stc = "application/vnd.sun.xml.calc.template";
-  var sxd = "application/vnd.sun.xml.draw";
-  var std = "application/vnd.sun.xml.draw.template";
-  var sxi = "application/vnd.sun.xml.impress";
-  var sti = "application/vnd.sun.xml.impress.template";
-  var sxm = "application/vnd.sun.xml.math";
-  var sxw = "application/vnd.sun.xml.writer";
-  var sxg = "application/vnd.sun.xml.writer.global";
-  var stw = "application/vnd.sun.xml.writer.template";
-  var sus = "application/vnd.sus-calendar";
-  var susp = "application/vnd.sus-calendar";
-  var svd = "application/vnd.svd";
-  var sis = "application/vnd.symbian.install";
-  var sisx = "application/vnd.symbian.install";
-  var xsm = "application/vnd.syncml+xml";
-  var bdm = "application/vnd.syncml.dm+wbxml";
-  var xdm = "application/vnd.syncml.dm+xml";
-  var ddf = "application/vnd.syncml.dmddf+xml";
-  var tao = "application/vnd.tao.intent-module-archive";
-  var pcap = "application/vnd.tcpdump.pcap";
-  var cap = "application/vnd.tcpdump.pcap";
-  var dmp = "application/vnd.tcpdump.pcap";
-  var tmo = "application/vnd.tmobile-livetv";
-  var tpt = "application/vnd.trid.tpt";
-  var mxs = "application/vnd.triscape.mxs";
-  var tra = "application/vnd.trueapp";
-  var ufd = "application/vnd.ufdl";
-  var ufdl = "application/vnd.ufdl";
-  var utz = "application/vnd.uiq.theme";
-  var umj = "application/vnd.umajin";
-  var unityweb = "application/vnd.unity";
-  var uoml = "application/vnd.uoml+xml";
-  var vcx = "application/vnd.vcx";
-  var vsd = "application/vnd.visio";
-  var vst = "application/vnd.visio";
-  var vss = "application/vnd.visio";
-  var vsw = "application/vnd.visio";
-  var vis = "application/vnd.visionary";
-  var vsf = "application/vnd.vsf";
-  var wbxml = "application/vnd.wap.wbxml";
-  var wmlc = "application/vnd.wap.wmlc";
-  var wmlsc = "application/vnd.wap.wmlscriptc";
-  var wtb = "application/vnd.webturbo";
-  var nbp = "application/vnd.wolfram.player";
-  var wpd = "application/vnd.wordperfect";
-  var wqd = "application/vnd.wqd";
-  var stf = "application/vnd.wt.stf";
-  var xar = "application/vnd.xara";
-  var xfdl = "application/vnd.xfdl";
-  var hvd = "application/vnd.yamaha.hv-dic";
-  var hvs = "application/vnd.yamaha.hv-script";
-  var hvp = "application/vnd.yamaha.hv-voice";
-  var osf = "application/vnd.yamaha.openscoreformat";
-  var osfpvg = "application/vnd.yamaha.openscoreformat.osfpvg+xml";
-  var saf = "application/vnd.yamaha.smaf-audio";
-  var spf = "application/vnd.yamaha.smaf-phrase";
-  var cmp = "application/vnd.yellowriver-custom-menu";
-  var zir = "application/vnd.zul";
-  var zirz = "application/vnd.zul";
-  var zaz = "application/vnd.zzazz.deck+xml";
-  var vxml = "application/voicexml+xml";
-  var wasm = "application/wasm";
-  var wgt = "application/widget";
-  var hlp = "application/winhlp";
-  var wsdl = "application/wsdl+xml";
-  var wspolicy = "application/wspolicy+xml";
-  var _z = "application/x-7z-compressed";
-  var abw = "application/x-abiword";
-  var ace = "application/x-ace-compressed";
-  var arj = "application/x-arj";
-  var aab = "application/x-authorware-bin";
-  var x32 = "application/x-authorware-bin";
-  var u32 = "application/x-authorware-bin";
-  var vox = "application/x-authorware-bin";
-  var aam = "application/x-authorware-map";
-  var aas = "application/x-authorware-seg";
-  var bcpio = "application/x-bcpio";
-  var torrent = "application/x-bittorrent";
-  var blb = "application/x-blorb";
-  var blorb = "application/x-blorb";
-  var bz = "application/x-bzip";
-  var bz2 = "application/x-bzip2";
-  var boz = "application/x-bzip2";
-  var cbr = "application/x-cbr";
-  var cba = "application/x-cbr";
-  var cbt = "application/x-cbr";
-  var cbz = "application/x-cbr";
-  var cb7 = "application/x-cbr";
-  var vcd = "application/x-cdlink";
-  var cfs = "application/x-cfs-compressed";
-  var chat = "application/x-chat";
-  var pgn = "application/x-chess-pgn";
-  var crx = "application/x-chrome-extension";
-  var cco = "application/x-cocoa";
-  var nsc = "application/x-conference";
-  var cpio = "application/x-cpio";
-  var csh = "application/x-csh";
-  var udeb = "application/x-debian-package";
-  var dgc = "application/x-dgc-compressed";
-  var dir = "application/x-director";
-  var dcr = "application/x-director";
-  var dxr = "application/x-director";
-  var cst = "application/x-director";
-  var cct = "application/x-director";
-  var cxt = "application/x-director";
-  var w3d = "application/x-director";
-  var fgd = "application/x-director";
-  var swa = "application/x-director";
-  var wad = "application/x-doom";
-  var ncx = "application/x-dtbncx+xml";
-  var dtb = "application/x-dtbook+xml";
-  var res = "application/x-dtbresource+xml";
-  var dvi = "application/x-dvi";
-  var evy = "application/x-envoy";
-  var eva = "application/x-eva";
-  var bdf = "application/x-font-bdf";
-  var gsf = "application/x-font-ghostscript";
-  var psf = "application/x-font-linux-psf";
-  var pcf = "application/x-font-pcf";
-  var snf = "application/x-font-snf";
-  var pfa = "application/x-font-type1";
-  var pfb = "application/x-font-type1";
-  var pfm = "application/x-font-type1";
-  var afm = "application/x-font-type1";
-  var arc = "application/x-freearc";
-  var spl = "application/x-futuresplash";
-  var gca = "application/x-gca-compressed";
-  var ulx = "application/x-glulx";
-  var gnumeric = "application/x-gnumeric";
-  var gramps = "application/x-gramps-xml";
-  var gtar = "application/x-gtar";
-  var hdf = "application/x-hdf";
-  var php = "application/x-httpd-php";
-  var install = "application/x-install-instructions";
-  var jardiff = "application/x-java-archive-diff";
-  var jnlp = "application/x-java-jnlp-file";
-  var kdbx = "application/x-keepass2";
-  var latex = "application/x-latex";
-  var luac = "application/x-lua-bytecode";
-  var lzh = "application/x-lzh-compressed";
-  var lha = "application/x-lzh-compressed";
-  var run = "application/x-makeself";
-  var mie = "application/x-mie";
-  var prc = "application/x-mobipocket-ebook";
-  var mobi = "application/x-mobipocket-ebook";
-  var application = "application/x-ms-application";
-  var lnk = "application/x-ms-shortcut";
-  var wmd = "application/x-ms-wmd";
-  var wmz = "application/x-ms-wmz";
-  var xbap = "application/x-ms-xbap";
-  var mdb = "application/x-msaccess";
-  var obd = "application/x-msbinder";
-  var crd = "application/x-mscardfile";
-  var clp = "application/x-msclip";
-  var com = "application/x-msdownload";
-  var bat = "application/x-msdownload";
-  var mvb = "application/x-msmediaview";
-  var m13 = "application/x-msmediaview";
-  var m14 = "application/x-msmediaview";
-  var wmf = "image/wmf";
-  var emf = "image/emf";
-  var emz = "application/x-msmetafile";
-  var mny = "application/x-msmoney";
-  var pub = "application/x-mspublisher";
-  var scd = "application/x-msschedule";
-  var trm = "application/x-msterminal";
-  var wri = "application/x-mswrite";
-  var nc = "application/x-netcdf";
-  var cdf = "application/x-netcdf";
-  var pac = "application/x-ns-proxy-autoconfig";
-  var nzb = "application/x-nzb";
-  var pl = "application/x-perl";
-  var pm = "application/x-perl";
-  var p12 = "application/x-pkcs12";
-  var pfx = "application/x-pkcs12";
-  var p7b = "application/x-pkcs7-certificates";
-  var spc = "application/x-pkcs7-certificates";
-  var p7r = "application/x-pkcs7-certreqresp";
-  var rar = "application/x-rar-compressed";
-  var rpm = "application/x-redhat-package-manager";
-  var ris = "application/x-research-info-systems";
-  var sea = "application/x-sea";
-  var sh = "application/x-sh";
-  var shar = "application/x-shar";
-  var swf = "application/x-shockwave-flash";
-  var xap = "application/x-silverlight-app";
-  var sql = "application/x-sql";
-  var sit = "application/x-stuffit";
-  var sitx = "application/x-stuffitx";
-  var srt = "application/x-subrip";
-  var sv4cpio = "application/x-sv4cpio";
-  var sv4crc = "application/x-sv4crc";
-  var t3 = "application/x-t3vm-image";
-  var gam = "application/x-tads";
-  var tar = "application/x-tar";
-  var tcl = "application/x-tcl";
-  var tk = "application/x-tcl";
-  var tex = "application/x-tex";
-  var tfm = "application/x-tex-tfm";
-  var texinfo = "application/x-texinfo";
-  var texi = "application/x-texinfo";
-  var obj = "model/obj";
-  var ustar = "application/x-ustar";
-  var hdd = "application/x-virtualbox-hdd";
-  var ova = "application/x-virtualbox-ova";
-  var ovf = "application/x-virtualbox-ovf";
-  var vbox = "application/x-virtualbox-vbox";
-  var vbox_extpack = "application/x-virtualbox-vbox-extpack";
-  var vdi = "application/x-virtualbox-vdi";
-  var vhd = "application/x-virtualbox-vhd";
-  var vmdk = "application/x-virtualbox-vmdk";
-  var src = "application/x-wais-source";
-  var webapp = "application/x-web-app-manifest+json";
-  var der = "application/x-x509-ca-cert";
-  var crt = "application/x-x509-ca-cert";
-  var pem = "application/x-x509-ca-cert";
-  var fig = "application/x-xfig";
-  var xlf = "application/xliff+xml";
-  var xpi = "application/x-xpinstall";
-  var xz = "application/x-xz";
-  var z1 = "application/x-zmachine";
-  var z2 = "application/x-zmachine";
-  var z3 = "application/x-zmachine";
-  var z4 = "application/x-zmachine";
-  var z5 = "application/x-zmachine";
-  var z6 = "application/x-zmachine";
-  var z7 = "application/x-zmachine";
-  var z8 = "application/x-zmachine";
-  var xaml = "application/xaml+xml";
-  var xav = "application/xcap-att+xml";
-  var xca = "application/xcap-caps+xml";
-  var xel = "application/xcap-el+xml";
-  var xns = "application/xcap-ns+xml";
-  var xenc = "application/xenc+xml";
-  var xhtml = "application/xhtml+xml";
-  var xht = "application/xhtml+xml";
-  var xml = "application/xml";
-  var xsl = "application/xml";
-  var xsd = "application/xml";
-  var rng = "application/xml";
-  var dtd = "application/xml-dtd";
-  var xop = "application/xop+xml";
-  var xpl = "application/xproc+xml";
-  var xslt = "application/xslt+xml";
-  var xspf = "application/xspf+xml";
-  var mxml = "application/xv+xml";
-  var xhvml = "application/xv+xml";
-  var xvml = "application/xv+xml";
-  var xvm = "application/xv+xml";
-  var yang = "application/yang";
-  var yin = "application/yin+xml";
-  var zip = "application/zip";
-  var _gpp = "video/3gpp";
-  var adp = "audio/adpcm";
-  var au = "audio/basic";
-  var snd = "audio/basic";
-  var mid = "audio/midi";
-  var midi = "audio/midi";
-  var kar = "audio/midi";
-  var rmi = "audio/midi";
-  var mxmf = "audio/mobile-xmf";
-  var mp3 = "audio/mpeg";
-  var m4a = "audio/mp4";
-  var mp4a = "audio/mp4";
-  var mpga = "audio/mpeg";
-  var mp2 = "audio/mpeg";
-  var mp2a = "audio/mpeg";
-  var m2a = "audio/mpeg";
-  var m3a = "audio/mpeg";
-  var oga = "audio/ogg";
-  var ogg = "audio/ogg";
-  var spx = "audio/ogg";
-  var s3m = "audio/s3m";
-  var sil = "audio/silk";
-  var uva = "audio/vnd.dece.audio";
-  var uvva = "audio/vnd.dece.audio";
-  var eol = "audio/vnd.digital-winds";
-  var dra = "audio/vnd.dra";
-  var dts = "audio/vnd.dts";
-  var dtshd = "audio/vnd.dts.hd";
-  var lvp = "audio/vnd.lucent.voice";
-  var pya = "audio/vnd.ms-playready.media.pya";
-  var ecelp4800 = "audio/vnd.nuera.ecelp4800";
-  var ecelp7470 = "audio/vnd.nuera.ecelp7470";
-  var ecelp9600 = "audio/vnd.nuera.ecelp9600";
-  var rip = "audio/vnd.rip";
-  var wav = "audio/wave";
-  var weba = "audio/webm";
-  var aac = "audio/x-aac";
-  var aif = "audio/x-aiff";
-  var aiff = "audio/x-aiff";
-  var aifc = "audio/x-aiff";
-  var caf = "audio/x-caf";
-  var flac = "audio/x-flac";
-  var mka = "audio/x-matroska";
-  var m3u = "audio/x-mpegurl";
-  var wax = "audio/x-ms-wax";
-  var wma = "audio/x-ms-wma";
-  var ram = "audio/x-pn-realaudio";
-  var ra = "audio/x-pn-realaudio";
-  var rmp = "audio/x-pn-realaudio-plugin";
-  var xm = "audio/xm";
-  var cdx = "chemical/x-cdx";
-  var cif = "chemical/x-cif";
-  var cmdf = "chemical/x-cmdf";
-  var cml = "chemical/x-cml";
-  var csml = "chemical/x-csml";
-  var xyz = "chemical/x-xyz";
-  var ttc = "font/collection";
-  var otf = "font/otf";
-  var ttf = "font/ttf";
-  var woff = "font/woff";
-  var woff2 = "font/woff2";
-  var exr = "image/aces";
-  var apng = "image/apng";
-  var bmp = "image/bmp";
-  var cgm = "image/cgm";
-  var drle = "image/dicom-rle";
-  var fits = "image/fits";
-  var g3 = "image/g3fax";
-  var gif = "image/gif";
-  var heic = "image/heic";
-  var heics = "image/heic-sequence";
-  var heif = "image/heif";
-  var heifs = "image/heif-sequence";
-  var hej2 = "image/hej2k";
-  var hsj2 = "image/hsj2";
-  var ief = "image/ief";
-  var jls = "image/jls";
-  var jp2 = "image/jp2";
-  var jpg2 = "image/jp2";
-  var jpeg = "image/jpeg";
-  var jpg = "image/jpeg";
-  var jpe = "image/jpeg";
-  var jph = "image/jph";
-  var jhc = "image/jphc";
-  var jpm = "image/jpm";
-  var jpx = "image/jpx";
-  var jpf = "image/jpx";
-  var jxr = "image/jxr";
-  var jxra = "image/jxra";
-  var jxrs = "image/jxrs";
-  var jxs = "image/jxs";
-  var jxsc = "image/jxsc";
-  var jxsi = "image/jxsi";
-  var jxss = "image/jxss";
-  var ktx = "image/ktx";
-  var png = "image/png";
-  var btif = "image/prs.btif";
-  var pti = "image/prs.pti";
-  var sgi = "image/sgi";
-  var svg = "image/svg+xml";
-  var svgz = "image/svg+xml";
-  var t38 = "image/t38";
-  var tif = "image/tiff";
-  var tiff = "image/tiff";
-  var tfx = "image/tiff-fx";
-  var psd = "image/vnd.adobe.photoshop";
-  var azv = "image/vnd.airzip.accelerator.azv";
-  var uvi = "image/vnd.dece.graphic";
-  var uvvi = "image/vnd.dece.graphic";
-  var uvg = "image/vnd.dece.graphic";
-  var uvvg = "image/vnd.dece.graphic";
-  var djvu = "image/vnd.djvu";
-  var djv = "image/vnd.djvu";
-  var sub = "text/vnd.dvb.subtitle";
-  var dwg = "image/vnd.dwg";
-  var dxf = "image/vnd.dxf";
-  var fbs = "image/vnd.fastbidsheet";
-  var fpx = "image/vnd.fpx";
-  var fst = "image/vnd.fst";
-  var mmr = "image/vnd.fujixerox.edmics-mmr";
-  var rlc = "image/vnd.fujixerox.edmics-rlc";
-  var ico = "image/vnd.microsoft.icon";
-  var dds = "image/vnd.ms-dds";
-  var mdi = "image/vnd.ms-modi";
-  var wdp = "image/vnd.ms-photo";
-  var npx = "image/vnd.net-fpx";
-  var tap = "image/vnd.tencent.tap";
-  var vtf = "image/vnd.valve.source.texture";
-  var wbmp = "image/vnd.wap.wbmp";
-  var xif = "image/vnd.xiff";
-  var pcx = "image/vnd.zbrush.pcx";
-  var webp = "image/webp";
-  var _ds = "image/x-3ds";
-  var ras = "image/x-cmu-raster";
-  var cmx = "image/x-cmx";
-  var fh = "image/x-freehand";
-  var fhc = "image/x-freehand";
-  var fh4 = "image/x-freehand";
-  var fh5 = "image/x-freehand";
-  var fh7 = "image/x-freehand";
-  var jng = "image/x-jng";
-  var sid = "image/x-mrsid-image";
-  var pic = "image/x-pict";
-  var pct = "image/x-pict";
-  var pnm = "image/x-portable-anymap";
-  var pbm = "image/x-portable-bitmap";
-  var pgm = "image/x-portable-graymap";
-  var ppm = "image/x-portable-pixmap";
-  var rgb = "image/x-rgb";
-  var tga = "image/x-tga";
-  var xbm = "image/x-xbitmap";
-  var xpm = "image/x-xpixmap";
-  var xwd = "image/x-xwindowdump";
-  var disposition_notification = "message/disposition-notification";
-  var u8msg = "message/global";
-  var u8dsn = "message/global-delivery-status";
-  var u8mdn = "message/global-disposition-notification";
-  var u8hdr = "message/global-headers";
-  var eml = "message/rfc822";
-  var mime = "message/rfc822";
-  var wsc = "message/vnd.wfa.wsc";
-  var _mf = "model/3mf";
-  var gltf = "model/gltf+json";
-  var glb = "model/gltf-binary";
-  var igs = "model/iges";
-  var iges = "model/iges";
-  var msh = "model/mesh";
-  var mesh = "model/mesh";
-  var silo = "model/mesh";
-  var mtl = "model/mtl";
-  var dae = "model/vnd.collada+xml";
-  var dwf = "model/vnd.dwf";
-  var gdl = "model/vnd.gdl";
-  var gtw = "model/vnd.gtw";
-  var mts = "model/vnd.mts";
-  var ogex = "model/vnd.opengex";
-  var x_b = "model/vnd.parasolid.transmit.binary";
-  var x_t = "model/vnd.parasolid.transmit.text";
-  var usdz = "model/vnd.usdz+zip";
-  var bsp = "model/vnd.valve.source.compiled-map";
-  var vtu = "model/vnd.vtu";
-  var wrl = "model/vrml";
-  var vrml = "model/vrml";
-  var x3db = "model/x3d+fastinfoset";
-  var x3dbz = "model/x3d+binary";
-  var x3dv = "model/x3d-vrml";
-  var x3dvz = "model/x3d+vrml";
-  var x3d = "model/x3d+xml";
-  var x3dz = "model/x3d+xml";
-  var appcache = "text/cache-manifest";
-  var manifest = "text/cache-manifest";
-  var ics = "text/calendar";
-  var ifb = "text/calendar";
-  var coffee = "text/coffeescript";
-  var litcoffee = "text/coffeescript";
-  var css = "text/css";
-  var csv = "text/csv";
-  var html = "text/html";
-  var htm = "text/html";
-  var shtml = "text/html";
-  var jade = "text/jade";
-  var jsx = "text/jsx";
-  var less = "text/less";
-  var markdown = "text/markdown";
-  var md = "text/markdown";
-  var mml = "text/mathml";
-  var mdx = "text/mdx";
-  var n3 = "text/n3";
-  var txt = "text/plain";
-  var text = "text/plain";
-  var conf = "text/plain";
-  var def = "text/plain";
-  var list = "text/plain";
-  var log = "text/plain";
-  var in2 = "text/plain";
-  var ini = "text/plain";
-  var dsc = "text/prs.lines.tag";
-  var rtx = "text/richtext";
-  var sgml = "text/sgml";
-  var sgm = "text/sgml";
-  var shex = "text/shex";
-  var slim = "text/slim";
-  var slm = "text/slim";
-  var stylus = "text/stylus";
-  var styl = "text/stylus";
-  var tsv = "text/tab-separated-values";
-  var t = "text/troff";
-  var tr = "text/troff";
-  var roff = "text/troff";
-  var man = "text/troff";
-  var me = "text/troff";
-  var ms = "text/troff";
-  var ttl = "text/turtle";
-  var uri = "text/uri-list";
-  var uris = "text/uri-list";
-  var urls = "text/uri-list";
-  var vcard = "text/vcard";
-  var curl = "text/vnd.curl";
-  var dcurl = "text/vnd.curl.dcurl";
-  var mcurl = "text/vnd.curl.mcurl";
-  var scurl = "text/vnd.curl.scurl";
-  var fly = "text/vnd.fly";
-  var flx = "text/vnd.fmi.flexstor";
-  var gv = "text/vnd.graphviz";
-  var _dml = "text/vnd.in3d.3dml";
-  var spot = "text/vnd.in3d.spot";
-  var jad = "text/vnd.sun.j2me.app-descriptor";
-  var wml = "text/vnd.wap.wml";
-  var wmls = "text/vnd.wap.wmlscript";
-  var vtt = "text/vtt";
-  var s = "text/x-asm";
-  var asm = "text/x-asm";
-  var c = "text/x-c";
-  var cc = "text/x-c";
-  var cxx = "text/x-c";
-  var cpp = "text/x-c";
-  var h = "text/x-c";
-  var hh = "text/x-c";
-  var dic = "text/x-c";
-  var htc = "text/x-component";
-  var f = "text/x-fortran";
-  var for2 = "text/x-fortran";
-  var f77 = "text/x-fortran";
-  var f90 = "text/x-fortran";
-  var hbs = "text/x-handlebars-template";
-  var java = "text/x-java-source";
-  var lua = "text/x-lua";
-  var mkd = "text/x-markdown";
-  var nfo = "text/x-nfo";
-  var opml = "text/x-opml";
-  var p = "text/x-pascal";
-  var pas = "text/x-pascal";
-  var pde = "text/x-processing";
-  var sass = "text/x-sass";
-  var scss = "text/x-scss";
-  var etx = "text/x-setext";
-  var sfv = "text/x-sfv";
-  var ymp = "text/x-suse-ymp";
-  var uu = "text/x-uuencode";
-  var vcs = "text/x-vcalendar";
-  var vcf = "text/x-vcard";
-  var yaml = "text/yaml";
-  var yml = "text/yaml";
-  var _gp = "video/3gpp";
-  var _g2 = "video/3gpp2";
-  var h261 = "video/h261";
-  var h263 = "video/h263";
-  var h264 = "video/h264";
-  var jpgv = "video/jpeg";
-  var jpgm = "video/jpm";
-  var mj2 = "video/mj2";
-  var mjp2 = "video/mj2";
-  var ts = "video/mp2t";
-  var mp4 = "video/mp4";
-  var mp4v = "video/mp4";
-  var mpg4 = "video/mp4";
-  var mpeg = "video/mpeg";
-  var mpg = "video/mpeg";
-  var mpe = "video/mpeg";
-  var m1v = "video/mpeg";
-  var m2v = "video/mpeg";
-  var ogv = "video/ogg";
-  var qt = "video/quicktime";
-  var mov = "video/quicktime";
-  var uvh = "video/vnd.dece.hd";
-  var uvvh = "video/vnd.dece.hd";
-  var uvm = "video/vnd.dece.mobile";
-  var uvvm = "video/vnd.dece.mobile";
-  var uvp = "video/vnd.dece.pd";
-  var uvvp = "video/vnd.dece.pd";
-  var uvs = "video/vnd.dece.sd";
-  var uvvs = "video/vnd.dece.sd";
-  var uvv = "video/vnd.dece.video";
-  var uvvv = "video/vnd.dece.video";
-  var dvb = "video/vnd.dvb.file";
-  var fvt = "video/vnd.fvt";
-  var mxu = "video/vnd.mpegurl";
-  var m4u = "video/vnd.mpegurl";
-  var pyv = "video/vnd.ms-playready.media.pyv";
-  var uvu = "video/vnd.uvvu.mp4";
-  var uvvu = "video/vnd.uvvu.mp4";
-  var viv = "video/vnd.vivo";
-  var webm = "video/webm";
-  var f4v = "video/x-f4v";
-  var fli = "video/x-fli";
-  var flv = "video/x-flv";
-  var m4v = "video/x-m4v";
-  var mkv = "video/x-matroska";
-  var mk3d = "video/x-matroska";
-  var mks = "video/x-matroska";
-  var mng = "video/x-mng";
-  var asf = "video/x-ms-asf";
-  var asx = "video/x-ms-asf";
-  var vob = "video/x-ms-vob";
-  var wm = "video/x-ms-wm";
-  var wmv = "video/x-ms-wmv";
-  var wmx = "video/x-ms-wmx";
-  var wvx = "video/x-ms-wvx";
-  var avi = "video/x-msvideo";
-  var movie = "video/x-sgi-movie";
-  var smv = "video/x-smv";
-  var ice = "x-conference/x-cooltalk";
+  // src/data/mime_types.ts
   var mime_types_default = {
-    "123": _23,
-    ez,
-    aw,
-    atom,
-    atomcat,
-    atomdeleted,
-    atomsvc,
-    dwd,
-    held,
-    rsat,
-    bdoc,
-    xcs,
-    ccxml,
-    cdfx,
-    cdmia,
-    cdmic,
-    cdmid,
-    cdmio,
-    cdmiq,
-    cu,
-    mpd,
-    davmount,
-    dbk,
-    dssc,
-    xdssc,
-    ecma,
-    es,
-    emma,
-    emotionml,
-    epub,
-    exi,
-    fdt,
-    pfr,
-    geojson,
-    gml,
-    gpx,
-    gxf,
-    gz,
-    hjson,
-    stk,
-    ink,
-    inkml,
-    ipfix,
-    its,
-    jar,
-    war,
-    ear,
-    ser,
-    class: class2,
-    js,
-    mjs,
-    json,
-    map,
-    json5,
-    jsonml,
-    jsonld,
-    lgr,
-    lostxml,
-    hqx,
-    cpt,
-    mads,
-    webmanifest,
-    mrc,
-    mrcx,
-    ma,
-    nb,
-    mb,
-    mathml,
-    mbox,
-    mscml,
-    metalink,
-    meta4,
-    mets,
-    maei,
-    musd,
-    mods,
-    m21,
-    mp21,
-    mp4s,
-    m4p,
-    xdf,
-    doc,
-    dot,
-    mxf,
-    nq,
-    nt,
-    cjs,
-    bin,
-    dms,
-    lrf,
-    mar,
-    so,
-    dist,
-    distz,
-    pkg,
-    bpk,
-    dump,
-    elc,
-    deploy,
-    exe,
-    dll,
-    deb,
-    dmg,
-    iso,
-    img,
-    msi,
-    msp,
-    msm,
-    buffer,
-    oda,
-    opf,
-    ogx,
-    omdoc,
-    onetoc,
-    onetoc2,
-    onetmp,
-    onepkg,
-    oxps,
-    relo,
-    xer,
-    pdf,
-    pgp,
-    asc,
-    sig,
-    prf,
-    p10,
-    p7m,
-    p7c,
-    p7s,
-    p8,
-    ac,
-    cer,
-    crl,
-    pkipath,
-    pki,
-    pls,
-    ai,
-    eps,
-    ps,
-    provx,
-    cww,
-    pskcxml,
-    raml,
-    rdf,
-    owl,
-    rif,
-    rnc,
-    rl,
-    rld,
-    rs,
-    rapd,
-    sls,
-    rusd,
-    gbr,
-    mft,
-    roa,
-    rsd,
-    rss,
-    rtf,
-    sbml,
-    scq,
-    scs,
-    spq,
-    spp,
-    sdp,
-    senmlx,
-    sensmlx,
-    setpay,
-    setreg,
-    shf,
-    siv,
-    sieve,
-    smi,
-    smil,
-    rq,
-    srx,
-    gram,
-    grxml,
-    sru,
-    ssdl,
-    ssml,
-    swidtag,
-    tei,
-    teicorpus,
-    tfi,
-    tsd,
-    toml,
-    ttml,
-    rsheet,
-    "1km": _km,
-    plb,
-    psb,
-    pvb,
-    tcap,
-    pwn,
-    aso,
-    imp,
-    acu,
-    atc,
-    acutc,
-    air,
-    fcdt,
-    fxp,
-    fxpl,
-    xdp,
-    xfdf,
-    ahead,
-    azf,
-    azs,
-    azw,
-    acc,
-    ami,
-    apk,
-    cii,
-    fti,
-    atx,
-    mpkg,
-    keynote,
-    m3u8,
-    numbers,
-    pages,
-    pkpass,
-    swi,
-    iota,
-    aep,
-    bmml,
-    mpm,
-    bmi,
-    rep,
-    cdxml,
-    mmd,
-    cdy,
-    csl,
-    cla,
-    rp9,
-    c4g,
-    c4d,
-    c4f,
-    c4p,
-    c4u,
-    c11amc,
-    c11amz,
-    csp,
-    cdbcmsg,
-    cmc,
-    clkx,
-    clkk,
-    clkp,
-    clkt,
-    clkw,
-    wbs,
-    pml,
-    ppd,
-    car,
-    pcurl,
-    dart,
-    rdz,
-    uvf,
-    uvvf,
-    uvd,
-    uvvd,
-    uvt,
-    uvvt,
-    uvx,
-    uvvx,
-    uvz,
-    uvvz,
-    fe_launch,
-    dna,
-    mlp,
-    dpg,
-    dfac,
-    kpxx,
-    ait,
-    svc,
-    geo,
-    mag,
-    nml,
-    esf,
-    msf,
-    qam,
-    slt,
-    ssf,
-    es3,
-    et3,
-    ez2,
-    ez3,
-    fdf,
-    mseed,
-    seed,
-    dataless,
-    gph,
-    ftc,
-    fm,
-    frame,
-    maker,
-    book,
-    fnc,
-    ltf,
-    fsc,
-    oas,
-    oa2,
-    oa3,
-    fg5,
-    bh2,
-    ddd,
-    xdw,
-    xbd,
-    fzs,
-    txd,
-    ggb,
-    ggt,
-    gex,
-    gre,
-    gxt,
-    g2w,
-    g3w,
-    gmx,
-    gdoc,
-    gslides,
-    gsheet,
-    kml,
-    kmz,
-    gqf,
-    gqs,
-    gac,
-    ghf,
-    gim,
-    grv,
-    gtm,
-    tpl,
-    vcg,
-    hal,
-    zmm,
-    hbci,
-    les,
-    hpgl,
-    hpid,
-    hps,
-    jlt,
-    pcl,
-    pclxl,
-    "sfd-hdstx": sfd_hdstx,
-    mpy,
-    afp,
-    listafp,
-    list3820,
-    irm,
-    sc,
-    icc,
-    icm,
-    igl,
-    ivp,
-    ivu,
-    igm,
-    xpw,
-    xpx,
-    i2g,
-    qbo,
-    qfx,
-    rcprofile,
-    irp,
-    xpr,
-    fcs,
-    jam,
-    rms,
-    jisp,
-    joda,
-    ktz,
-    ktr,
-    karbon,
-    chrt,
-    kfo,
-    flw,
-    kon,
-    kpr,
-    kpt,
-    ksp,
-    kwd,
-    kwt,
-    htke,
-    kia,
-    kne,
-    knp,
-    skp,
-    skd,
-    skt,
-    skm,
-    sse,
-    lasxml,
-    lbd,
-    lbe,
-    apr,
-    pre,
-    nsf,
-    org,
-    scm,
-    lwp,
-    portpkg,
-    mcd,
-    mc1,
-    cdkey,
-    mwf,
-    mfm,
-    flo,
-    igx,
-    mif,
-    daf,
-    dis,
-    mbk,
-    mqy,
-    msl,
-    plc,
-    txf,
-    mpn,
-    mpc,
-    xul,
-    cil,
-    cab,
-    xls,
-    xlm,
-    xla,
-    xlc,
-    xlt,
-    xlw,
-    xlam,
-    xlsb,
-    xlsm,
-    xltm,
-    eot,
-    chm,
-    ims,
-    lrm,
-    thmx,
-    msg,
-    cat,
-    stl,
-    ppt,
-    pps,
-    pot,
-    ppam,
-    pptm,
-    sldm,
-    ppsm,
-    potm,
-    mpp,
-    mpt,
-    docm,
-    dotm,
-    wps,
-    wks,
-    wcm,
-    wdb,
-    wpl,
-    xps,
-    mseq,
-    mus,
-    msty,
-    taglet,
-    nlu,
-    ntf,
-    nitf,
-    nnd,
-    nns,
-    nnw,
-    ngdat,
-    "n-gage": n_gage,
-    rpst,
-    rpss,
-    edm,
-    edx,
-    ext,
-    odc,
-    otc,
-    odb,
-    odf,
-    odft,
-    odg,
-    otg,
-    odi,
-    oti,
-    odp,
-    otp,
-    ods,
-    ots,
-    odt,
-    odm,
-    ott,
-    oth,
-    xo,
-    dd2,
-    obgx,
-    oxt,
-    osm,
-    pptx,
-    sldx,
-    ppsx,
-    potx,
-    xlsx,
-    xltx,
-    docx,
-    dotx,
-    mgp,
-    dp,
-    esa,
-    pdb,
-    pqa,
-    oprc,
-    paw,
-    str,
-    ei6,
-    efif,
-    wg,
-    plf,
-    pbd,
-    box,
-    mgz,
-    qps,
-    ptid,
-    qxd,
-    qxt,
-    qwd,
-    qwt,
-    qxl,
-    qxb,
-    bed,
-    mxl,
-    musicxml,
-    cryptonote,
-    cod,
-    rm,
-    rmvb,
-    link66,
-    st,
-    see,
-    sema,
-    semd,
-    semf,
-    ifm,
-    itp,
-    iif,
-    ipk,
-    twd,
-    twds,
-    mmf,
-    teacher,
-    fo,
-    sdkm,
-    sdkd,
-    dxp,
-    sfs,
-    sdc,
-    sda,
-    sdd,
-    smf,
-    sdw,
-    vor,
-    sgl,
-    smzip,
-    sm,
-    wadl,
-    sxc,
-    stc,
-    sxd,
-    std,
-    sxi,
-    sti,
-    sxm,
-    sxw,
-    sxg,
-    stw,
-    sus,
-    susp,
-    svd,
-    sis,
-    sisx,
-    xsm,
-    bdm,
-    xdm,
-    ddf,
-    tao,
-    pcap,
-    cap,
-    dmp,
-    tmo,
-    tpt,
-    mxs,
-    tra,
-    ufd,
-    ufdl,
-    utz,
-    umj,
-    unityweb,
-    uoml,
-    vcx,
-    vsd,
-    vst,
-    vss,
-    vsw,
-    vis,
-    vsf,
-    wbxml,
-    wmlc,
-    wmlsc,
-    wtb,
-    nbp,
-    wpd,
-    wqd,
-    stf,
-    xar,
-    xfdl,
-    hvd,
-    hvs,
-    hvp,
-    osf,
-    osfpvg,
-    saf,
-    spf,
-    cmp,
-    zir,
-    zirz,
-    zaz,
-    vxml,
-    wasm,
-    wgt,
-    hlp,
-    wsdl,
-    wspolicy,
-    "7z": _z,
-    abw,
-    ace,
-    arj,
-    aab,
-    x32,
-    u32,
-    vox,
-    aam,
-    aas,
-    bcpio,
-    torrent,
-    blb,
-    blorb,
-    bz,
-    bz2,
-    boz,
-    cbr,
-    cba,
-    cbt,
-    cbz,
-    cb7,
-    vcd,
-    cfs,
-    chat,
-    pgn,
-    crx,
-    cco,
-    nsc,
-    cpio,
-    csh,
-    udeb,
-    dgc,
-    dir,
-    dcr,
-    dxr,
-    cst,
-    cct,
-    cxt,
-    w3d,
-    fgd,
-    swa,
-    wad,
-    ncx,
-    dtb,
-    res,
-    dvi,
-    evy,
-    eva,
-    bdf,
-    gsf,
-    psf,
-    pcf,
-    snf,
-    pfa,
-    pfb,
-    pfm,
-    afm,
-    arc,
-    spl,
-    gca,
-    ulx,
-    gnumeric,
-    gramps,
-    gtar,
-    hdf,
-    php,
-    install,
-    jardiff,
-    jnlp,
-    kdbx,
-    latex,
-    luac,
-    lzh,
-    lha,
-    run,
-    mie,
-    prc,
-    mobi,
-    application,
-    lnk,
-    wmd,
-    wmz,
-    xbap,
-    mdb,
-    obd,
-    crd,
-    clp,
-    com,
-    bat,
-    mvb,
-    m13,
-    m14,
-    wmf,
-    emf,
-    emz,
-    mny,
-    pub,
-    scd,
-    trm,
-    wri,
-    nc,
-    cdf,
-    pac,
-    nzb,
-    pl,
-    pm,
-    p12,
-    pfx,
-    p7b,
-    spc,
-    p7r,
-    rar,
-    rpm,
-    ris,
-    sea,
-    sh,
-    shar,
-    swf,
-    xap,
-    sql,
-    sit,
-    sitx,
-    srt,
-    sv4cpio,
-    sv4crc,
-    t3,
-    gam,
-    tar,
-    tcl,
-    tk,
-    tex,
-    tfm,
-    texinfo,
-    texi,
-    obj,
-    ustar,
-    hdd,
-    ova,
-    ovf,
-    vbox,
-    "vbox-extpack": vbox_extpack,
-    vdi,
-    vhd,
-    vmdk,
-    src,
-    webapp,
-    der,
-    crt,
-    pem,
-    fig,
-    xlf,
-    xpi,
-    xz,
-    z1,
-    z2,
-    z3,
-    z4,
-    z5,
-    z6,
-    z7,
-    z8,
-    xaml,
-    xav,
-    xca,
-    xel,
-    xns,
-    xenc,
-    xhtml,
-    xht,
-    xml,
-    xsl,
-    xsd,
-    rng,
-    dtd,
-    xop,
-    xpl,
-    xslt,
-    xspf,
-    mxml,
-    xhvml,
-    xvml,
-    xvm,
-    yang,
-    yin,
-    zip,
-    "3gpp": _gpp,
-    adp,
-    au,
-    snd,
-    mid,
-    midi,
-    kar,
-    rmi,
-    mxmf,
-    mp3,
-    m4a,
-    mp4a,
-    mpga,
-    mp2,
-    mp2a,
-    m2a,
-    m3a,
-    oga,
-    ogg,
-    spx,
-    s3m,
-    sil,
-    uva,
-    uvva,
-    eol,
-    dra,
-    dts,
-    dtshd,
-    lvp,
-    pya,
-    ecelp4800,
-    ecelp7470,
-    ecelp9600,
-    rip,
-    wav,
-    weba,
-    aac,
-    aif,
-    aiff,
-    aifc,
-    caf,
-    flac,
-    mka,
-    m3u,
-    wax,
-    wma,
-    ram,
-    ra,
-    rmp,
-    xm,
-    cdx,
-    cif,
-    cmdf,
-    cml,
-    csml,
-    xyz,
-    ttc,
-    otf,
-    ttf,
-    woff,
-    woff2,
-    exr,
-    apng,
-    bmp,
-    cgm,
-    drle,
-    fits,
-    g3,
-    gif,
-    heic,
-    heics,
-    heif,
-    heifs,
-    hej2,
-    hsj2,
-    ief,
-    jls,
-    jp2,
-    jpg2,
-    jpeg,
-    jpg,
-    jpe,
-    jph,
-    jhc,
-    jpm,
-    jpx,
-    jpf,
-    jxr,
-    jxra,
-    jxrs,
-    jxs,
-    jxsc,
-    jxsi,
-    jxss,
-    ktx,
-    png,
-    btif,
-    pti,
-    sgi,
-    svg,
-    svgz,
-    t38,
-    tif,
-    tiff,
-    tfx,
-    psd,
-    azv,
-    uvi,
-    uvvi,
-    uvg,
-    uvvg,
-    djvu,
-    djv,
-    sub,
-    dwg,
-    dxf,
-    fbs,
-    fpx,
-    fst,
-    mmr,
-    rlc,
-    ico,
-    dds,
-    mdi,
-    wdp,
-    npx,
-    tap,
-    vtf,
-    wbmp,
-    xif,
-    pcx,
-    webp,
-    "3ds": _ds,
-    ras,
-    cmx,
-    fh,
-    fhc,
-    fh4,
-    fh5,
-    fh7,
-    jng,
-    sid,
-    pic,
-    pct,
-    pnm,
-    pbm,
-    pgm,
-    ppm,
-    rgb,
-    tga,
-    xbm,
-    xpm,
-    xwd,
-    "disposition-notification": disposition_notification,
-    u8msg,
-    u8dsn,
-    u8mdn,
-    u8hdr,
-    eml,
-    mime,
-    wsc,
-    "3mf": _mf,
-    gltf,
-    glb,
-    igs,
-    iges,
-    msh,
-    mesh,
-    silo,
-    mtl,
-    dae,
-    dwf,
-    gdl,
-    gtw,
-    mts,
-    ogex,
-    x_b,
-    x_t,
-    usdz,
-    bsp,
-    vtu,
-    wrl,
-    vrml,
-    x3db,
-    x3dbz,
-    x3dv,
-    x3dvz,
-    x3d,
-    x3dz,
-    appcache,
-    manifest,
-    ics,
-    ifb,
-    coffee,
-    litcoffee,
-    css,
-    csv,
-    html,
-    htm,
-    shtml,
-    jade,
-    jsx,
-    less,
-    markdown,
-    md,
-    mml,
-    mdx,
-    n3,
-    txt,
-    text,
-    conf,
-    def,
-    list,
-    log,
-    in: in2,
-    ini,
-    dsc,
-    rtx,
-    sgml,
-    sgm,
-    shex,
-    slim,
-    slm,
-    stylus,
-    styl,
-    tsv,
-    t,
-    tr,
-    roff,
-    man,
-    me,
-    ms,
-    ttl,
-    uri,
-    uris,
-    urls,
-    vcard,
-    curl,
-    dcurl,
-    mcurl,
-    scurl,
-    fly,
-    flx,
-    gv,
-    "3dml": _dml,
-    spot,
-    jad,
-    wml,
-    wmls,
-    vtt,
-    s,
-    asm,
-    c,
-    cc,
-    cxx,
-    cpp,
-    h,
-    hh,
-    dic,
-    htc,
-    f,
-    for: for2,
-    f77,
-    f90,
-    hbs,
-    java,
-    lua,
-    mkd,
-    nfo,
-    opml,
-    p,
-    pas,
-    pde,
-    sass,
-    scss,
-    etx,
-    sfv,
-    ymp,
-    uu,
-    vcs,
-    vcf,
-    yaml,
-    yml,
-    "3gp": _gp,
-    "3g2": _g2,
-    h261,
-    h263,
-    h264,
-    jpgv,
-    jpgm,
-    mj2,
-    mjp2,
-    ts,
-    mp4,
-    mp4v,
-    mpg4,
-    mpeg,
-    mpg,
-    mpe,
-    m1v,
-    m2v,
-    ogv,
-    qt,
-    mov,
-    uvh,
-    uvvh,
-    uvm,
-    uvvm,
-    uvp,
-    uvvp,
-    uvs,
-    uvvs,
-    uvv,
-    uvvv,
-    dvb,
-    fvt,
-    mxu,
-    m4u,
-    pyv,
-    uvu,
-    uvvu,
-    viv,
-    webm,
-    f4v,
-    fli,
-    flv,
-    m4v,
-    mkv,
-    mk3d,
-    mks,
-    mng,
-    asf,
-    asx,
-    vob,
-    wm,
-    wmv,
-    wmx,
-    wvx,
-    avi,
-    movie,
-    smv,
-    ice
+    "123": "application/vnd.lotus-1-2-3",
+    ez: "application/andrew-inset",
+    aw: "application/applixware",
+    atom: "application/atom+xml",
+    atomcat: "application/atomcat+xml",
+    atomdeleted: "application/atomdeleted+xml",
+    atomsvc: "application/atomsvc+xml",
+    dwd: "application/atsc-dwd+xml",
+    held: "application/atsc-held+xml",
+    rsat: "application/atsc-rsat+xml",
+    bdoc: "application/bdoc",
+    xcs: "application/calendar+xml",
+    ccxml: "application/ccxml+xml",
+    cdfx: "application/cdfx+xml",
+    cdmia: "application/cdmi-capability",
+    cdmic: "application/cdmi-container",
+    cdmid: "application/cdmi-domain",
+    cdmio: "application/cdmi-object",
+    cdmiq: "application/cdmi-queue",
+    cu: "application/cu-seeme",
+    mpd: "application/dash+xml",
+    davmount: "application/davmount+xml",
+    dbk: "application/docbook+xml",
+    dssc: "application/dssc+der",
+    xdssc: "application/dssc+xml",
+    ecma: "application/ecmascript",
+    es: "application/ecmascript",
+    emma: "application/emma+xml",
+    emotionml: "application/emotionml+xml",
+    epub: "application/epub+zip",
+    exi: "application/exi",
+    fdt: "application/fdt+xml",
+    pfr: "application/font-tdpfr",
+    geojson: "application/geo+json",
+    gml: "application/gml+xml",
+    gpx: "application/gpx+xml",
+    gxf: "application/gxf",
+    gz: "application/gzip",
+    hjson: "application/hjson",
+    stk: "application/hyperstudio",
+    ink: "application/inkml+xml",
+    inkml: "application/inkml+xml",
+    ipfix: "application/ipfix",
+    its: "application/its+xml",
+    jar: "application/java-archive",
+    war: "application/java-archive",
+    ear: "application/java-archive",
+    ser: "application/java-serialized-object",
+    class: "application/java-vm",
+    js: "application/javascript",
+    mjs: "application/javascript",
+    json: "application/json",
+    map: "application/json",
+    json5: "application/json5",
+    jsonml: "application/jsonml+json",
+    jsonld: "application/ld+json",
+    lgr: "application/lgr+xml",
+    lostxml: "application/lost+xml",
+    hqx: "application/mac-binhex40",
+    cpt: "application/mac-compactpro",
+    mads: "application/mads+xml",
+    webmanifest: "application/manifest+json",
+    mrc: "application/marc",
+    mrcx: "application/marcxml+xml",
+    ma: "application/mathematica",
+    nb: "application/mathematica",
+    mb: "application/mathematica",
+    mathml: "application/mathml+xml",
+    mbox: "application/mbox",
+    mscml: "application/mediaservercontrol+xml",
+    metalink: "application/metalink+xml",
+    meta4: "application/metalink4+xml",
+    mets: "application/mets+xml",
+    maei: "application/mmt-aei+xml",
+    musd: "application/mmt-usd+xml",
+    mods: "application/mods+xml",
+    m21: "application/mp21",
+    mp21: "application/mp21",
+    mp4s: "application/mp4",
+    m4p: "application/mp4",
+    xdf: "application/mrb-consumer+xml",
+    doc: "application/msword",
+    dot: "application/msword",
+    mxf: "application/mxf",
+    nq: "application/n-quads",
+    nt: "application/n-triples",
+    cjs: "application/node",
+    bin: "application/octet-stream",
+    dms: "application/octet-stream",
+    lrf: "application/octet-stream",
+    mar: "application/octet-stream",
+    so: "application/octet-stream",
+    dist: "application/octet-stream",
+    distz: "application/octet-stream",
+    pkg: "application/octet-stream",
+    bpk: "application/octet-stream",
+    dump: "application/octet-stream",
+    elc: "application/octet-stream",
+    deploy: "application/octet-stream",
+    exe: "application/x-msdos-program",
+    dll: "application/x-msdownload",
+    deb: "application/x-debian-package",
+    dmg: "application/x-apple-diskimage",
+    iso: "application/x-iso9660-image",
+    img: "application/octet-stream",
+    msi: "application/x-msdownload",
+    msp: "application/octet-stream",
+    msm: "application/octet-stream",
+    buffer: "application/octet-stream",
+    oda: "application/oda",
+    opf: "application/oebps-package+xml",
+    ogx: "application/ogg",
+    omdoc: "application/omdoc+xml",
+    onetoc: "application/onenote",
+    onetoc2: "application/onenote",
+    onetmp: "application/onenote",
+    onepkg: "application/onenote",
+    oxps: "application/oxps",
+    relo: "application/p2p-overlay+xml",
+    xer: "application/patch-ops-error+xml",
+    pdf: "application/pdf",
+    pgp: "application/pgp-encrypted",
+    asc: "application/pgp-signature",
+    sig: "application/pgp-signature",
+    prf: "application/pics-rules",
+    p10: "application/pkcs10",
+    p7m: "application/pkcs7-mime",
+    p7c: "application/pkcs7-mime",
+    p7s: "application/pkcs7-signature",
+    p8: "application/pkcs8",
+    ac: "application/pkix-attr-cert",
+    cer: "application/pkix-cert",
+    crl: "application/pkix-crl",
+    pkipath: "application/pkix-pkipath",
+    pki: "application/pkixcmp",
+    pls: "application/pls+xml",
+    ai: "application/postscript",
+    eps: "application/postscript",
+    ps: "application/postscript",
+    provx: "application/provenance+xml",
+    cww: "application/prs.cww",
+    pskcxml: "application/pskc+xml",
+    raml: "application/raml+yaml",
+    rdf: "application/rdf+xml",
+    owl: "application/rdf+xml",
+    rif: "application/reginfo+xml",
+    rnc: "application/relax-ng-compact-syntax",
+    rl: "application/resource-lists+xml",
+    rld: "application/resource-lists-diff+xml",
+    rs: "application/rls-services+xml",
+    rapd: "application/route-apd+xml",
+    sls: "application/route-s-tsid+xml",
+    rusd: "application/route-usd+xml",
+    gbr: "application/rpki-ghostbusters",
+    mft: "application/rpki-manifest",
+    roa: "application/rpki-roa",
+    rsd: "application/rsd+xml",
+    rss: "application/rss+xml",
+    rtf: "application/rtf",
+    sbml: "application/sbml+xml",
+    scq: "application/scvp-cv-request",
+    scs: "application/scvp-cv-response",
+    spq: "application/scvp-vp-request",
+    spp: "application/scvp-vp-response",
+    sdp: "application/sdp",
+    senmlx: "application/senml+xml",
+    sensmlx: "application/sensml+xml",
+    setpay: "application/set-payment-initiation",
+    setreg: "application/set-registration-initiation",
+    shf: "application/shf+xml",
+    siv: "application/sieve",
+    sieve: "application/sieve",
+    smi: "application/smil+xml",
+    smil: "application/smil+xml",
+    rq: "application/sparql-query",
+    srx: "application/sparql-results+xml",
+    gram: "application/srgs",
+    grxml: "application/srgs+xml",
+    sru: "application/sru+xml",
+    ssdl: "application/ssdl+xml",
+    ssml: "application/ssml+xml",
+    swidtag: "application/swid+xml",
+    tei: "application/tei+xml",
+    teicorpus: "application/tei+xml",
+    tfi: "application/thraud+xml",
+    tsd: "application/timestamped-data",
+    toml: "application/toml",
+    ttml: "application/ttml+xml",
+    rsheet: "application/urc-ressheet+xml",
+    "1km": "application/vnd.1000minds.decision-model+xml",
+    plb: "application/vnd.3gpp.pic-bw-large",
+    psb: "application/vnd.3gpp.pic-bw-small",
+    pvb: "application/vnd.3gpp.pic-bw-var",
+    tcap: "application/vnd.3gpp2.tcap",
+    pwn: "application/vnd.3m.post-it-notes",
+    aso: "application/vnd.accpac.simply.aso",
+    imp: "application/vnd.accpac.simply.imp",
+    acu: "application/vnd.acucobol",
+    atc: "application/vnd.acucorp",
+    acutc: "application/vnd.acucorp",
+    air: "application/vnd.adobe.air-application-installer-package+zip",
+    fcdt: "application/vnd.adobe.formscentral.fcdt",
+    fxp: "application/vnd.adobe.fxp",
+    fxpl: "application/vnd.adobe.fxp",
+    xdp: "application/vnd.adobe.xdp+xml",
+    xfdf: "application/vnd.adobe.xfdf",
+    ahead: "application/vnd.ahead.space",
+    azf: "application/vnd.airzip.filesecure.azf",
+    azs: "application/vnd.airzip.filesecure.azs",
+    azw: "application/vnd.amazon.ebook",
+    acc: "application/vnd.americandynamics.acc",
+    ami: "application/vnd.amiga.ami",
+    apk: "application/vnd.android.package-archive",
+    cii: "application/vnd.anser-web-certificate-issue-initiation",
+    fti: "application/vnd.anser-web-funds-transfer-initiation",
+    atx: "application/vnd.antix.game-component",
+    mpkg: "application/vnd.apple.installer+xml",
+    keynote: "application/vnd.apple.keynote",
+    m3u8: "application/vnd.apple.mpegurl",
+    numbers: "application/vnd.apple.numbers",
+    pages: "application/vnd.apple.pages",
+    pkpass: "application/vnd.apple.pkpass",
+    swi: "application/vnd.aristanetworks.swi",
+    iota: "application/vnd.astraea-software.iota",
+    aep: "application/vnd.audiograph",
+    bmml: "application/vnd.balsamiq.bmml+xml",
+    mpm: "application/vnd.blueice.multipass",
+    bmi: "application/vnd.bmi",
+    rep: "application/vnd.businessobjects",
+    cdxml: "application/vnd.chemdraw+xml",
+    mmd: "application/vnd.chipnuts.karaoke-mmd",
+    cdy: "application/vnd.cinderella",
+    csl: "application/vnd.citationstyles.style+xml",
+    cla: "application/vnd.claymore",
+    rp9: "application/vnd.cloanto.rp9",
+    c4g: "application/vnd.clonk.c4group",
+    c4d: "application/vnd.clonk.c4group",
+    c4f: "application/vnd.clonk.c4group",
+    c4p: "application/vnd.clonk.c4group",
+    c4u: "application/vnd.clonk.c4group",
+    c11amc: "application/vnd.cluetrust.cartomobile-config",
+    c11amz: "application/vnd.cluetrust.cartomobile-config-pkg",
+    csp: "application/vnd.commonspace",
+    cdbcmsg: "application/vnd.contact.cmsg",
+    cmc: "application/vnd.cosmocaller",
+    clkx: "application/vnd.crick.clicker",
+    clkk: "application/vnd.crick.clicker.keyboard",
+    clkp: "application/vnd.crick.clicker.palette",
+    clkt: "application/vnd.crick.clicker.template",
+    clkw: "application/vnd.crick.clicker.wordbank",
+    wbs: "application/vnd.criticaltools.wbs+xml",
+    pml: "application/vnd.ctc-posml",
+    ppd: "application/vnd.cups-ppd",
+    car: "application/vnd.curl.car",
+    pcurl: "application/vnd.curl.pcurl",
+    dart: "application/vnd.dart",
+    rdz: "application/vnd.data-vision.rdz",
+    uvf: "application/vnd.dece.data",
+    uvvf: "application/vnd.dece.data",
+    uvd: "application/vnd.dece.data",
+    uvvd: "application/vnd.dece.data",
+    uvt: "application/vnd.dece.ttml+xml",
+    uvvt: "application/vnd.dece.ttml+xml",
+    uvx: "application/vnd.dece.unspecified",
+    uvvx: "application/vnd.dece.unspecified",
+    uvz: "application/vnd.dece.zip",
+    uvvz: "application/vnd.dece.zip",
+    fe_launch: "application/vnd.denovo.fcselayout-link",
+    dna: "application/vnd.dna",
+    mlp: "application/vnd.dolby.mlp",
+    dpg: "application/vnd.dpgraph",
+    dfac: "application/vnd.dreamfactory",
+    kpxx: "application/vnd.ds-keypoint",
+    ait: "application/vnd.dvb.ait",
+    svc: "application/vnd.dvb.service",
+    geo: "application/vnd.dynageo",
+    mag: "application/vnd.ecowin.chart",
+    nml: "application/vnd.enliven",
+    esf: "application/vnd.epson.esf",
+    msf: "application/vnd.epson.msf",
+    qam: "application/vnd.epson.quickanime",
+    slt: "application/vnd.epson.salt",
+    ssf: "application/vnd.epson.ssf",
+    es3: "application/vnd.eszigno3+xml",
+    et3: "application/vnd.eszigno3+xml",
+    ez2: "application/vnd.ezpix-album",
+    ez3: "application/vnd.ezpix-package",
+    fdf: "application/vnd.fdf",
+    mseed: "application/vnd.fdsn.mseed",
+    seed: "application/vnd.fdsn.seed",
+    dataless: "application/vnd.fdsn.seed",
+    gph: "application/vnd.flographit",
+    ftc: "application/vnd.fluxtime.clip",
+    fm: "application/vnd.framemaker",
+    frame: "application/vnd.framemaker",
+    maker: "application/vnd.framemaker",
+    book: "application/vnd.framemaker",
+    fnc: "application/vnd.frogans.fnc",
+    ltf: "application/vnd.frogans.ltf",
+    fsc: "application/vnd.fsc.weblaunch",
+    oas: "application/vnd.fujitsu.oasys",
+    oa2: "application/vnd.fujitsu.oasys2",
+    oa3: "application/vnd.fujitsu.oasys3",
+    fg5: "application/vnd.fujitsu.oasysgp",
+    bh2: "application/vnd.fujitsu.oasysprs",
+    ddd: "application/vnd.fujixerox.ddd",
+    xdw: "application/vnd.fujixerox.docuworks",
+    xbd: "application/vnd.fujixerox.docuworks.binder",
+    fzs: "application/vnd.fuzzysheet",
+    txd: "application/vnd.genomatix.tuxedo",
+    ggb: "application/vnd.geogebra.file",
+    ggt: "application/vnd.geogebra.tool",
+    gex: "application/vnd.geometry-explorer",
+    gre: "application/vnd.geometry-explorer",
+    gxt: "application/vnd.geonext",
+    g2w: "application/vnd.geoplan",
+    g3w: "application/vnd.geospace",
+    gmx: "application/vnd.gmx",
+    gdoc: "application/vnd.google-apps.document",
+    gslides: "application/vnd.google-apps.presentation",
+    gsheet: "application/vnd.google-apps.spreadsheet",
+    kml: "application/vnd.google-earth.kml+xml",
+    kmz: "application/vnd.google-earth.kmz",
+    gqf: "application/vnd.grafeq",
+    gqs: "application/vnd.grafeq",
+    gac: "application/vnd.groove-account",
+    ghf: "application/vnd.groove-help",
+    gim: "application/vnd.groove-identity-message",
+    grv: "application/vnd.groove-injector",
+    gtm: "application/vnd.groove-tool-message",
+    tpl: "application/vnd.groove-tool-template",
+    vcg: "application/vnd.groove-vcard",
+    hal: "application/vnd.hal+xml",
+    zmm: "application/vnd.handheld-entertainment+xml",
+    hbci: "application/vnd.hbci",
+    les: "application/vnd.hhe.lesson-player",
+    hpgl: "application/vnd.hp-hpgl",
+    hpid: "application/vnd.hp-hpid",
+    hps: "application/vnd.hp-hps",
+    jlt: "application/vnd.hp-jlyt",
+    pcl: "application/vnd.hp-pcl",
+    pclxl: "application/vnd.hp-pclxl",
+    "sfd-hdstx": "application/vnd.hydrostatix.sof-data",
+    mpy: "application/vnd.ibm.minipay",
+    afp: "application/vnd.ibm.modcap",
+    listafp: "application/vnd.ibm.modcap",
+    list3820: "application/vnd.ibm.modcap",
+    irm: "application/vnd.ibm.rights-management",
+    sc: "application/vnd.ibm.secure-container",
+    icc: "application/vnd.iccprofile",
+    icm: "application/vnd.iccprofile",
+    igl: "application/vnd.igloader",
+    ivp: "application/vnd.immervision-ivp",
+    ivu: "application/vnd.immervision-ivu",
+    igm: "application/vnd.insors.igm",
+    xpw: "application/vnd.intercon.formnet",
+    xpx: "application/vnd.intercon.formnet",
+    i2g: "application/vnd.intergeo",
+    qbo: "application/vnd.intu.qbo",
+    qfx: "application/vnd.intu.qfx",
+    rcprofile: "application/vnd.ipunplugged.rcprofile",
+    irp: "application/vnd.irepository.package+xml",
+    xpr: "application/vnd.is-xpr",
+    fcs: "application/vnd.isac.fcs",
+    jam: "application/vnd.jam",
+    rms: "application/vnd.jcp.javame.midlet-rms",
+    jisp: "application/vnd.jisp",
+    joda: "application/vnd.joost.joda-archive",
+    ktz: "application/vnd.kahootz",
+    ktr: "application/vnd.kahootz",
+    karbon: "application/vnd.kde.karbon",
+    chrt: "application/vnd.kde.kchart",
+    kfo: "application/vnd.kde.kformula",
+    flw: "application/vnd.kde.kivio",
+    kon: "application/vnd.kde.kontour",
+    kpr: "application/vnd.kde.kpresenter",
+    kpt: "application/vnd.kde.kpresenter",
+    ksp: "application/vnd.kde.kspread",
+    kwd: "application/vnd.kde.kword",
+    kwt: "application/vnd.kde.kword",
+    htke: "application/vnd.kenameaapp",
+    kia: "application/vnd.kidspiration",
+    kne: "application/vnd.kinar",
+    knp: "application/vnd.kinar",
+    skp: "application/vnd.koan",
+    skd: "application/vnd.koan",
+    skt: "application/vnd.koan",
+    skm: "application/vnd.koan",
+    sse: "application/vnd.kodak-descriptor",
+    lasxml: "application/vnd.las.las+xml",
+    lbd: "application/vnd.llamagraphics.life-balance.desktop",
+    lbe: "application/vnd.llamagraphics.life-balance.exchange+xml",
+    apr: "application/vnd.lotus-approach",
+    pre: "application/vnd.lotus-freelance",
+    nsf: "application/vnd.lotus-notes",
+    org: "application/vnd.lotus-organizer",
+    scm: "application/vnd.lotus-screencam",
+    lwp: "application/vnd.lotus-wordpro",
+    portpkg: "application/vnd.macports.portpkg",
+    mcd: "application/vnd.mcd",
+    mc1: "application/vnd.medcalcdata",
+    cdkey: "application/vnd.mediastation.cdkey",
+    mwf: "application/vnd.mfer",
+    mfm: "application/vnd.mfmp",
+    flo: "application/vnd.micrografx.flo",
+    igx: "application/vnd.micrografx.igx",
+    mif: "application/vnd.mif",
+    daf: "application/vnd.mobius.daf",
+    dis: "application/vnd.mobius.dis",
+    mbk: "application/vnd.mobius.mbk",
+    mqy: "application/vnd.mobius.mqy",
+    msl: "application/vnd.mobius.msl",
+    plc: "application/vnd.mobius.plc",
+    txf: "application/vnd.mobius.txf",
+    mpn: "application/vnd.mophun.application",
+    mpc: "application/vnd.mophun.certificate",
+    xul: "application/vnd.mozilla.xul+xml",
+    cil: "application/vnd.ms-artgalry",
+    cab: "application/vnd.ms-cab-compressed",
+    xls: "application/vnd.ms-excel",
+    xlm: "application/vnd.ms-excel",
+    xla: "application/vnd.ms-excel",
+    xlc: "application/vnd.ms-excel",
+    xlt: "application/vnd.ms-excel",
+    xlw: "application/vnd.ms-excel",
+    xlam: "application/vnd.ms-excel.addin.macroenabled.12",
+    xlsb: "application/vnd.ms-excel.sheet.binary.macroenabled.12",
+    xlsm: "application/vnd.ms-excel.sheet.macroenabled.12",
+    xltm: "application/vnd.ms-excel.template.macroenabled.12",
+    eot: "application/vnd.ms-fontobject",
+    chm: "application/vnd.ms-htmlhelp",
+    ims: "application/vnd.ms-ims",
+    lrm: "application/vnd.ms-lrm",
+    thmx: "application/vnd.ms-officetheme",
+    msg: "application/vnd.ms-outlook",
+    cat: "application/vnd.ms-pki.seccat",
+    stl: "model/stl",
+    ppt: "application/vnd.ms-powerpoint",
+    pps: "application/vnd.ms-powerpoint",
+    pot: "application/vnd.ms-powerpoint",
+    ppam: "application/vnd.ms-powerpoint.addin.macroenabled.12",
+    pptm: "application/vnd.ms-powerpoint.presentation.macroenabled.12",
+    sldm: "application/vnd.ms-powerpoint.slide.macroenabled.12",
+    ppsm: "application/vnd.ms-powerpoint.slideshow.macroenabled.12",
+    potm: "application/vnd.ms-powerpoint.template.macroenabled.12",
+    mpp: "application/vnd.ms-project",
+    mpt: "application/vnd.ms-project",
+    docm: "application/vnd.ms-word.document.macroenabled.12",
+    dotm: "application/vnd.ms-word.template.macroenabled.12",
+    wps: "application/vnd.ms-works",
+    wks: "application/vnd.ms-works",
+    wcm: "application/vnd.ms-works",
+    wdb: "application/vnd.ms-works",
+    wpl: "application/vnd.ms-wpl",
+    xps: "application/vnd.ms-xpsdocument",
+    mseq: "application/vnd.mseq",
+    mus: "application/vnd.musician",
+    msty: "application/vnd.muvee.style",
+    taglet: "application/vnd.mynfc",
+    nlu: "application/vnd.neurolanguage.nlu",
+    ntf: "application/vnd.nitf",
+    nitf: "application/vnd.nitf",
+    nnd: "application/vnd.noblenet-directory",
+    nns: "application/vnd.noblenet-sealer",
+    nnw: "application/vnd.noblenet-web",
+    ngdat: "application/vnd.nokia.n-gage.data",
+    "n-gage": "application/vnd.nokia.n-gage.symbian.install",
+    rpst: "application/vnd.nokia.radio-preset",
+    rpss: "application/vnd.nokia.radio-presets",
+    edm: "application/vnd.novadigm.edm",
+    edx: "application/vnd.novadigm.edx",
+    ext: "application/vnd.novadigm.ext",
+    odc: "application/vnd.oasis.opendocument.chart",
+    otc: "application/vnd.oasis.opendocument.chart-template",
+    odb: "application/vnd.oasis.opendocument.database",
+    odf: "application/vnd.oasis.opendocument.formula",
+    odft: "application/vnd.oasis.opendocument.formula-template",
+    odg: "application/vnd.oasis.opendocument.graphics",
+    otg: "application/vnd.oasis.opendocument.graphics-template",
+    odi: "application/vnd.oasis.opendocument.image",
+    oti: "application/vnd.oasis.opendocument.image-template",
+    odp: "application/vnd.oasis.opendocument.presentation",
+    otp: "application/vnd.oasis.opendocument.presentation-template",
+    ods: "application/vnd.oasis.opendocument.spreadsheet",
+    ots: "application/vnd.oasis.opendocument.spreadsheet-template",
+    odt: "application/vnd.oasis.opendocument.text",
+    odm: "application/vnd.oasis.opendocument.text-master",
+    ott: "application/vnd.oasis.opendocument.text-template",
+    oth: "application/vnd.oasis.opendocument.text-web",
+    xo: "application/vnd.olpc-sugar",
+    dd2: "application/vnd.oma.dd2+xml",
+    obgx: "application/vnd.openblox.game+xml",
+    oxt: "application/vnd.openofficeorg.extension",
+    osm: "application/vnd.openstreetmap.data+xml",
+    pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    sldx: "application/vnd.openxmlformats-officedocument.presentationml.slide",
+    ppsx: "application/vnd.openxmlformats-officedocument.presentationml.slideshow",
+    potx: "application/vnd.openxmlformats-officedocument.presentationml.template",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    xltx: "application/vnd.openxmlformats-officedocument.spreadsheetml.template",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    dotx: "application/vnd.openxmlformats-officedocument.wordprocessingml.template",
+    mgp: "application/vnd.osgeo.mapguide.package",
+    dp: "application/vnd.osgi.dp",
+    esa: "application/vnd.osgi.subsystem",
+    pdb: "application/vnd.palm",
+    pqa: "application/vnd.palm",
+    oprc: "application/vnd.palm",
+    paw: "application/vnd.pawaafile",
+    str: "application/vnd.pg.format",
+    ei6: "application/vnd.pg.osasli",
+    efif: "application/vnd.picsel",
+    wg: "application/vnd.pmi.widget",
+    plf: "application/vnd.pocketlearn",
+    pbd: "application/vnd.powerbuilder6",
+    box: "application/vnd.previewsystems.box",
+    mgz: "application/vnd.proteus.magazine",
+    qps: "application/vnd.publishare-delta-tree",
+    ptid: "application/vnd.pvi.ptid1",
+    qxd: "application/vnd.quark.quarkxpress",
+    qxt: "application/vnd.quark.quarkxpress",
+    qwd: "application/vnd.quark.quarkxpress",
+    qwt: "application/vnd.quark.quarkxpress",
+    qxl: "application/vnd.quark.quarkxpress",
+    qxb: "application/vnd.quark.quarkxpress",
+    bed: "application/vnd.realvnc.bed",
+    mxl: "application/vnd.recordare.musicxml",
+    musicxml: "application/vnd.recordare.musicxml+xml",
+    cryptonote: "application/vnd.rig.cryptonote",
+    cod: "application/vnd.rim.cod",
+    rm: "application/vnd.rn-realmedia",
+    rmvb: "application/vnd.rn-realmedia-vbr",
+    link66: "application/vnd.route66.link66+xml",
+    st: "application/vnd.sailingtracker.track",
+    see: "application/vnd.seemail",
+    sema: "application/vnd.sema",
+    semd: "application/vnd.semd",
+    semf: "application/vnd.semf",
+    ifm: "application/vnd.shana.informed.formdata",
+    itp: "application/vnd.shana.informed.formtemplate",
+    iif: "application/vnd.shana.informed.interchange",
+    ipk: "application/vnd.shana.informed.package",
+    twd: "application/vnd.simtech-mindmapper",
+    twds: "application/vnd.simtech-mindmapper",
+    mmf: "application/vnd.smaf",
+    teacher: "application/vnd.smart.teacher",
+    fo: "application/vnd.software602.filler.form+xml",
+    sdkm: "application/vnd.solent.sdkm+xml",
+    sdkd: "application/vnd.solent.sdkm+xml",
+    dxp: "application/vnd.spotfire.dxp",
+    sfs: "application/vnd.spotfire.sfs",
+    sdc: "application/vnd.stardivision.calc",
+    sda: "application/vnd.stardivision.draw",
+    sdd: "application/vnd.stardivision.impress",
+    smf: "application/vnd.stardivision.math",
+    sdw: "application/vnd.stardivision.writer",
+    vor: "application/vnd.stardivision.writer",
+    sgl: "application/vnd.stardivision.writer-global",
+    smzip: "application/vnd.stepmania.package",
+    sm: "application/vnd.stepmania.stepchart",
+    wadl: "application/vnd.sun.wadl+xml",
+    sxc: "application/vnd.sun.xml.calc",
+    stc: "application/vnd.sun.xml.calc.template",
+    sxd: "application/vnd.sun.xml.draw",
+    std: "application/vnd.sun.xml.draw.template",
+    sxi: "application/vnd.sun.xml.impress",
+    sti: "application/vnd.sun.xml.impress.template",
+    sxm: "application/vnd.sun.xml.math",
+    sxw: "application/vnd.sun.xml.writer",
+    sxg: "application/vnd.sun.xml.writer.global",
+    stw: "application/vnd.sun.xml.writer.template",
+    sus: "application/vnd.sus-calendar",
+    susp: "application/vnd.sus-calendar",
+    svd: "application/vnd.svd",
+    sis: "application/vnd.symbian.install",
+    sisx: "application/vnd.symbian.install",
+    xsm: "application/vnd.syncml+xml",
+    bdm: "application/vnd.syncml.dm+wbxml",
+    xdm: "application/vnd.syncml.dm+xml",
+    ddf: "application/vnd.syncml.dmddf+xml",
+    tao: "application/vnd.tao.intent-module-archive",
+    pcap: "application/vnd.tcpdump.pcap",
+    cap: "application/vnd.tcpdump.pcap",
+    dmp: "application/vnd.tcpdump.pcap",
+    tmo: "application/vnd.tmobile-livetv",
+    tpt: "application/vnd.trid.tpt",
+    mxs: "application/vnd.triscape.mxs",
+    tra: "application/vnd.trueapp",
+    ufd: "application/vnd.ufdl",
+    ufdl: "application/vnd.ufdl",
+    utz: "application/vnd.uiq.theme",
+    umj: "application/vnd.umajin",
+    unityweb: "application/vnd.unity",
+    uoml: "application/vnd.uoml+xml",
+    vcx: "application/vnd.vcx",
+    vsd: "application/vnd.visio",
+    vst: "application/vnd.visio",
+    vss: "application/vnd.visio",
+    vsw: "application/vnd.visio",
+    vis: "application/vnd.visionary",
+    vsf: "application/vnd.vsf",
+    wbxml: "application/vnd.wap.wbxml",
+    wmlc: "application/vnd.wap.wmlc",
+    wmlsc: "application/vnd.wap.wmlscriptc",
+    wtb: "application/vnd.webturbo",
+    nbp: "application/vnd.wolfram.player",
+    wpd: "application/vnd.wordperfect",
+    wqd: "application/vnd.wqd",
+    stf: "application/vnd.wt.stf",
+    xar: "application/vnd.xara",
+    xfdl: "application/vnd.xfdl",
+    hvd: "application/vnd.yamaha.hv-dic",
+    hvs: "application/vnd.yamaha.hv-script",
+    hvp: "application/vnd.yamaha.hv-voice",
+    osf: "application/vnd.yamaha.openscoreformat",
+    osfpvg: "application/vnd.yamaha.openscoreformat.osfpvg+xml",
+    saf: "application/vnd.yamaha.smaf-audio",
+    spf: "application/vnd.yamaha.smaf-phrase",
+    cmp: "application/vnd.yellowriver-custom-menu",
+    zir: "application/vnd.zul",
+    zirz: "application/vnd.zul",
+    zaz: "application/vnd.zzazz.deck+xml",
+    vxml: "application/voicexml+xml",
+    wasm: "application/wasm",
+    wgt: "application/widget",
+    hlp: "application/winhlp",
+    wsdl: "application/wsdl+xml",
+    wspolicy: "application/wspolicy+xml",
+    "7z": "application/x-7z-compressed",
+    abw: "application/x-abiword",
+    ace: "application/x-ace-compressed",
+    arj: "application/x-arj",
+    aab: "application/x-authorware-bin",
+    x32: "application/x-authorware-bin",
+    u32: "application/x-authorware-bin",
+    vox: "application/x-authorware-bin",
+    aam: "application/x-authorware-map",
+    aas: "application/x-authorware-seg",
+    bcpio: "application/x-bcpio",
+    torrent: "application/x-bittorrent",
+    blb: "application/x-blorb",
+    blorb: "application/x-blorb",
+    bz: "application/x-bzip",
+    bz2: "application/x-bzip2",
+    boz: "application/x-bzip2",
+    cbr: "application/x-cbr",
+    cba: "application/x-cbr",
+    cbt: "application/x-cbr",
+    cbz: "application/x-cbr",
+    cb7: "application/x-cbr",
+    vcd: "application/x-cdlink",
+    cfs: "application/x-cfs-compressed",
+    chat: "application/x-chat",
+    pgn: "application/x-chess-pgn",
+    crx: "application/x-chrome-extension",
+    cco: "application/x-cocoa",
+    nsc: "application/x-conference",
+    cpio: "application/x-cpio",
+    csh: "application/x-csh",
+    udeb: "application/x-debian-package",
+    dgc: "application/x-dgc-compressed",
+    dir: "application/x-director",
+    dcr: "application/x-director",
+    dxr: "application/x-director",
+    cst: "application/x-director",
+    cct: "application/x-director",
+    cxt: "application/x-director",
+    w3d: "application/x-director",
+    fgd: "application/x-director",
+    swa: "application/x-director",
+    wad: "application/x-doom",
+    ncx: "application/x-dtbncx+xml",
+    dtb: "application/x-dtbook+xml",
+    res: "application/x-dtbresource+xml",
+    dvi: "application/x-dvi",
+    evy: "application/x-envoy",
+    eva: "application/x-eva",
+    bdf: "application/x-font-bdf",
+    gsf: "application/x-font-ghostscript",
+    psf: "application/x-font-linux-psf",
+    pcf: "application/x-font-pcf",
+    snf: "application/x-font-snf",
+    pfa: "application/x-font-type1",
+    pfb: "application/x-font-type1",
+    pfm: "application/x-font-type1",
+    afm: "application/x-font-type1",
+    arc: "application/x-freearc",
+    spl: "application/x-futuresplash",
+    gca: "application/x-gca-compressed",
+    ulx: "application/x-glulx",
+    gnumeric: "application/x-gnumeric",
+    gramps: "application/x-gramps-xml",
+    gtar: "application/x-gtar",
+    hdf: "application/x-hdf",
+    php: "application/x-httpd-php",
+    install: "application/x-install-instructions",
+    jardiff: "application/x-java-archive-diff",
+    jnlp: "application/x-java-jnlp-file",
+    kdbx: "application/x-keepass2",
+    latex: "application/x-latex",
+    luac: "application/x-lua-bytecode",
+    lzh: "application/x-lzh-compressed",
+    lha: "application/x-lzh-compressed",
+    run: "application/x-makeself",
+    mie: "application/x-mie",
+    prc: "application/x-mobipocket-ebook",
+    mobi: "application/x-mobipocket-ebook",
+    application: "application/x-ms-application",
+    lnk: "application/x-ms-shortcut",
+    wmd: "application/x-ms-wmd",
+    wmz: "application/x-ms-wmz",
+    xbap: "application/x-ms-xbap",
+    mdb: "application/x-msaccess",
+    obd: "application/x-msbinder",
+    crd: "application/x-mscardfile",
+    clp: "application/x-msclip",
+    com: "application/x-msdownload",
+    bat: "application/x-msdownload",
+    mvb: "application/x-msmediaview",
+    m13: "application/x-msmediaview",
+    m14: "application/x-msmediaview",
+    wmf: "image/wmf",
+    emf: "image/emf",
+    emz: "application/x-msmetafile",
+    mny: "application/x-msmoney",
+    pub: "application/x-mspublisher",
+    scd: "application/x-msschedule",
+    trm: "application/x-msterminal",
+    wri: "application/x-mswrite",
+    nc: "application/x-netcdf",
+    cdf: "application/x-netcdf",
+    pac: "application/x-ns-proxy-autoconfig",
+    nzb: "application/x-nzb",
+    pl: "application/x-perl",
+    pm: "application/x-perl",
+    p12: "application/x-pkcs12",
+    pfx: "application/x-pkcs12",
+    p7b: "application/x-pkcs7-certificates",
+    spc: "application/x-pkcs7-certificates",
+    p7r: "application/x-pkcs7-certreqresp",
+    rar: "application/x-rar-compressed",
+    rpm: "application/x-redhat-package-manager",
+    ris: "application/x-research-info-systems",
+    sea: "application/x-sea",
+    sh: "application/x-sh",
+    shar: "application/x-shar",
+    swf: "application/x-shockwave-flash",
+    xap: "application/x-silverlight-app",
+    sql: "application/x-sql",
+    sit: "application/x-stuffit",
+    sitx: "application/x-stuffitx",
+    srt: "application/x-subrip",
+    sv4cpio: "application/x-sv4cpio",
+    sv4crc: "application/x-sv4crc",
+    t3: "application/x-t3vm-image",
+    gam: "application/x-tads",
+    tar: "application/x-tar",
+    tcl: "application/x-tcl",
+    tk: "application/x-tcl",
+    tex: "application/x-tex",
+    tfm: "application/x-tex-tfm",
+    texinfo: "application/x-texinfo",
+    texi: "application/x-texinfo",
+    obj: "model/obj",
+    ustar: "application/x-ustar",
+    hdd: "application/x-virtualbox-hdd",
+    ova: "application/x-virtualbox-ova",
+    ovf: "application/x-virtualbox-ovf",
+    vbox: "application/x-virtualbox-vbox",
+    "vbox-extpack": "application/x-virtualbox-vbox-extpack",
+    vdi: "application/x-virtualbox-vdi",
+    vhd: "application/x-virtualbox-vhd",
+    vmdk: "application/x-virtualbox-vmdk",
+    src: "application/x-wais-source",
+    webapp: "application/x-web-app-manifest+json",
+    der: "application/x-x509-ca-cert",
+    crt: "application/x-x509-ca-cert",
+    pem: "application/x-x509-ca-cert",
+    fig: "application/x-xfig",
+    xlf: "application/xliff+xml",
+    xpi: "application/x-xpinstall",
+    xz: "application/x-xz",
+    z1: "application/x-zmachine",
+    z2: "application/x-zmachine",
+    z3: "application/x-zmachine",
+    z4: "application/x-zmachine",
+    z5: "application/x-zmachine",
+    z6: "application/x-zmachine",
+    z7: "application/x-zmachine",
+    z8: "application/x-zmachine",
+    xaml: "application/xaml+xml",
+    xav: "application/xcap-att+xml",
+    xca: "application/xcap-caps+xml",
+    xel: "application/xcap-el+xml",
+    xns: "application/xcap-ns+xml",
+    xenc: "application/xenc+xml",
+    xhtml: "application/xhtml+xml",
+    xht: "application/xhtml+xml",
+    xml: "application/xml",
+    xsl: "application/xml",
+    xsd: "application/xml",
+    rng: "application/xml",
+    dtd: "application/xml-dtd",
+    xop: "application/xop+xml",
+    xpl: "application/xproc+xml",
+    xslt: "application/xslt+xml",
+    xspf: "application/xspf+xml",
+    mxml: "application/xv+xml",
+    xhvml: "application/xv+xml",
+    xvml: "application/xv+xml",
+    xvm: "application/xv+xml",
+    yang: "application/yang",
+    yin: "application/yin+xml",
+    zip: "application/zip",
+    "3gpp": "video/3gpp",
+    adp: "audio/adpcm",
+    au: "audio/basic",
+    snd: "audio/basic",
+    mid: "audio/midi",
+    midi: "audio/midi",
+    kar: "audio/midi",
+    rmi: "audio/midi",
+    mxmf: "audio/mobile-xmf",
+    mp3: "audio/mpeg",
+    m4a: "audio/mp4",
+    mp4a: "audio/mp4",
+    mpga: "audio/mpeg",
+    mp2: "audio/mpeg",
+    mp2a: "audio/mpeg",
+    m2a: "audio/mpeg",
+    m3a: "audio/mpeg",
+    oga: "audio/ogg",
+    ogg: "audio/ogg",
+    spx: "audio/ogg",
+    s3m: "audio/s3m",
+    sil: "audio/silk",
+    uva: "audio/vnd.dece.audio",
+    uvva: "audio/vnd.dece.audio",
+    eol: "audio/vnd.digital-winds",
+    dra: "audio/vnd.dra",
+    dts: "audio/vnd.dts",
+    dtshd: "audio/vnd.dts.hd",
+    lvp: "audio/vnd.lucent.voice",
+    pya: "audio/vnd.ms-playready.media.pya",
+    ecelp4800: "audio/vnd.nuera.ecelp4800",
+    ecelp7470: "audio/vnd.nuera.ecelp7470",
+    ecelp9600: "audio/vnd.nuera.ecelp9600",
+    rip: "audio/vnd.rip",
+    wav: "audio/wave",
+    weba: "audio/webm",
+    aac: "audio/x-aac",
+    aif: "audio/x-aiff",
+    aiff: "audio/x-aiff",
+    aifc: "audio/x-aiff",
+    caf: "audio/x-caf",
+    flac: "audio/x-flac",
+    mka: "audio/x-matroska",
+    m3u: "audio/x-mpegurl",
+    wax: "audio/x-ms-wax",
+    wma: "audio/x-ms-wma",
+    ram: "audio/x-pn-realaudio",
+    ra: "audio/x-pn-realaudio",
+    rmp: "audio/x-pn-realaudio-plugin",
+    xm: "audio/xm",
+    cdx: "chemical/x-cdx",
+    cif: "chemical/x-cif",
+    cmdf: "chemical/x-cmdf",
+    cml: "chemical/x-cml",
+    csml: "chemical/x-csml",
+    xyz: "chemical/x-xyz",
+    ttc: "font/collection",
+    otf: "font/otf",
+    ttf: "font/ttf",
+    woff: "font/woff",
+    woff2: "font/woff2",
+    exr: "image/aces",
+    apng: "image/apng",
+    bmp: "image/bmp",
+    cgm: "image/cgm",
+    drle: "image/dicom-rle",
+    fits: "image/fits",
+    g3: "image/g3fax",
+    gif: "image/gif",
+    heic: "image/heic",
+    heics: "image/heic-sequence",
+    heif: "image/heif",
+    heifs: "image/heif-sequence",
+    hej2: "image/hej2k",
+    hsj2: "image/hsj2",
+    ief: "image/ief",
+    jls: "image/jls",
+    jp2: "image/jp2",
+    jpg2: "image/jp2",
+    jpeg: "image/jpeg",
+    jpg: "image/jpeg",
+    jpe: "image/jpeg",
+    jph: "image/jph",
+    jhc: "image/jphc",
+    jpm: "image/jpm",
+    jpx: "image/jpx",
+    jpf: "image/jpx",
+    jxr: "image/jxr",
+    jxra: "image/jxra",
+    jxrs: "image/jxrs",
+    jxs: "image/jxs",
+    jxsc: "image/jxsc",
+    jxsi: "image/jxsi",
+    jxss: "image/jxss",
+    ktx: "image/ktx",
+    png: "image/png",
+    btif: "image/prs.btif",
+    pti: "image/prs.pti",
+    sgi: "image/sgi",
+    svg: "image/svg+xml",
+    svgz: "image/svg+xml",
+    t38: "image/t38",
+    tif: "image/tiff",
+    tiff: "image/tiff",
+    tfx: "image/tiff-fx",
+    psd: "image/vnd.adobe.photoshop",
+    azv: "image/vnd.airzip.accelerator.azv",
+    uvi: "image/vnd.dece.graphic",
+    uvvi: "image/vnd.dece.graphic",
+    uvg: "image/vnd.dece.graphic",
+    uvvg: "image/vnd.dece.graphic",
+    djvu: "image/vnd.djvu",
+    djv: "image/vnd.djvu",
+    sub: "text/vnd.dvb.subtitle",
+    dwg: "image/vnd.dwg",
+    dxf: "image/vnd.dxf",
+    fbs: "image/vnd.fastbidsheet",
+    fpx: "image/vnd.fpx",
+    fst: "image/vnd.fst",
+    mmr: "image/vnd.fujixerox.edmics-mmr",
+    rlc: "image/vnd.fujixerox.edmics-rlc",
+    ico: "image/vnd.microsoft.icon",
+    dds: "image/vnd.ms-dds",
+    mdi: "image/vnd.ms-modi",
+    wdp: "image/vnd.ms-photo",
+    npx: "image/vnd.net-fpx",
+    tap: "image/vnd.tencent.tap",
+    vtf: "image/vnd.valve.source.texture",
+    wbmp: "image/vnd.wap.wbmp",
+    xif: "image/vnd.xiff",
+    pcx: "image/vnd.zbrush.pcx",
+    webp: "image/webp",
+    "3ds": "image/x-3ds",
+    ras: "image/x-cmu-raster",
+    cmx: "image/x-cmx",
+    fh: "image/x-freehand",
+    fhc: "image/x-freehand",
+    fh4: "image/x-freehand",
+    fh5: "image/x-freehand",
+    fh7: "image/x-freehand",
+    jng: "image/x-jng",
+    sid: "image/x-mrsid-image",
+    pic: "image/x-pict",
+    pct: "image/x-pict",
+    pnm: "image/x-portable-anymap",
+    pbm: "image/x-portable-bitmap",
+    pgm: "image/x-portable-graymap",
+    ppm: "image/x-portable-pixmap",
+    rgb: "image/x-rgb",
+    tga: "image/x-tga",
+    xbm: "image/x-xbitmap",
+    xpm: "image/x-xpixmap",
+    xwd: "image/x-xwindowdump",
+    "disposition-notification": "message/disposition-notification",
+    u8msg: "message/global",
+    u8dsn: "message/global-delivery-status",
+    u8mdn: "message/global-disposition-notification",
+    u8hdr: "message/global-headers",
+    eml: "message/rfc822",
+    mime: "message/rfc822",
+    wsc: "message/vnd.wfa.wsc",
+    "3mf": "model/3mf",
+    gltf: "model/gltf+json",
+    glb: "model/gltf-binary",
+    igs: "model/iges",
+    iges: "model/iges",
+    msh: "model/mesh",
+    mesh: "model/mesh",
+    silo: "model/mesh",
+    mtl: "model/mtl",
+    dae: "model/vnd.collada+xml",
+    dwf: "model/vnd.dwf",
+    gdl: "model/vnd.gdl",
+    gtw: "model/vnd.gtw",
+    mts: "model/vnd.mts",
+    ogex: "model/vnd.opengex",
+    x_b: "model/vnd.parasolid.transmit.binary",
+    x_t: "model/vnd.parasolid.transmit.text",
+    usdz: "model/vnd.usdz+zip",
+    bsp: "model/vnd.valve.source.compiled-map",
+    vtu: "model/vnd.vtu",
+    wrl: "model/vrml",
+    vrml: "model/vrml",
+    x3db: "model/x3d+fastinfoset",
+    x3dbz: "model/x3d+binary",
+    x3dv: "model/x3d-vrml",
+    x3dvz: "model/x3d+vrml",
+    x3d: "model/x3d+xml",
+    x3dz: "model/x3d+xml",
+    appcache: "text/cache-manifest",
+    manifest: "text/cache-manifest",
+    ics: "text/calendar",
+    ifb: "text/calendar",
+    coffee: "text/coffeescript",
+    litcoffee: "text/coffeescript",
+    css: "text/css",
+    csv: "text/csv",
+    html: "text/html",
+    htm: "text/html",
+    shtml: "text/html",
+    jade: "text/jade",
+    jsx: "text/jsx",
+    less: "text/less",
+    markdown: "text/markdown",
+    md: "text/markdown",
+    mml: "text/mathml",
+    mdx: "text/mdx",
+    n3: "text/n3",
+    txt: "text/plain",
+    text: "text/plain",
+    conf: "text/plain",
+    def: "text/plain",
+    list: "text/plain",
+    log: "text/plain",
+    in: "text/plain",
+    ini: "text/plain",
+    dsc: "text/prs.lines.tag",
+    rtx: "text/richtext",
+    sgml: "text/sgml",
+    sgm: "text/sgml",
+    shex: "text/shex",
+    slim: "text/slim",
+    slm: "text/slim",
+    stylus: "text/stylus",
+    styl: "text/stylus",
+    tsv: "text/tab-separated-values",
+    t: "text/troff",
+    tr: "text/troff",
+    roff: "text/troff",
+    man: "text/troff",
+    me: "text/troff",
+    ms: "text/troff",
+    ttl: "text/turtle",
+    uri: "text/uri-list",
+    uris: "text/uri-list",
+    urls: "text/uri-list",
+    vcard: "text/vcard",
+    curl: "text/vnd.curl",
+    dcurl: "text/vnd.curl.dcurl",
+    mcurl: "text/vnd.curl.mcurl",
+    scurl: "text/vnd.curl.scurl",
+    fly: "text/vnd.fly",
+    flx: "text/vnd.fmi.flexstor",
+    gv: "text/vnd.graphviz",
+    "3dml": "text/vnd.in3d.3dml",
+    spot: "text/vnd.in3d.spot",
+    jad: "text/vnd.sun.j2me.app-descriptor",
+    wml: "text/vnd.wap.wml",
+    wmls: "text/vnd.wap.wmlscript",
+    vtt: "text/vtt",
+    s: "text/x-asm",
+    asm: "text/x-asm",
+    c: "text/x-c",
+    cc: "text/x-c",
+    cxx: "text/x-c",
+    cpp: "text/x-c",
+    h: "text/x-c",
+    hh: "text/x-c",
+    dic: "text/x-c",
+    htc: "text/x-component",
+    f: "text/x-fortran",
+    for: "text/x-fortran",
+    f77: "text/x-fortran",
+    f90: "text/x-fortran",
+    hbs: "text/x-handlebars-template",
+    java: "text/x-java-source",
+    lua: "text/x-lua",
+    mkd: "text/x-markdown",
+    nfo: "text/x-nfo",
+    opml: "text/x-opml",
+    p: "text/x-pascal",
+    pas: "text/x-pascal",
+    pde: "text/x-processing",
+    sass: "text/x-sass",
+    scss: "text/x-scss",
+    etx: "text/x-setext",
+    sfv: "text/x-sfv",
+    ymp: "text/x-suse-ymp",
+    uu: "text/x-uuencode",
+    vcs: "text/x-vcalendar",
+    vcf: "text/x-vcard",
+    yaml: "text/yaml",
+    yml: "text/yaml",
+    "3gp": "video/3gpp",
+    "3g2": "video/3gpp2",
+    h261: "video/h261",
+    h263: "video/h263",
+    h264: "video/h264",
+    jpgv: "video/jpeg",
+    jpgm: "video/jpm",
+    mj2: "video/mj2",
+    mjp2: "video/mj2",
+    ts: "video/mp2t",
+    mp4: "video/mp4",
+    mp4v: "video/mp4",
+    mpg4: "video/mp4",
+    mpeg: "video/mpeg",
+    mpg: "video/mpeg",
+    mpe: "video/mpeg",
+    m1v: "video/mpeg",
+    m2v: "video/mpeg",
+    ogv: "video/ogg",
+    qt: "video/quicktime",
+    mov: "video/quicktime",
+    uvh: "video/vnd.dece.hd",
+    uvvh: "video/vnd.dece.hd",
+    uvm: "video/vnd.dece.mobile",
+    uvvm: "video/vnd.dece.mobile",
+    uvp: "video/vnd.dece.pd",
+    uvvp: "video/vnd.dece.pd",
+    uvs: "video/vnd.dece.sd",
+    uvvs: "video/vnd.dece.sd",
+    uvv: "video/vnd.dece.video",
+    uvvv: "video/vnd.dece.video",
+    dvb: "video/vnd.dvb.file",
+    fvt: "video/vnd.fvt",
+    mxu: "video/vnd.mpegurl",
+    m4u: "video/vnd.mpegurl",
+    pyv: "video/vnd.ms-playready.media.pyv",
+    uvu: "video/vnd.uvvu.mp4",
+    uvvu: "video/vnd.uvvu.mp4",
+    viv: "video/vnd.vivo",
+    webm: "video/webm",
+    f4v: "video/x-f4v",
+    fli: "video/x-fli",
+    flv: "video/x-flv",
+    m4v: "video/x-m4v",
+    mkv: "video/x-matroska",
+    mk3d: "video/x-matroska",
+    mks: "video/x-matroska",
+    mng: "video/x-mng",
+    asf: "video/x-ms-asf",
+    asx: "video/x-ms-asf",
+    vob: "video/x-ms-vob",
+    wm: "video/x-ms-wm",
+    wmv: "video/x-ms-wmv",
+    wmx: "video/x-ms-wmx",
+    wvx: "video/x-ms-wvx",
+    avi: "video/x-msvideo",
+    movie: "video/x-sgi-movie",
+    smv: "video/x-smv",
+    ice: "x-conference/x-cooltalk"
   };
 
   // src/util/mime_types.ts
@@ -5097,13 +3942,13 @@ var URIStorage = (() => {
       this.storage = new NodeMap();
     }
     async create_url_object(path5) {
-      const {storage} = this;
+      const {storage: storage2} = this;
       const {compressed} = this.options;
-      const uri2 = this.normalize(path5);
-      if (!storage.has(uri2)) {
+      const uri = this.normalize(path5);
+      if (!storage2.has(uri)) {
         throw new Error("bad argument #0 to 'create_url_object' (Node must be created before using 'create_url_object')");
       }
-      const node = storage.get(uri2);
+      const node = storage2.get(uri);
       if (!node.payload) {
         throw new Error("bad argument #0 to 'create_url_object' (Node payload must be created before using 'create_url_object')");
       }
@@ -5116,11 +3961,11 @@ var URIStorage = (() => {
       };
     }
     async get(path5) {
-      const {storage} = this;
-      const uri2 = this.normalize(path5);
-      if (!storage.has(uri2))
+      const {storage: storage2} = this;
+      const uri = this.normalize(path5);
+      if (!storage2.has(uri))
         return null;
-      const node = storage.get(uri2);
+      const node = storage2.get(uri);
       return {
         ctime: node.ctime,
         mime_type: node.mime_type,
@@ -5130,19 +3975,19 @@ var URIStorage = (() => {
       };
     }
     async put(path5, type = NODE_TYPES.undefined, mime_type) {
-      const {storage} = this;
-      const uri2 = this.normalize(path5);
+      const {storage: storage2} = this;
+      const uri = this.normalize(path5);
       const timestamp = get_epoch_timestamp();
       if (!mime_type)
-        mime_type = get_mime_type(uri2) || DEFAULT_MIME_TYPE;
-      if (storage.has(uri2)) {
-        storage.update(uri2, {
+        mime_type = get_mime_type(uri) || DEFAULT_MIME_TYPE;
+      if (storage2.has(uri)) {
+        storage2.update(uri, {
           mime_type,
           mtime: timestamp,
           type
         });
       } else {
-        storage.put(uri2, {
+        storage2.put(uri, {
           ctime: timestamp,
           mime_type,
           mtime: timestamp,
@@ -5160,32 +4005,32 @@ var URIStorage = (() => {
       return filter_query(nodes, options);
     }
     async read(path5) {
-      const {storage} = this;
+      const {storage: storage2} = this;
       const {compressed} = this.options;
-      const uri2 = this.normalize(path5);
-      if (!storage.has(uri2))
+      const uri = this.normalize(path5);
+      if (!storage2.has(uri))
         return null;
-      const node = storage.get(uri2);
+      const node = storage2.get(uri);
       if (!node.payload)
         return null;
       return compressed ? decompress(node.payload) : node.payload;
     }
     async remove(path5) {
-      const {storage} = this;
-      const uri2 = this.normalize(path5);
-      return storage.delete(uri2);
+      const {storage: storage2} = this;
+      const uri = this.normalize(path5);
+      return storage2.delete(uri);
     }
     async watch(options = {}) {
       return hook_watcher(this.storage.EVENT_WATCH, options);
     }
     async write(path5, payload) {
-      const {storage} = this;
+      const {storage: storage2} = this;
       const {compressed} = this.options;
-      const uri2 = this.normalize(path5);
-      if (!storage.has(uri2)) {
+      const uri = this.normalize(path5);
+      if (!storage2.has(uri)) {
         throw new Error("bad argument #0 to 'attach' (Node must be created before using 'attach')");
       }
-      storage.update(uri2, {
+      storage2.update(uri, {
         mtime: get_epoch_timestamp(),
         payload: compressed ? compress(payload) : payload
       });
@@ -5204,21 +4049,21 @@ var URIStorage = (() => {
 
   // node_modules/dexie/dist/dexie.mjs
   var __assign = function() {
-    __assign = Object.assign || function __assign2(t2) {
-      for (var s2, i = 1, n = arguments.length; i < n; i++) {
-        s2 = arguments[i];
-        for (var p2 in s2)
-          if (Object.prototype.hasOwnProperty.call(s2, p2))
-            t2[p2] = s2[p2];
+    __assign = Object.assign || function __assign2(t) {
+      for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s)
+          if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
       }
-      return t2;
+      return t;
     };
     return __assign.apply(this, arguments);
   };
   function __spreadArrays() {
-    for (var s2 = 0, i = 0, il = arguments.length; i < il; i++)
-      s2 += arguments[i].length;
-    for (var r = Array(s2), k = 0, i = 0; i < il; i++)
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++)
+      s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
       for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
         r[k] = a[j];
     return r;
@@ -5229,18 +4074,18 @@ var URIStorage = (() => {
   if (typeof Promise !== "undefined" && !_global.Promise) {
     _global.Promise = Promise;
   }
-  function extend(obj2, extension) {
+  function extend(obj, extension) {
     if (typeof extension !== "object")
-      return obj2;
+      return obj;
     keys(extension).forEach(function(key) {
-      obj2[key] = extension[key];
+      obj[key] = extension[key];
     });
-    return obj2;
+    return obj;
   }
   var getProto = Object.getPrototypeOf;
   var _hasOwn = {}.hasOwnProperty;
-  function hasOwn(obj2, prop) {
-    return _hasOwn.call(obj2, prop);
+  function hasOwn(obj, prop) {
+    return _hasOwn.call(obj, prop);
   }
   function props(proto, extension) {
     if (typeof extension === "function")
@@ -5250,8 +4095,8 @@ var URIStorage = (() => {
     });
   }
   var defineProperty = Object.defineProperty;
-  function setProp(obj2, prop, functionOrGetSet, options) {
-    defineProperty(obj2, prop, extend(functionOrGetSet && hasOwn(functionOrGetSet, "get") && typeof functionOrGetSet.get === "function" ? {get: functionOrGetSet.get, set: functionOrGetSet.set, configurable: true} : {value: functionOrGetSet, configurable: true, writable: true}, options));
+  function setProp(obj, prop, functionOrGetSet, options) {
+    defineProperty(obj, prop, extend(functionOrGetSet && hasOwn(functionOrGetSet, "get") && typeof functionOrGetSet.get === "function" ? {get: functionOrGetSet.get, set: functionOrGetSet.set, configurable: true} : {value: functionOrGetSet, configurable: true, writable: true}, options));
   }
   function derive(Child) {
     return {
@@ -5265,10 +4110,10 @@ var URIStorage = (() => {
     };
   }
   var getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
-  function getPropertyDescriptor(obj2, prop) {
-    var pd = getOwnPropertyDescriptor(obj2, prop);
+  function getPropertyDescriptor(obj, prop) {
+    var pd = getOwnPropertyDescriptor(obj, prop);
     var proto;
-    return pd || (proto = getProto(obj2)) && getPropertyDescriptor(proto, prop);
+    return pd || (proto = getProto(obj)) && getPropertyDescriptor(proto, prop);
   }
   var _slice = [].slice;
   function slice(args, start, end) {
@@ -5302,35 +4147,35 @@ var URIStorage = (() => {
       onerror && onerror(ex);
     }
   }
-  function getByKeyPath(obj2, keyPath) {
-    if (hasOwn(obj2, keyPath))
-      return obj2[keyPath];
+  function getByKeyPath(obj, keyPath) {
+    if (hasOwn(obj, keyPath))
+      return obj[keyPath];
     if (!keyPath)
-      return obj2;
+      return obj;
     if (typeof keyPath !== "string") {
       var rv = [];
       for (var i = 0, l = keyPath.length; i < l; ++i) {
-        var val = getByKeyPath(obj2, keyPath[i]);
+        var val = getByKeyPath(obj, keyPath[i]);
         rv.push(val);
       }
       return rv;
     }
     var period = keyPath.indexOf(".");
     if (period !== -1) {
-      var innerObj = obj2[keyPath.substr(0, period)];
+      var innerObj = obj[keyPath.substr(0, period)];
       return innerObj === void 0 ? void 0 : getByKeyPath(innerObj, keyPath.substr(period + 1));
     }
     return void 0;
   }
-  function setByKeyPath(obj2, keyPath, value) {
-    if (!obj2 || keyPath === void 0)
+  function setByKeyPath(obj, keyPath, value) {
+    if (!obj || keyPath === void 0)
       return;
-    if ("isFrozen" in Object && Object.isFrozen(obj2))
+    if ("isFrozen" in Object && Object.isFrozen(obj))
       return;
     if (typeof keyPath !== "string" && "length" in keyPath) {
       assert(typeof value !== "string" && "length" in value);
       for (var i = 0, l = keyPath.length; i < l; ++i) {
-        setByKeyPath(obj2, keyPath[i], value[i]);
+        setByKeyPath(obj, keyPath[i], value[i]);
       }
     } else {
       var period = keyPath.indexOf(".");
@@ -5339,42 +4184,42 @@ var URIStorage = (() => {
         var remainingKeyPath = keyPath.substr(period + 1);
         if (remainingKeyPath === "")
           if (value === void 0) {
-            if (isArray(obj2) && !isNaN(parseInt(currentKeyPath)))
-              obj2.splice(currentKeyPath, 1);
+            if (isArray(obj) && !isNaN(parseInt(currentKeyPath)))
+              obj.splice(currentKeyPath, 1);
             else
-              delete obj2[currentKeyPath];
+              delete obj[currentKeyPath];
           } else
-            obj2[currentKeyPath] = value;
+            obj[currentKeyPath] = value;
         else {
-          var innerObj = obj2[currentKeyPath];
+          var innerObj = obj[currentKeyPath];
           if (!innerObj)
-            innerObj = obj2[currentKeyPath] = {};
+            innerObj = obj[currentKeyPath] = {};
           setByKeyPath(innerObj, remainingKeyPath, value);
         }
       } else {
         if (value === void 0) {
-          if (isArray(obj2) && !isNaN(parseInt(keyPath)))
-            obj2.splice(keyPath, 1);
+          if (isArray(obj) && !isNaN(parseInt(keyPath)))
+            obj.splice(keyPath, 1);
           else
-            delete obj2[keyPath];
+            delete obj[keyPath];
         } else
-          obj2[keyPath] = value;
+          obj[keyPath] = value;
       }
     }
   }
-  function delByKeyPath(obj2, keyPath) {
+  function delByKeyPath(obj, keyPath) {
     if (typeof keyPath === "string")
-      setByKeyPath(obj2, keyPath, void 0);
+      setByKeyPath(obj, keyPath, void 0);
     else if ("length" in keyPath)
       [].map.call(keyPath, function(kp) {
-        setByKeyPath(obj2, kp, void 0);
+        setByKeyPath(obj, kp, void 0);
       });
   }
-  function shallowClone(obj2) {
+  function shallowClone(obj) {
     var rv = {};
-    for (var m in obj2) {
-      if (hasOwn(obj2, m))
-        rv[m] = obj2[m];
+    for (var m in obj) {
+      if (hasOwn(obj, m))
+        rv[m] = obj[m];
     }
     return rv;
   }
@@ -5383,14 +4228,14 @@ var URIStorage = (() => {
     return concat.apply([], a);
   }
   var intrinsicTypeNames = "Boolean,String,Date,RegExp,Blob,File,FileList,ArrayBuffer,DataView,Uint8ClampedArray,ImageData,Map,Set".split(",").concat(flatten([8, 16, 32, 64].map(function(num) {
-    return ["Int", "Uint", "Float"].map(function(t2) {
-      return t2 + num + "Array";
+    return ["Int", "Uint", "Float"].map(function(t) {
+      return t + num + "Array";
     });
-  }))).filter(function(t2) {
-    return _global[t2];
+  }))).filter(function(t) {
+    return _global[t];
   });
-  var intrinsicTypes = intrinsicTypeNames.map(function(t2) {
-    return _global[t2];
+  var intrinsicTypes = intrinsicTypeNames.map(function(t) {
+    return _global[t];
   });
   var intrinsicTypeNameSet = arrayToObject(intrinsicTypeNames, function(x) {
     return [x, true];
@@ -5526,8 +4371,8 @@ var URIStorage = (() => {
     numIgnoredFrames = numIgnoredFrames || 0;
     if (stack.indexOf(exception.name) === 0)
       numIgnoredFrames += (exception.name + exception.message).split("\n").length;
-    return stack.split("\n").slice(numIgnoredFrames).filter(libraryFilter).map(function(frame2) {
-      return "\n" + frame2;
+    return stack.split("\n").slice(numIgnoredFrames).filter(libraryFilter).map(function(frame) {
+      return "\n" + frame;
     }).join("");
   }
   var dexieErrorNames = [
@@ -5571,10 +4416,10 @@ var URIStorage = (() => {
     Abort: "Transaction aborted",
     TransactionInactive: "Transaction has already completed or failed"
   };
-  function DexieError(name, msg2) {
+  function DexieError(name, msg) {
     this._e = getErrorWithStack();
     this.name = name;
-    this.message = msg2;
+    this.message = msg;
   }
   derive(DexieError).from(Error).extend({
     stack: {
@@ -5586,33 +4431,33 @@ var URIStorage = (() => {
       return this.name + ": " + this.message;
     }
   });
-  function getMultiErrorMessage(msg2, failures) {
-    return msg2 + ". Errors: " + Object.keys(failures).map(function(key) {
+  function getMultiErrorMessage(msg, failures) {
+    return msg + ". Errors: " + Object.keys(failures).map(function(key) {
       return failures[key].toString();
-    }).filter(function(v, i, s2) {
-      return s2.indexOf(v) === i;
+    }).filter(function(v, i, s) {
+      return s.indexOf(v) === i;
     }).join("\n");
   }
-  function ModifyError(msg2, failures, successCount, failedKeys) {
+  function ModifyError(msg, failures, successCount, failedKeys) {
     this._e = getErrorWithStack();
     this.failures = failures;
     this.failedKeys = failedKeys;
     this.successCount = successCount;
-    this.message = getMultiErrorMessage(msg2, failures);
+    this.message = getMultiErrorMessage(msg, failures);
   }
   derive(ModifyError).from(DexieError);
-  function BulkError(msg2, failures) {
+  function BulkError(msg, failures) {
     this._e = getErrorWithStack();
     this.name = "BulkError";
     this.failures = failures;
-    this.message = getMultiErrorMessage(msg2, failures);
+    this.message = getMultiErrorMessage(msg, failures);
   }
   derive(BulkError).from(DexieError);
-  var errnames = errorList.reduce(function(obj2, name) {
-    return obj2[name] = name + "Error", obj2;
+  var errnames = errorList.reduce(function(obj, name) {
+    return obj[name] = name + "Error", obj;
   }, {});
   var BaseException = DexieError;
-  var exceptions = errorList.reduce(function(obj2, name) {
+  var exceptions = errorList.reduce(function(obj, name) {
     var fullName = name + "Error";
     function DexieError2(msgOrInner, inner) {
       this._e = getErrorWithStack();
@@ -5629,15 +4474,15 @@ var URIStorage = (() => {
       }
     }
     derive(DexieError2).from(BaseException);
-    obj2[name] = DexieError2;
-    return obj2;
+    obj[name] = DexieError2;
+    return obj;
   }, {});
   exceptions.Syntax = SyntaxError;
   exceptions.Type = TypeError;
   exceptions.Range = RangeError;
-  var exceptionMap = idbDomErrorNames.reduce(function(obj2, name) {
-    obj2[name + "Error"] = exceptions[name];
-    return obj2;
+  var exceptionMap = idbDomErrorNames.reduce(function(obj, name) {
+    obj[name + "Error"] = exceptions[name];
+    return obj;
   }, {});
   function mapError(domError, message) {
     if (!domError || domError instanceof DexieError || domError instanceof TypeError || domError instanceof SyntaxError || !domError.name || !exceptionMap[domError.name])
@@ -5650,10 +4495,10 @@ var URIStorage = (() => {
     }
     return rv;
   }
-  var fullNameExceptions = errorList.reduce(function(obj2, name) {
+  var fullNameExceptions = errorList.reduce(function(obj, name) {
     if (["Syntax", "Type", "Range"].indexOf(name) === -1)
-      obj2[name + "Error"] = exceptions[name];
-    return obj2;
+      obj[name + "Error"] = exceptions[name];
+    return obj;
   }, {});
   fullNameExceptions.ModifyError = ModifyError;
   fullNameExceptions.DexieError = DexieError;
@@ -5680,18 +4525,18 @@ var URIStorage = (() => {
     if (f1 === nop)
       return f2;
     return function() {
-      var res2 = f1.apply(this, arguments);
-      if (res2 !== void 0)
-        arguments[0] = res2;
+      var res = f1.apply(this, arguments);
+      if (res !== void 0)
+        arguments[0] = res;
       var onsuccess = this.onsuccess, onerror = this.onerror;
       this.onsuccess = null;
       this.onerror = null;
-      var res22 = f2.apply(this, arguments);
+      var res2 = f2.apply(this, arguments);
       if (onsuccess)
         this.onsuccess = this.onsuccess ? callBoth(onsuccess, this.onsuccess) : onsuccess;
       if (onerror)
         this.onerror = this.onerror ? callBoth(onerror, this.onerror) : onerror;
-      return res22 !== void 0 ? res22 : res2;
+      return res2 !== void 0 ? res2 : res;
     };
   }
   function hookDeletingChain(f1, f2) {
@@ -5712,17 +4557,17 @@ var URIStorage = (() => {
     if (f1 === nop)
       return f2;
     return function(modifications) {
-      var res2 = f1.apply(this, arguments);
-      extend(modifications, res2);
+      var res = f1.apply(this, arguments);
+      extend(modifications, res);
       var onsuccess = this.onsuccess, onerror = this.onerror;
       this.onsuccess = null;
       this.onerror = null;
-      var res22 = f2.apply(this, arguments);
+      var res2 = f2.apply(this, arguments);
       if (onsuccess)
         this.onsuccess = this.onsuccess ? callBoth(onsuccess, this.onsuccess) : onsuccess;
       if (onerror)
         this.onerror = this.onerror ? callBoth(onerror, this.onerror) : onerror;
-      return res2 === void 0 ? res22 === void 0 ? void 0 : res22 : extend(res2, res22);
+      return res === void 0 ? res2 === void 0 ? void 0 : res2 : extend(res, res2);
     };
   }
   function reverseStoppableEventChain(f1, f2) {
@@ -5738,12 +4583,12 @@ var URIStorage = (() => {
     if (f1 === nop)
       return f2;
     return function() {
-      var res2 = f1.apply(this, arguments);
-      if (res2 && typeof res2.then === "function") {
+      var res = f1.apply(this, arguments);
+      if (res && typeof res.then === "function") {
         var thiz = this, i = arguments.length, args = new Array(i);
         while (i--)
           args[i] = arguments[i];
-        return res2.then(function() {
+        return res.then(function() {
           return f2.apply(thiz, args);
         });
       }
@@ -5824,7 +4669,7 @@ var URIStorage = (() => {
     this._listeners = [];
     this.onuncatched = nop;
     this._lib = false;
-    var psd2 = this._PSD = PSD;
+    var psd = this._PSD = PSD;
     if (debug) {
       this._stackHolder = getErrorWithStack();
       this._prev = null;
@@ -5841,19 +4686,19 @@ var URIStorage = (() => {
     }
     this._state = null;
     this._value = null;
-    ++psd2.ref;
+    ++psd.ref;
     executePromiseTask(this, fn);
   }
   var thenProp = {
     get: function() {
-      var psd2 = PSD, microTaskId = totalEchoes;
+      var psd = PSD, microTaskId = totalEchoes;
       function then(onFulfilled, onRejected) {
         var _this = this;
-        var possibleAwait = !psd2.global && (psd2 !== PSD || microTaskId !== totalEchoes);
+        var possibleAwait = !psd.global && (psd !== PSD || microTaskId !== totalEchoes);
         if (possibleAwait)
           decrementExpectedAwaits();
         var rv = new DexiePromise(function(resolve3, reject) {
-          propagateToListener(_this, new Listener(nativeAwaitCompatibleWrap(onFulfilled, psd2, possibleAwait), nativeAwaitCompatibleWrap(onRejected, psd2, possibleAwait), resolve3, reject, psd2));
+          propagateToListener(_this, new Listener(nativeAwaitCompatibleWrap(onFulfilled, psd, possibleAwait), nativeAwaitCompatibleWrap(onRejected, psd, possibleAwait), resolve3, reject, psd));
         });
         debug && linkToPreviousPromise(rv, this);
         return rv;
@@ -5910,12 +4755,12 @@ var URIStorage = (() => {
         }
       }
     },
-    timeout: function(ms2, msg2) {
+    timeout: function(ms, msg) {
       var _this = this;
-      return ms2 < Infinity ? new DexiePromise(function(resolve3, reject) {
+      return ms < Infinity ? new DexiePromise(function(resolve3, reject) {
         var handle = setTimeout(function() {
-          return reject(new exceptions.Timeout(msg2));
-        }, ms2);
+          return reject(new exceptions.Timeout(msg));
+        }, ms);
         _this.then(resolve3, reject).finally(clearTimeout.bind(null, handle));
       }) : this;
     }
@@ -5995,15 +4840,15 @@ var URIStorage = (() => {
     follow: function(fn, zoneProps) {
       return new DexiePromise(function(resolve3, reject) {
         return newScope(function(resolve4, reject2) {
-          var psd2 = PSD;
-          psd2.unhandleds = [];
-          psd2.onunhandled = reject2;
-          psd2.finalize = callBoth(function() {
+          var psd = PSD;
+          psd.unhandleds = [];
+          psd.onunhandled = reject2;
+          psd.finalize = callBoth(function() {
             var _this = this;
             run_at_end_of_this_or_next_physical_tick(function() {
               _this.unhandleds.length === 0 ? resolve4() : reject2(_this.unhandleds[0]);
             });
-          }, psd2.finalize);
+          }, psd.finalize);
           fn();
         }, zoneProps, resolve3, reject);
       });
@@ -6018,8 +4863,8 @@ var URIStorage = (() => {
             resolve3([]);
           var remaining = possiblePromises.length;
           var results = new Array(remaining);
-          possiblePromises.forEach(function(p2, i) {
-            return DexiePromise.resolve(p2).then(function(value) {
+          possiblePromises.forEach(function(p, i) {
+            return DexiePromise.resolve(p).then(function(value) {
               return results[i] = {status: "fulfilled", value};
             }, function(reason) {
               return results[i] = {status: "rejected", reason};
@@ -6037,8 +4882,8 @@ var URIStorage = (() => {
             reject(new AggregateError([]));
           var remaining = possiblePromises.length;
           var failures = new Array(remaining);
-          possiblePromises.forEach(function(p2, i) {
-            return DexiePromise.resolve(p2).then(function(value) {
+          possiblePromises.forEach(function(p, i) {
+            return DexiePromise.resolve(p).then(function(value) {
               return resolve3(value);
             }, function(failure) {
               failures[i] = failure;
@@ -6101,8 +4946,8 @@ var URIStorage = (() => {
     for (var i = 0, len = listeners.length; i < len; ++i) {
       propagateToListener(promise, listeners[i]);
     }
-    var psd2 = promise._PSD;
-    --psd2.ref || psd2.finalize();
+    var psd = promise._PSD;
+    --psd.ref || psd.finalize();
     if (numScheduledCalls === 0) {
       ++numScheduledCalls;
       asap$1(function() {
@@ -6207,8 +5052,8 @@ var URIStorage = (() => {
   function finalizePhysicalTick() {
     var unhandledErrs = unhandledErrors;
     unhandledErrors = [];
-    unhandledErrs.forEach(function(p2) {
-      p2._PSD.onunhandled.call(null, p2._value, p2);
+    unhandledErrs.forEach(function(p) {
+      p._PSD.onunhandled.call(null, p._value, p);
     });
     var finalizers = tickFinalizers.slice(0);
     var i = finalizers.length;
@@ -6228,8 +5073,8 @@ var URIStorage = (() => {
     }, []);
   }
   function addPossiblyUnhandledError(promise) {
-    if (!unhandledErrors.some(function(p2) {
-      return p2._value === promise._value;
+    if (!unhandledErrors.some(function(p) {
+      return p._value === promise._value;
     }))
       unhandledErrors.push(promise);
   }
@@ -6245,11 +5090,11 @@ var URIStorage = (() => {
     return new DexiePromise(INTERNAL, false, reason);
   }
   function wrap(fn, errorCatcher) {
-    var psd2 = PSD;
+    var psd = PSD;
     return function() {
       var wasRootExec = beginMicroTickScope(), outerScope = PSD;
       try {
-        switchToZone(psd2, true);
+        switchToZone(psd, true);
         return fn.apply(this, arguments);
       } catch (e) {
         errorCatcher && errorCatcher(e);
@@ -6267,13 +5112,13 @@ var URIStorage = (() => {
   var totalEchoes = 0;
   var zone_id_counter = 0;
   function newScope(fn, props$$1, a1, a2) {
-    var parent = PSD, psd2 = Object.create(parent);
-    psd2.parent = parent;
-    psd2.ref = 0;
-    psd2.global = false;
-    psd2.id = ++zone_id_counter;
+    var parent = PSD, psd = Object.create(parent);
+    psd.parent = parent;
+    psd.ref = 0;
+    psd.global = false;
+    psd.id = ++zone_id_counter;
     var globalEnv = globalPSD.env;
-    psd2.env = patchGlobalPromise ? {
+    psd.env = patchGlobalPromise ? {
       Promise: DexiePromise,
       PromiseProp: {value: DexiePromise, configurable: true, writable: true},
       all: DexiePromise.all,
@@ -6282,18 +5127,18 @@ var URIStorage = (() => {
       any: DexiePromise.any,
       resolve: DexiePromise.resolve,
       reject: DexiePromise.reject,
-      nthen: getPatchedPromiseThen(globalEnv.nthen, psd2),
-      gthen: getPatchedPromiseThen(globalEnv.gthen, psd2)
+      nthen: getPatchedPromiseThen(globalEnv.nthen, psd),
+      gthen: getPatchedPromiseThen(globalEnv.gthen, psd)
     } : {};
     if (props$$1)
-      extend(psd2, props$$1);
+      extend(psd, props$$1);
     ++parent.ref;
-    psd2.finalize = function() {
+    psd.finalize = function() {
       --this.parent.ref || this.parent.finalize();
     };
-    var rv = usePSD(psd2, fn, a1, a2);
-    if (psd2.ref === 0)
-      psd2.finalize();
+    var rv = usePSD(psd, fn, a1, a2);
+    if (psd.ref === 0)
+      psd.finalize();
     return rv;
   }
   function incrementExpectedAwaits() {
@@ -6382,10 +5227,10 @@ var URIStorage = (() => {
       gthen: GlobalPromise.prototype.then
     } : {};
   }
-  function usePSD(psd2, fn, a1, a2, a3) {
+  function usePSD(psd, fn, a1, a2, a3) {
     var outerScope = PSD;
     try {
-      switchToZone(psd2, true);
+      switchToZone(psd, true);
       return fn(a1, a2, a3);
     } finally {
       switchToZone(outerScope, false);
@@ -6483,8 +5328,8 @@ var URIStorage = (() => {
   var isIEOrEdge = typeof navigator !== "undefined" && /(MSIE|Trident|Edge)/.test(navigator.userAgent);
   var hasIEDeleteObjectStoreBug = isIEOrEdge;
   var hangsOnDeleteLargeKeyRange = isIEOrEdge;
-  var dexieStackFrameFilter = function(frame2) {
-    return !/(dexie\.js|dexie\.min\.js)/.test(frame2);
+  var dexieStackFrameFilter = function(frame) {
+    return !/(dexie\.js|dexie\.min\.js)/.test(frame);
   };
   var DBNAMES_DB = "__dbnames";
   var READONLY = "readonly";
@@ -6527,8 +5372,8 @@ var URIStorage = (() => {
       if (keyOrCrit && keyOrCrit.constructor === Object)
         return this.where(keyOrCrit).first(cb);
       return this._trans("readonly", function(trans) {
-        return _this.core.get({trans, key: keyOrCrit}).then(function(res2) {
-          return _this.hook.reading.fire(res2);
+        return _this.core.get({trans, key: keyOrCrit}).then(function(res) {
+          return _this.hook.reading.fire(res);
         });
       }).then(cb);
     };
@@ -6609,17 +5454,17 @@ var URIStorage = (() => {
     };
     Table2.prototype.mapToClass = function(constructor) {
       this.schema.mappedClass = constructor;
-      var readHook = function(obj2) {
-        if (!obj2)
-          return obj2;
-        var res2 = Object.create(constructor.prototype);
-        for (var m in obj2)
-          if (hasOwn(obj2, m))
+      var readHook = function(obj) {
+        if (!obj)
+          return obj;
+        var res = Object.create(constructor.prototype);
+        for (var m in obj)
+          if (hasOwn(obj, m))
             try {
-              res2[m] = obj2[m];
+              res[m] = obj[m];
             } catch (_) {
             }
-        return res2;
+        return res;
       };
       if (this.schema.readHook) {
         this.hook.reading.unsubscribe(this.schema.readHook);
@@ -6634,16 +5479,16 @@ var URIStorage = (() => {
       }
       return this.mapToClass(Class);
     };
-    Table2.prototype.add = function(obj2, key) {
+    Table2.prototype.add = function(obj, key) {
       var _this = this;
       return this._trans("readwrite", function(trans) {
-        return _this.core.mutate({trans, type: "add", keys: key != null ? [key] : null, values: [obj2]});
-      }).then(function(res2) {
-        return res2.numFailures ? DexiePromise.reject(res2.failures[0]) : res2.lastResult;
+        return _this.core.mutate({trans, type: "add", keys: key != null ? [key] : null, values: [obj]});
+      }).then(function(res) {
+        return res.numFailures ? DexiePromise.reject(res.failures[0]) : res.lastResult;
       }).then(function(lastResult) {
         if (!_this.core.schema.primaryKey.outbound) {
           try {
-            setByKeyPath(obj2, _this.core.schema.primaryKey.keyPath, lastResult);
+            setByKeyPath(obj, _this.core.schema.primaryKey.keyPath, lastResult);
           } catch (_) {
           }
         }
@@ -6665,16 +5510,16 @@ var URIStorage = (() => {
         return this.where(":id").equals(keyOrObject).modify(modifications);
       }
     };
-    Table2.prototype.put = function(obj2, key) {
+    Table2.prototype.put = function(obj, key) {
       var _this = this;
       return this._trans("readwrite", function(trans) {
-        return _this.core.mutate({trans, type: "put", values: [obj2], keys: key != null ? [key] : null});
-      }).then(function(res2) {
-        return res2.numFailures ? DexiePromise.reject(res2.failures[0]) : res2.lastResult;
+        return _this.core.mutate({trans, type: "put", values: [obj], keys: key != null ? [key] : null});
+      }).then(function(res) {
+        return res.numFailures ? DexiePromise.reject(res.failures[0]) : res.lastResult;
       }).then(function(lastResult) {
         if (!_this.core.schema.primaryKey.outbound) {
           try {
-            setByKeyPath(obj2, _this.core.schema.primaryKey.keyPath, lastResult);
+            setByKeyPath(obj, _this.core.schema.primaryKey.keyPath, lastResult);
           } catch (_) {
           }
         }
@@ -6685,16 +5530,16 @@ var URIStorage = (() => {
       var _this = this;
       return this._trans("readwrite", function(trans) {
         return _this.core.mutate({trans, type: "delete", keys: [key]});
-      }).then(function(res2) {
-        return res2.numFailures ? DexiePromise.reject(res2.failures[0]) : void 0;
+      }).then(function(res) {
+        return res.numFailures ? DexiePromise.reject(res.failures[0]) : void 0;
       });
     };
     Table2.prototype.clear = function() {
       var _this = this;
       return this._trans("readwrite", function(trans) {
         return _this.core.mutate({trans, type: "deleteRange", range: AnyRange});
-      }).then(function(res2) {
-        return res2.numFailures ? DexiePromise.reject(res2.failures[0]) : void 0;
+      }).then(function(res) {
+        return res.numFailures ? DexiePromise.reject(res.failures[0]) : void 0;
       });
     };
     Table2.prototype.bulkGet = function(keys$$1) {
@@ -6704,8 +5549,8 @@ var URIStorage = (() => {
           keys: keys$$1,
           trans
         }).then(function(result) {
-          return result.map(function(res2) {
-            return _this.hook.reading.fire(res2);
+          return result.map(function(res) {
+            return _this.hook.reading.fire(res);
           });
         });
       });
@@ -6919,29 +5764,29 @@ var URIStorage = (() => {
     }
   }
   function iterate(cursorPromise, filter, fn, valueMapper) {
-    var mappedFn = valueMapper ? function(x, c2, a) {
-      return fn(valueMapper(x), c2, a);
+    var mappedFn = valueMapper ? function(x, c, a) {
+      return fn(valueMapper(x), c, a);
     } : fn;
     var wrappedFn = wrap(mappedFn);
     return cursorPromise.then(function(cursor) {
       if (cursor) {
         return cursor.start(function() {
-          var c2 = function() {
+          var c = function() {
             return cursor.continue();
           };
           if (!filter || filter(cursor, function(advancer) {
-            return c2 = advancer;
+            return c = advancer;
           }, function(val) {
             cursor.stop(val);
-            c2 = nop;
+            c = nop;
           }, function(e) {
             cursor.fail(e);
-            c2 = nop;
+            c = nop;
           }))
             wrappedFn(cursor.value, cursor, function(advancer) {
-              return c2 = advancer;
+              return c = advancer;
             });
-          c2();
+          c();
         });
       }
     });
@@ -7009,10 +5854,10 @@ var URIStorage = (() => {
     };
     Collection2.prototype.sortBy = function(keyPath, cb) {
       var parts = keyPath.split(".").reverse(), lastPart = parts[0], lastIndex = parts.length - 1;
-      function getval(obj2, i) {
+      function getval(obj, i) {
         if (i)
-          return getval(obj2[parts[i]], i - 1);
-        return obj2[lastPart];
+          return getval(obj[parts[i]], i - 1);
+        return obj[lastPart];
       }
       var order = this._ctx.dir === "next" ? 1 : -1;
       function sorter(a, b) {
@@ -7242,12 +6087,12 @@ var URIStorage = (() => {
         var coreTable = ctx.table.core;
         var _a2 = coreTable.schema.primaryKey, outbound = _a2.outbound, extractKey = _a2.extractKey;
         var limit = "testmode" in Dexie ? 1 : 2e3;
-        var cmp2 = _this.db.core.cmp;
+        var cmp = _this.db.core.cmp;
         var totalFailures = [];
         var successCount = 0;
         var failedKeys = [];
-        var applyMutateResult = function(expectedCount, res2) {
-          var failures = res2.failures, numFailures = res2.numFailures;
+        var applyMutateResult = function(expectedCount, res) {
+          var failures = res.failures, numFailures = res.numFailures;
           successCount += expectedCount - numFailures;
           for (var _i = 0, _a3 = keys(failures); _i < _a3.length; _i++) {
             var pos = _a3[_i];
@@ -7271,7 +6116,7 @@ var URIStorage = (() => {
                 if (modifyer.call(ctx_1, ctx_1.value, ctx_1) !== false) {
                   if (ctx_1.value == null) {
                     deleteKeys.push(keys$$1[offset + i]);
-                  } else if (!outbound && cmp2(extractKey(origValue), extractKey(ctx_1.value)) !== 0) {
+                  } else if (!outbound && cmp(extractKey(origValue), extractKey(ctx_1.value)) !== 0) {
                     deleteKeys.push(keys$$1[offset + i]);
                     addValues.push(ctx_1.value);
                   } else {
@@ -7281,18 +6126,18 @@ var URIStorage = (() => {
                   }
                 }
               }
-              return Promise.resolve(addValues.length > 0 && coreTable.mutate({trans, type: "add", values: addValues}).then(function(res2) {
-                for (var pos in res2.failures) {
+              return Promise.resolve(addValues.length > 0 && coreTable.mutate({trans, type: "add", values: addValues}).then(function(res) {
+                for (var pos in res.failures) {
                   deleteKeys.splice(parseInt(pos), 1);
                 }
-                applyMutateResult(addValues.length, res2);
-              })).then(function(res2) {
-                return putValues.length > 0 && coreTable.mutate({trans, type: "put", keys: putKeys, values: putValues}).then(function(res3) {
-                  return applyMutateResult(putValues.length, res3);
+                applyMutateResult(addValues.length, res);
+              })).then(function(res) {
+                return putValues.length > 0 && coreTable.mutate({trans, type: "put", keys: putKeys, values: putValues}).then(function(res2) {
+                  return applyMutateResult(putValues.length, res2);
                 });
               }).then(function() {
-                return deleteKeys.length > 0 && coreTable.mutate({trans, type: "delete", keys: deleteKeys}).then(function(res2) {
-                  return applyMutateResult(deleteKeys.length, res2);
+                return deleteKeys.length > 0 && coreTable.mutate({trans, type: "delete", keys: deleteKeys}).then(function(res) {
+                  return applyMutateResult(deleteKeys.length, res);
                 });
               }).then(function() {
                 return keys$$1.length > offset + count && nextChunk(offset + limit);
@@ -7381,77 +6226,77 @@ var URIStorage = (() => {
       return rangeEqual("");
     }).limit(0);
   }
-  function upperFactory(dir2) {
-    return dir2 === "next" ? function(s2) {
-      return s2.toUpperCase();
-    } : function(s2) {
-      return s2.toLowerCase();
+  function upperFactory(dir) {
+    return dir === "next" ? function(s) {
+      return s.toUpperCase();
+    } : function(s) {
+      return s.toLowerCase();
     };
   }
-  function lowerFactory(dir2) {
-    return dir2 === "next" ? function(s2) {
-      return s2.toLowerCase();
-    } : function(s2) {
-      return s2.toUpperCase();
+  function lowerFactory(dir) {
+    return dir === "next" ? function(s) {
+      return s.toLowerCase();
+    } : function(s) {
+      return s.toUpperCase();
     };
   }
-  function nextCasing(key, lowerKey, upperNeedle, lowerNeedle, cmp2, dir2) {
+  function nextCasing(key, lowerKey, upperNeedle, lowerNeedle, cmp, dir) {
     var length = Math.min(key.length, lowerNeedle.length);
     var llp = -1;
     for (var i = 0; i < length; ++i) {
       var lwrKeyChar = lowerKey[i];
       if (lwrKeyChar !== lowerNeedle[i]) {
-        if (cmp2(key[i], upperNeedle[i]) < 0)
+        if (cmp(key[i], upperNeedle[i]) < 0)
           return key.substr(0, i) + upperNeedle[i] + upperNeedle.substr(i + 1);
-        if (cmp2(key[i], lowerNeedle[i]) < 0)
+        if (cmp(key[i], lowerNeedle[i]) < 0)
           return key.substr(0, i) + lowerNeedle[i] + upperNeedle.substr(i + 1);
         if (llp >= 0)
           return key.substr(0, llp) + lowerKey[llp] + upperNeedle.substr(llp + 1);
         return null;
       }
-      if (cmp2(key[i], lwrKeyChar) < 0)
+      if (cmp(key[i], lwrKeyChar) < 0)
         llp = i;
     }
-    if (length < lowerNeedle.length && dir2 === "next")
+    if (length < lowerNeedle.length && dir === "next")
       return key + upperNeedle.substr(key.length);
-    if (length < key.length && dir2 === "prev")
+    if (length < key.length && dir === "prev")
       return key.substr(0, upperNeedle.length);
     return llp < 0 ? null : key.substr(0, llp) + lowerNeedle[llp] + upperNeedle.substr(llp + 1);
   }
   function addIgnoreCaseAlgorithm(whereClause, match, needles, suffix) {
     var upper, lower, compare, upperNeedles, lowerNeedles, direction, nextKeySuffix, needlesLen = needles.length;
-    if (!needles.every(function(s2) {
-      return typeof s2 === "string";
+    if (!needles.every(function(s) {
+      return typeof s === "string";
     })) {
       return fail(whereClause, STRING_EXPECTED);
     }
-    function initDirection(dir2) {
-      upper = upperFactory(dir2);
-      lower = lowerFactory(dir2);
-      compare = dir2 === "next" ? simpleCompare : simpleCompareReverse;
+    function initDirection(dir) {
+      upper = upperFactory(dir);
+      lower = lowerFactory(dir);
+      compare = dir === "next" ? simpleCompare : simpleCompareReverse;
       var needleBounds = needles.map(function(needle) {
         return {lower: lower(needle), upper: upper(needle)};
       }).sort(function(a, b) {
         return compare(a.lower, b.lower);
       });
-      upperNeedles = needleBounds.map(function(nb2) {
-        return nb2.upper;
+      upperNeedles = needleBounds.map(function(nb) {
+        return nb.upper;
       });
-      lowerNeedles = needleBounds.map(function(nb2) {
-        return nb2.lower;
+      lowerNeedles = needleBounds.map(function(nb) {
+        return nb.lower;
       });
-      direction = dir2;
-      nextKeySuffix = dir2 === "next" ? "" : suffix;
+      direction = dir;
+      nextKeySuffix = dir === "next" ? "" : suffix;
     }
     initDirection("next");
-    var c2 = new whereClause.Collection(whereClause, function() {
+    var c = new whereClause.Collection(whereClause, function() {
       return createRange(upperNeedles[0], lowerNeedles[needlesLen - 1] + suffix);
     });
-    c2._ondirectionchange = function(direction2) {
+    c._ondirectionchange = function(direction2) {
       initDirection(direction2);
     };
     var firstPossibleNeedle = 0;
-    c2._addAlgorithm(function(cursor, advance, resolve3) {
+    c._addAlgorithm(function(cursor, advance, resolve3) {
       var key = cursor.key;
       if (typeof key !== "string")
         return false;
@@ -7478,7 +6323,7 @@ var URIStorage = (() => {
         return false;
       }
     });
-    return c2;
+    return c;
   }
   function createRange(lower, upper, lowerOpen, upperOpen) {
     return {
@@ -7552,22 +6397,22 @@ var URIStorage = (() => {
         return createRange(void 0, value);
       });
     };
-    WhereClause2.prototype.startsWith = function(str2) {
-      if (typeof str2 !== "string")
+    WhereClause2.prototype.startsWith = function(str) {
+      if (typeof str !== "string")
         return fail(this, STRING_EXPECTED);
-      return this.between(str2, str2 + maxString, true, true);
+      return this.between(str, str + maxString, true, true);
     };
-    WhereClause2.prototype.startsWithIgnoreCase = function(str2) {
-      if (str2 === "")
-        return this.startsWith(str2);
+    WhereClause2.prototype.startsWithIgnoreCase = function(str) {
+      if (str === "")
+        return this.startsWith(str);
       return addIgnoreCaseAlgorithm(this, function(x, a) {
         return x.indexOf(a[0]) === 0;
-      }, [str2], maxString);
+      }, [str], maxString);
     };
-    WhereClause2.prototype.equalsIgnoreCase = function(str2) {
+    WhereClause2.prototype.equalsIgnoreCase = function(str) {
       return addIgnoreCaseAlgorithm(this, function(x, a) {
         return x === a[0];
-      }, [str2], "");
+      }, [str], "");
     };
     WhereClause2.prototype.anyOfIgnoreCase = function() {
       var set = getArrayOf.apply(NO_CHAR_ARRAY, arguments);
@@ -7598,15 +6443,15 @@ var URIStorage = (() => {
       }
       if (set.length === 0)
         return emptyCollection(this);
-      var c2 = new this.Collection(this, function() {
+      var c = new this.Collection(this, function() {
         return createRange(set[0], set[set.length - 1]);
       });
-      c2._ondirectionchange = function(direction) {
+      c._ondirectionchange = function(direction) {
         compare = direction === "next" ? _this._ascending : _this._descending;
         set.sort(compare);
       };
       var i = 0;
-      c2._addAlgorithm(function(cursor, advance, resolve3) {
+      c._addAlgorithm(function(cursor, advance, resolve3) {
         var key = cursor.key;
         while (compare(key, set[i]) > 0) {
           ++i;
@@ -7624,7 +6469,7 @@ var URIStorage = (() => {
           return false;
         }
       });
-      return c2;
+      return c;
     };
     WhereClause2.prototype.notEqual = function(value) {
       return this.inAnyRange([[minKey, value], [value, this.db._maxKey]], {includeLowers: false, includeUppers: false});
@@ -7638,15 +6483,15 @@ var URIStorage = (() => {
       } catch (e) {
         return fail(this, INVALID_KEY_ARGUMENT);
       }
-      var ranges = set.reduce(function(res2, val) {
-        return res2 ? res2.concat([[res2[res2.length - 1][1], val]]) : [[minKey, val]];
+      var ranges = set.reduce(function(res, val) {
+        return res ? res.concat([[res[res.length - 1][1], val]]) : [[minKey, val]];
       }, null);
       ranges.push([set[set.length - 1], this.db._maxKey]);
       return this.inAnyRange(ranges, {includeLowers: false, includeUppers: false});
     };
     WhereClause2.prototype.inAnyRange = function(ranges, options) {
       var _this = this;
-      var cmp2 = this._cmp, ascending = this._ascending, descending = this._descending, min = this._min, max = this._max;
+      var cmp = this._cmp, ascending = this._ascending, descending = this._descending, min = this._min, max = this._max;
       if (ranges.length === 0)
         return emptyCollection(this);
       if (!ranges.every(function(range) {
@@ -7660,7 +6505,7 @@ var URIStorage = (() => {
         var i = 0, l = ranges2.length;
         for (; i < l; ++i) {
           var range = ranges2[i];
-          if (cmp2(newRange[0], range[1]) < 0 && cmp2(newRange[1], range[0]) > 0) {
+          if (cmp(newRange[0], range[1]) < 0 && cmp(newRange[1], range[0]) > 0) {
             range[0] = min(range[0], newRange[0]);
             range[1] = max(range[1], newRange[1]);
             break;
@@ -7696,10 +6541,10 @@ var URIStorage = (() => {
         return !keyIsBeyondCurrentEntry(key) && !keyIsBeforeCurrentEntry(key);
       }
       var checkKey = keyIsBeyondCurrentEntry;
-      var c2 = new this.Collection(this, function() {
+      var c = new this.Collection(this, function() {
         return createRange(set[0][0], set[set.length - 1][1], !includeLowers, !includeUppers);
       });
-      c2._ondirectionchange = function(direction) {
+      c._ondirectionchange = function(direction) {
         if (direction === "next") {
           checkKey = keyIsBeyondCurrentEntry;
           sortDirection = ascending;
@@ -7709,7 +6554,7 @@ var URIStorage = (() => {
         }
         set.sort(rangeSorter);
       };
-      c2._addAlgorithm(function(cursor, advance, resolve3) {
+      c._addAlgorithm(function(cursor, advance, resolve3) {
         var key = cursor.key;
         while (checkKey(key)) {
           ++rangePos;
@@ -7732,19 +6577,19 @@ var URIStorage = (() => {
           return false;
         }
       });
-      return c2;
+      return c;
     };
     WhereClause2.prototype.startsWithAnyOf = function() {
       var set = getArrayOf.apply(NO_CHAR_ARRAY, arguments);
-      if (!set.every(function(s2) {
-        return typeof s2 === "string";
+      if (!set.every(function(s) {
+        return typeof s === "string";
       })) {
         return fail(this, "startsWithAnyOf() only works with strings");
       }
       if (set.length === 0)
         return emptyCollection(this);
-      return this.inAnyRange(set.map(function(str2) {
-        return [str2, str2 + maxString];
+      return this.inAnyRange(set.map(function(str) {
+        return [str, str + maxString];
       }));
     };
     return WhereClause2;
@@ -7876,26 +6721,26 @@ var URIStorage = (() => {
         });
       } else if (bWriteLock) {
         return newScope(function() {
-          var p3 = new DexiePromise(function(resolve3, reject) {
+          var p2 = new DexiePromise(function(resolve3, reject) {
             _this._lock();
             var rv = fn(resolve3, reject, _this);
             if (rv && rv.then)
               rv.then(resolve3, reject);
           });
-          p3.finally(function() {
+          p2.finally(function() {
             return _this._unlock();
           });
-          p3._lib = true;
-          return p3;
+          p2._lib = true;
+          return p2;
         });
       } else {
-        var p2 = new DexiePromise(function(resolve3, reject) {
+        var p = new DexiePromise(function(resolve3, reject) {
           var rv = fn(resolve3, reject, _this);
           if (rv && rv.then)
             rv.then(resolve3, reject);
         });
-        p2._lib = true;
-        return p2;
+        p._lib = true;
+        return p;
       }
     };
     Transaction2.prototype._root = function() {
@@ -7922,8 +6767,8 @@ var URIStorage = (() => {
       }
       var currentWaitPromise = root._waitingFor;
       return new DexiePromise(function(resolve3, reject) {
-        promise.then(function(res2) {
-          return root._waitingQueue.push(wrap(resolve3.bind(null, res2)));
+        promise.then(function(res) {
+          return root._waitingQueue.push(wrap(resolve3.bind(null, res)));
         }, function(err) {
           return root._waitingQueue.push(wrap(reject.bind(null, err)));
         }).finally(function() {
@@ -8019,20 +6864,20 @@ var URIStorage = (() => {
     } else if (typeof keyPath === "string") {
       return getSinglePathKeyExtractor(keyPath);
     } else {
-      return function(obj2) {
-        return getByKeyPath(obj2, keyPath);
+      return function(obj) {
+        return getByKeyPath(obj, keyPath);
       };
     }
   }
   function getSinglePathKeyExtractor(keyPath) {
     var split = keyPath.split(".");
     if (split.length === 1) {
-      return function(obj2) {
-        return obj2[keyPath];
+      return function(obj) {
+        return obj[keyPath];
       };
     } else {
-      return function(obj2) {
-        return getByKeyPath(obj2, keyPath);
+      return function(obj) {
+        return getByKeyPath(obj, keyPath);
       };
     }
   }
@@ -8052,7 +6897,7 @@ var URIStorage = (() => {
     return keyPath == null ? ":id" : typeof keyPath === "string" ? keyPath : "[" + keyPath.join("+") + "]";
   }
   function createDBCore(db, indexedDB, IdbKeyRange, tmpTrans) {
-    var cmp2 = indexedDB.cmp.bind(indexedDB);
+    var cmp = indexedDB.cmp.bind(indexedDB);
     function extractSchema(db2, trans) {
       var tables2 = arrayify(db2.objectStoreNames);
       return {
@@ -8392,7 +7237,7 @@ var URIStorage = (() => {
           throw new Error("Table '" + name + "' not found");
         return tableMap[name];
       },
-      cmp: cmp2,
+      cmp,
       MIN_KEY: -Infinity,
       MAX_KEY: getMaxKey(IdbKeyRange),
       schema
@@ -8430,10 +7275,10 @@ var URIStorage = (() => {
   function setApiOnPlace(db, objs, tableNames, dbschema) {
     tableNames.forEach(function(tableName) {
       var schema = dbschema[tableName];
-      objs.forEach(function(obj2) {
-        if (!(tableName in obj2)) {
-          if (obj2 === db.Transaction.prototype || obj2 instanceof db.Transaction) {
-            setProp(obj2, tableName, {
+      objs.forEach(function(obj) {
+        if (!(tableName in obj)) {
+          if (obj === db.Transaction.prototype || obj instanceof db.Transaction) {
+            setProp(obj, tableName, {
               get: function() {
                 return this.table(tableName);
               },
@@ -8442,17 +7287,17 @@ var URIStorage = (() => {
               }
             });
           } else {
-            obj2[tableName] = new db.Table(tableName, schema);
+            obj[tableName] = new db.Table(tableName, schema);
           }
         }
       });
     });
   }
   function removeTablesApi(db, objs) {
-    objs.forEach(function(obj2) {
-      for (var key in obj2) {
-        if (obj2[key] instanceof db.Table)
-          delete obj2[key];
+    objs.forEach(function(obj) {
+      for (var key in obj) {
+        if (obj[key] instanceof db.Table)
+          delete obj[key];
       }
     });
   }
@@ -9163,9 +8008,9 @@ var URIStorage = (() => {
           function deleteNextChunk(trans, range, limit) {
             return downTable.query({trans, values: false, query: {index: primaryKey, range}, limit}).then(function(_a3) {
               var result = _a3.result;
-              return addPutOrDelete({type: "delete", keys: result, trans}).then(function(res2) {
-                if (res2.numFailures > 0)
-                  return Promise.reject(res2.failures[0]);
+              return addPutOrDelete({type: "delete", keys: result, trans}).then(function(res) {
+                if (res.numFailures > 0)
+                  return Promise.reject(res.failures[0]);
                 if (result.length < limit) {
                   return {failures: [], numFailures: 0, lastResult: void 0};
                 } else {
@@ -9270,10 +8115,10 @@ var URIStorage = (() => {
       };
       this._fireOnBlocked = function(ev) {
         _this.on("blocked").fire(ev);
-        connections.filter(function(c2) {
-          return c2.name === _this.name && c2 !== _this && !c2._state.vcFired;
-        }).map(function(c2) {
-          return c2.on("versionchange").fire(ev);
+        connections.filter(function(c) {
+          return c.name === _this.name && c !== _this && !c._state.vcFired;
+        }).map(function(c) {
+          return c.on("versionchange").fire(ev);
         });
       };
       this.use(virtualIndexMiddleware);
@@ -9572,8 +8417,8 @@ var URIStorage = (() => {
     semVer: DEXIE_VERSION,
     version: DEXIE_VERSION.split(".").map(function(n) {
       return parseInt(n);
-    }).reduce(function(p2, c2, i) {
-      return p2 + c2 / Math.pow(10, i * 2);
+    }).reduce(function(p, c, i) {
+      return p + c / Math.pow(10, i * 2);
     }),
     default: Dexie$1,
     Dexie: Dexie$1
@@ -9591,10 +8436,10 @@ var URIStorage = (() => {
     if (f1 === nop2)
       return f2;
     return function() {
-      var res2 = f1.apply(this, arguments);
-      if (res2 && typeof res2.then === "function") {
+      var res = f1.apply(this, arguments);
+      if (res && typeof res.then === "function") {
         var thiz = this, args = arguments;
-        return res2.then(function() {
+        return res.then(function() {
           return f2.apply(thiz, args);
         });
       }
@@ -9603,10 +8448,10 @@ var URIStorage = (() => {
   }
   function createUUID() {
     var d = Date.now();
-    var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c2) {
+    var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
       var r = (d + Math.random() * 16) % 16 | 0;
       d = Math.floor(d / 16);
-      return (c2 === "x" ? r : r & 7 | 8).toString(16);
+      return (c === "x" ? r : r & 7 | 8).toString(16);
     });
     return uuid;
   }
@@ -9667,12 +8512,12 @@ var URIStorage = (() => {
   var UPDATE = 2;
   var DELETE = 3;
   function initCreatingHook(db, table) {
-    return function creatingHook(primKey, obj2, trans) {
+    return function creatingHook(primKey, obj, trans) {
       var rv = void 0;
       if (primKey === void 0 && table.schema.primKey.uuid) {
         primKey = rv = createUUID();
         if (table.schema.primKey.keyPath) {
-          dexie_default.setByKeyPath(obj2, table.schema.primKey.keyPath, primKey);
+          dexie_default.setByKeyPath(obj, table.schema.primKey.keyPath, primKey);
         }
       }
       var change = {
@@ -9680,7 +8525,7 @@ var URIStorage = (() => {
         table: table.name,
         key: primKey === void 0 ? null : primKey,
         type: CREATE,
-        obj: obj2
+        obj
       };
       var promise = db._changes.add(change).then(function(rev) {
         trans._lastWrittenRevision = Math.max(trans._lastWrittenRevision, rev);
@@ -9702,12 +8547,12 @@ var URIStorage = (() => {
     };
   }
   function initUpdatingHook(db, tableName) {
-    return function updatingHook(mods2, primKey, oldObj, trans) {
+    return function updatingHook(mods, primKey, oldObj, trans) {
       var modsWithoutUndefined = {};
       var anythingChanged = false;
       var newObj = dexie_default.deepClone(oldObj);
-      for (var propPath in mods2) {
-        var mod = mods2[propPath];
+      for (var propPath in mods) {
+        var mod = mods[propPath];
         if (typeof mod === "undefined") {
           dexie_default.delByKeyPath(newObj, propPath);
           modsWithoutUndefined[propPath] = null;
@@ -9746,18 +8591,18 @@ var URIStorage = (() => {
     };
   }
   function initDeletingHook(db, tableName) {
-    return function deletingHook(primKey, obj2, trans) {
+    return function deletingHook(primKey, obj, trans) {
       var promise = db._changes.add({
         source: trans.source || null,
         table: tableName,
         key: primKey,
         type: DELETE,
-        oldObj: obj2
+        oldObj: obj
       }).then(function(rev) {
         trans._lastWrittenRevision = Math.max(trans._lastWrittenRevision, rev);
         return rev;
       }).catch(function(e) {
-        console.log(obj2);
+        console.log(obj);
         console.log(e.stack);
       });
       this.onerror = function() {
@@ -9828,8 +8673,8 @@ var URIStorage = (() => {
       options = options || {};
       if (!mySyncNode.node)
         return options.wantReply ? Promise2.reject(new dexie_default.DatabaseClosedError()) : Promise2.resolve();
-      var msg2 = {message, destinationNode, sender: mySyncNode.node.id, type};
-      dexie_default.extend(msg2, options);
+      var msg = {message, destinationNode, sender: mySyncNode.node.id, type};
+      dexie_default.extend(msg, options);
       return dexie_default.ignoreTransaction(function() {
         var tables = ["_intercomm"];
         if (options.wantReply)
@@ -9838,15 +8683,15 @@ var URIStorage = (() => {
           if (options.wantReply) {
             return db._syncNodes.where("id").equals(destinationNode).count(function(receiverAlive) {
               if (receiverAlive)
-                return db._intercomm.add(msg2);
+                return db._intercomm.add(msg);
               else
                 return db._syncNodes.where("isMaster").above(0).first(function(masterNode) {
-                  msg2.destinationNode = masterNode.id;
-                  return db._intercomm.add(msg2);
+                  msg.destinationNode = masterNode.id;
+                  return db._intercomm.add(msg);
                 });
             });
           } else {
-            return db._intercomm.add(msg2);
+            return db._intercomm.add(msg);
           }
         }).then(function(messageId) {
           var rv = null;
@@ -9891,35 +8736,35 @@ var URIStorage = (() => {
       return dexie_default.ignoreTransaction(function() {
         return db.transaction("rw", "_intercomm", function() {
           return db._intercomm.where({destinationNode: mySyncNode.node.id}).toArray(function(messages) {
-            messages.forEach(function(msg2) {
-              return consumeMessage(msg2);
+            messages.forEach(function(msg) {
+              return consumeMessage(msg);
             });
-            return db._intercomm.where("id").anyOf(messages.map(function(msg2) {
-              return msg2.id;
+            return db._intercomm.where("id").anyOf(messages.map(function(msg) {
+              return msg.id;
             })).delete();
           });
         });
       });
     }
-    function consumeMessage(msg2) {
-      if (msg2.type === "response") {
-        var request = requestsWaitingForReply[msg2.requestId.toString()];
+    function consumeMessage(msg) {
+      if (msg.type === "response") {
+        var request = requestsWaitingForReply[msg.requestId.toString()];
         if (request) {
-          if (msg2.isFailure) {
-            request.reject(msg2.message.error);
+          if (msg.isFailure) {
+            request.reject(msg.message.error);
           } else {
-            request.resolve(msg2.message.result);
+            request.resolve(msg.message.result);
           }
-          delete requestsWaitingForReply[msg2.requestId.toString()];
+          delete requestsWaitingForReply[msg.requestId.toString()];
         }
       } else {
-        msg2.resolve = function(result) {
-          db.observable.sendMessage("response", {result}, msg2.sender, {requestId: msg2.id});
+        msg.resolve = function(result) {
+          db.observable.sendMessage("response", {result}, msg.sender, {requestId: msg.id});
         };
-        msg2.reject = function(error) {
-          db.observable.sendMessage("response", {error: error.toString()}, msg2.sender, {isFailure: true, requestId: msg2.id});
+        msg.reject = function(error) {
+          db.observable.sendMessage("response", {error: error.toString()}, msg.sender, {isFailure: true, requestId: msg.id});
         };
-        db.on.message.fire(msg2);
+        db.on.message.fire(msg);
       }
     }
     function onIntercomm(dbname) {
@@ -10263,9 +9108,9 @@ var URIStorage = (() => {
               db._syncNodes.update(ourSyncNode, {isMaster: 1});
               weBecameMaster = true;
             }
-            db._intercomm.where({destinationNode: node.id}).modify(function(msg2) {
-              if (msg2.wantReply)
-                msg2.destinationNode = ourSyncNode.id;
+            db._intercomm.where({destinationNode: node.id}).modify(function(msg) {
+              if (msg.wantReply)
+                msg.destinationNode = ourSyncNode.id;
               else
                 delete this.value;
             });
@@ -10380,12 +9225,12 @@ var URIStorage = (() => {
       super(options);
     }
     async create_url_object(path5) {
-      const {storage} = this;
-      if (!storage) {
+      const {storage: storage2} = this;
+      if (!storage2) {
         throw new Error("bad dispatch to 'create_url_object' (database is not mounted)");
       }
-      const uri2 = this.normalize(path5);
-      const node = await storage.nodes.get(uri2);
+      const uri = this.normalize(path5);
+      const node = await storage2.nodes.get(uri);
       if (!node) {
         throw new Error("bad argument #0 to 'create_url_object' (Node must be created before using 'create_url_object')");
       }
@@ -10400,12 +9245,12 @@ var URIStorage = (() => {
       };
     }
     async get(path5) {
-      const {storage} = this;
-      if (!storage) {
+      const {storage: storage2} = this;
+      if (!storage2) {
         throw new Error("bad dispatch to 'get' (database is not mounted)");
       }
-      const uri2 = this.normalize(path5);
-      const node = await storage.nodes.get(uri2);
+      const uri = this.normalize(path5);
+      const node = await storage2.nodes.get(uri);
       if (!node)
         return null;
       return {
@@ -10417,38 +9262,38 @@ var URIStorage = (() => {
       };
     }
     async put(path5, type = NODE_TYPES.undefined, mime_type) {
-      const {storage} = this;
-      if (!storage) {
+      const {storage: storage2} = this;
+      if (!storage2) {
         throw new Error("bad dispatch to 'put' (database is not mounted)");
       }
-      const uri2 = this.normalize(path5);
-      const node = await storage.nodes.get(uri2);
+      const uri = this.normalize(path5);
+      const node = await storage2.nodes.get(uri);
       const timestamp = get_epoch_timestamp();
       if (!mime_type)
-        mime_type = get_mime_type(uri2) || DEFAULT_MIME_TYPE;
+        mime_type = get_mime_type(uri) || DEFAULT_MIME_TYPE;
       if (node) {
-        await storage.nodes.update(node, {
+        await storage2.nodes.update(node, {
           mtime: timestamp,
           mime_type,
           type
         });
       } else {
-        await storage.nodes.put({
+        await storage2.nodes.put({
           ctime: timestamp,
           mime_type,
           mtime: timestamp,
-          path: uri2,
+          path: uri,
           type
         });
       }
     }
     async query(options = {}) {
-      const {storage} = this;
-      if (!storage) {
+      const {storage: storage2} = this;
+      if (!storage2) {
         throw new Error("bad dispatch to 'query' (database is not mounted)");
       }
       const {path: path5 = {}, type} = options;
-      let collection = storage.nodes.toCollection();
+      let collection = storage2.nodes.toCollection();
       if (type) {
         if (typeof type === "string") {
           collection = collection.filter((node) => node.type === type);
@@ -10474,46 +9319,46 @@ var URIStorage = (() => {
       });
     }
     async read(path5) {
-      const {storage} = this;
-      if (!storage) {
+      const {storage: storage2} = this;
+      if (!storage2) {
         throw new Error("bad dispatch to 'get_payload' (database is not mounted)");
       }
-      const uri2 = this.normalize(path5);
-      const node = await storage.nodes.get(uri2);
+      const uri = this.normalize(path5);
+      const node = await storage2.nodes.get(uri);
       if (!node || !node.payload)
         return null;
       return node.payload;
     }
     async remove(path5) {
-      const {storage} = this;
-      if (!storage) {
+      const {storage: storage2} = this;
+      if (!storage2) {
         throw new Error("bad dispatch to 'remove' (database is not mounted)");
       }
-      const uri2 = this.normalize(path5);
-      const node = await storage.nodes.get(uri2);
+      const uri = this.normalize(path5);
+      const node = await storage2.nodes.get(uri);
       if (!node)
         return false;
-      storage.nodes.delete(uri2);
+      storage2.nodes.delete(uri);
       return true;
     }
     async watch(options = {}) {
-      const {storage} = this;
-      if (!storage) {
+      const {storage: storage2} = this;
+      if (!storage2) {
         throw new Error("bad dispatch to 'remove' (database is not mounted)");
       }
-      return hook_watcher(storage.EVENT_WATCH, options);
+      return hook_watcher(storage2.EVENT_WATCH, options);
     }
     async write(path5, payload) {
-      const {storage} = this;
-      if (!storage) {
+      const {storage: storage2} = this;
+      if (!storage2) {
         throw new Error("bad dispatch to 'attach' (database is not mounted)");
       }
-      const uri2 = this.normalize(path5);
-      const node = await storage.nodes.get(uri2);
+      const uri = this.normalize(path5);
+      const node = await storage2.nodes.get(uri);
       if (!node) {
         throw new Error("bad argument #0 to 'attach' (Node must be created before using 'attach')");
       }
-      await storage.nodes.update(node, {
+      await storage2.nodes.update(node, {
         payload,
         mtime: get_epoch_timestamp()
       });
@@ -10526,16 +9371,16 @@ var URIStorage = (() => {
         throw new Error("bad dispatch to 'mount' (database is already mounted)");
       }
       const {namespace} = this.options;
-      const storage = new IndexedDBStorage(namespace);
-      await storage.open();
-      this.storage = storage;
+      const storage2 = new IndexedDBStorage(namespace);
+      await storage2.open();
+      this.storage = storage2;
     }
     async unmount() {
-      const {storage} = this;
-      if (!storage) {
+      const {storage: storage2} = this;
+      if (!storage2) {
         throw new Error("bad dispatch to 'unmount' (database is not mounted)");
       }
-      await storage.close();
+      await storage2.close();
       delete this.storage;
     }
   }
@@ -10546,52 +9391,52 @@ var URIStorage = (() => {
 
   // src/util/encoding.ts
   const base85 = __toModule(require_base85());
-  function decode_safe(buffer2, options = {}) {
+  function decode_safe(buffer, options = {}) {
     const {mode = ENCODING_MODE.text} = options;
     switch (mode) {
       case ENCODING_MODE.bytes:
-        return base85.decode(buffer2, "ByteArray");
+        return base85.decode(buffer, "ByteArray");
       case ENCODING_MODE.text:
-        return base85.decode(buffer2, "String");
+        return base85.decode(buffer, "String");
       default:
         throw new Error(`bad option 'options.mode' to 'decode_safe' (encoding mode '${mode}' not available)`);
     }
   }
-  function decode_utf8(buffer2) {
+  function decode_utf8(buffer) {
     const decoder = new TextDecoder();
-    return decoder.decode(buffer2);
+    return decoder.decode(buffer);
   }
-  function encode_safe(buffer2, options = {}) {
+  function encode_safe(buffer, options = {}) {
     const {mode = ENCODING_MODE.text} = options;
     switch (mode) {
       case ENCODING_MODE.bytes:
-        return base85.encode(buffer2, "ByteArray");
+        return base85.encode(buffer, "ByteArray");
       case ENCODING_MODE.text:
-        return base85.encode(buffer2, "String");
+        return base85.encode(buffer, "String");
       default:
         throw new Error(`bad option 'options.mode' to 'encode_safe' (encoding mode '${mode}' not available)`);
     }
   }
-  function encode_utf8(text2) {
+  function encode_utf8(text) {
     const encoder = new TextEncoder();
-    return encoder.encode(text2);
+    return encoder.encode(text);
   }
 
   // src/adapters/whatwg_webstorage.ts
   class WebStorage {
-    constructor(namespace, storage) {
+    constructor(namespace, storage2) {
       this.EVENT_WATCH = event();
       this.prefix_node = `uristorage:${namespace}:n:`;
       this.prefix_payload = `uristorage:${namespace}:p:`;
-      this.storage = storage;
+      this.storage = storage2;
     }
     attach(path5, payload, mtime) {
-      const {storage} = this;
+      const {storage: storage2} = this;
       const key_node = this.prefix_node + path5;
       const key_payload = this.prefix_payload + path5;
-      const node = {...JSON.parse(storage.getItem(key_node)), mtime};
-      storage.setItem(key_node, JSON.stringify(node));
-      storage.setItem(key_payload, encode_safe(payload));
+      const node = {...JSON.parse(storage2.getItem(key_node)), mtime};
+      storage2.setItem(key_node, JSON.stringify(node));
+      storage2.setItem(key_payload, encode_safe(payload));
       this.EVENT_WATCH.dispatch({
         change: NODE_CHANGES.attached,
         path: path5,
@@ -10630,11 +9475,11 @@ var URIStorage = (() => {
       return !!this.storage.getItem(path5);
     }
     *nodes() {
-      const {prefix_node, storage} = this;
-      for (let index = 0; index < storage.length; index++) {
-        const key = storage.key(index);
+      const {prefix_node, storage: storage2} = this;
+      for (let index = 0; index < storage2.length; index++) {
+        const key = storage2.key(index);
         if (key?.startsWith(prefix_node)) {
-          const item = storage.getItem(key);
+          const item = storage2.getItem(key);
           const {type = NODE_TYPES.undefined} = JSON.parse(item);
           yield {
             path: key.slice(prefix_node.length),
@@ -10654,14 +9499,14 @@ var URIStorage = (() => {
       });
     }
     remove(path5) {
-      const {storage} = this;
+      const {storage: storage2} = this;
       const key_node = this.prefix_node + path5;
-      const item = storage.getItem(key_node);
+      const item = storage2.getItem(key_node);
       if (!item)
         return false;
       const node = JSON.parse(item);
-      storage.removeItem(key_node);
-      storage.removeItem(this.prefix_payload + path5);
+      storage2.removeItem(key_node);
+      storage2.removeItem(this.prefix_payload + path5);
       this.EVENT_WATCH.dispatch({
         change: NODE_CHANGES.removed,
         path: path5,
@@ -10670,10 +9515,10 @@ var URIStorage = (() => {
       return true;
     }
     update(path5, value) {
-      const {storage} = this;
+      const {storage: storage2} = this;
       const key = this.prefix_node + path5;
-      const node = {...JSON.parse(storage.getItem(key)), ...value, path: path5};
-      storage.setItem(key, JSON.stringify(node));
+      const node = {...JSON.parse(storage2.getItem(key)), ...value, path: path5};
+      storage2.setItem(key, JSON.stringify(node));
       this.EVENT_WATCH.dispatch({
         change: NODE_CHANGES.updated,
         path: node.path,
@@ -10689,23 +9534,23 @@ var URIStorage = (() => {
     };
   }
   class WebStorageAdapter extends BaseAdapter {
-    constructor(storage, options = {}) {
+    constructor(storage2, options = {}) {
       super(WebStorageOptions(options));
       const {namespace} = this.options;
-      this.storage = new WebStorage(namespace, storage);
+      this.storage = new WebStorage(namespace, storage2);
     }
     async create_url_object(path5) {
-      const {storage} = this;
+      const {storage: storage2} = this;
       const {compressed} = this.options;
-      const uri2 = this.normalize(path5);
-      if (!storage.has(uri2)) {
+      const uri = this.normalize(path5);
+      if (!storage2.has(uri)) {
         throw new Error("bad argument #0 to 'create_url_object' (Node must be created before using 'create_url_object')");
       }
-      let payload = storage.get_payload(uri2);
+      let payload = storage2.get_payload(uri);
       if (!payload) {
         throw new Error("bad argument #0 to 'create_url_object' (Node payload must be created before using 'create_url_object')");
       }
-      const node = storage.get(uri2);
+      const node = storage2.get(uri);
       payload = compressed ? decompress(payload) : payload;
       const object = create_url_object(payload, node.mime_type);
       return {
@@ -10715,23 +9560,23 @@ var URIStorage = (() => {
       };
     }
     async get(path5) {
-      const uri2 = this.normalize(path5);
-      return this.storage.get(uri2);
+      const uri = this.normalize(path5);
+      return this.storage.get(uri);
     }
     async put(path5, type = NODE_TYPES.undefined, mime_type) {
-      const {storage} = this;
-      const uri2 = this.normalize(path5);
+      const {storage: storage2} = this;
+      const uri = this.normalize(path5);
       const timestamp = get_epoch_timestamp();
       if (!mime_type)
-        mime_type = get_mime_type(uri2) || DEFAULT_MIME_TYPE;
-      if (storage.has(uri2)) {
-        storage.update(uri2, {
+        mime_type = get_mime_type(uri) || DEFAULT_MIME_TYPE;
+      if (storage2.has(uri)) {
+        storage2.update(uri, {
           mime_type,
           mtime: timestamp,
           type
         });
       } else {
-        storage.put(uri2, {
+        storage2.put(uri, {
           ctime: timestamp,
           mime_type,
           mtime: timestamp,
@@ -10745,28 +9590,28 @@ var URIStorage = (() => {
     }
     async read(path5) {
       const {compressed} = this.options;
-      const uri2 = this.normalize(path5);
-      const payload = this.storage.get_payload(uri2);
+      const uri = this.normalize(path5);
+      const payload = this.storage.get_payload(uri);
       if (!payload)
         return null;
       return compressed ? decompress(payload) : payload;
     }
     async remove(path5) {
-      const uri2 = this.normalize(path5);
-      return this.storage.remove(uri2);
+      const uri = this.normalize(path5);
+      return this.storage.remove(uri);
     }
     async watch(options = {}) {
       return hook_watcher(this.storage.EVENT_WATCH, options);
     }
     async write(path5, payload) {
-      const {storage} = this;
+      const {storage: storage2} = this;
       const {compressed} = this.options;
-      const uri2 = this.normalize(path5);
-      if (!storage.has(uri2)) {
+      const uri = this.normalize(path5);
+      if (!storage2.has(uri)) {
         throw new Error("bad argument #0 to 'attach' (Node must be created before using 'attach')");
       }
       payload = compressed ? compress(payload) : payload;
-      storage.attach(uri2, payload, get_epoch_timestamp());
+      storage2.attach(uri, payload, get_epoch_timestamp());
     }
     is_mounted() {
       return true;
@@ -10792,6 +9637,189 @@ var URIStorage = (() => {
     }
   }
   SessionStorageAdapter.is_available = !!(typeof window === "object" && window.sessionStorage);
+
+  // src/registries/storage.ts
+  class StorageRegistry extends ImmutableMap {
+    constructor() {
+      super();
+      this.EVENT_MOUNTED = event();
+      this.EVENT_REGISTERED = event();
+      this.EVENT_UNMOUNTED = event();
+      this.EVENT_UNREGISTERED = event();
+      this.clone = (node) => {
+        const {namespace, storage: storage2} = node;
+        return {namespace, storage: storage2};
+      };
+    }
+    clear() {
+      const nodes = this.entries();
+      for (const [namespace, node] of nodes) {
+        const {storage: storage2} = node;
+        this.EVENT_UNREGISTERED.dispatch({namespace, storage: storage2});
+      }
+      super.clear();
+    }
+    register(namespace, storage2) {
+      if (this.has(namespace)) {
+        throw new Error(`bad argument #0 to 'register' (namespace '${namespace}' already registered)`);
+      }
+      const node = {namespace, storage: storage2};
+      this.set(namespace, node);
+      storage2.EVENT_MOUNTED.subscribe(() => this.EVENT_MOUNTED.dispatch({namespace, storage: storage2}));
+      storage2.EVENT_UNMOUNTED.subscribe(() => this.EVENT_UNMOUNTED.dispatch({namespace, storage: storage2}));
+      this.EVENT_REGISTERED.dispatch({namespace, storage: storage2});
+      return this;
+    }
+    unregister(namespace) {
+      const node = this.get(namespace);
+      if (!node) {
+        throw new Error(`bad argument #0 to 'unregister' (namespace '${namespace}' not registered)`);
+      }
+      const {storage: storage2} = node;
+      if (storage2.is_mounted())
+        storage2.unmount();
+      super.delete(namespace);
+      this.EVENT_UNREGISTERED.dispatch({namespace, storage: node.storage});
+      return this;
+    }
+    resolve(uri) {
+      let url;
+      try {
+        url = new URL(uri);
+      } catch (err) {
+        return null;
+      }
+      const namespace = url.protocol.slice(0, -1);
+      const node = this.get(namespace);
+      if (!node)
+        return null;
+      return {...node, path: url.pathname};
+    }
+  }
+
+  // src/registries/file_system.ts
+  class FileSystemRegistry extends StorageRegistry {
+    create_url_object(uri) {
+      const result = this.resolve(uri);
+      if (!result) {
+        throw new Error(`bad argument #0 to 'create_url_object' (could not resolve '${uri}')`);
+      }
+      const {path: path5, storage: storage2} = result;
+      return storage2.create_url_object(path5);
+    }
+    create_directory(uri) {
+      const result = this.resolve(uri);
+      if (!result) {
+        throw new Error(`bad argument #0 to 'create_directory' (could not resolve '${uri}')`);
+      }
+      const {path: path5, storage: storage2} = result;
+      return storage2.create_directory(path5);
+    }
+    exists(uri) {
+      const result = this.resolve(uri);
+      if (!result) {
+        throw new Error(`bad argument #0 to 'exists' (could not resolve '${uri}')`);
+      }
+      const {path: path5, storage: storage2} = result;
+      return storage2.exists(path5);
+    }
+    get_stats(uri) {
+      const result = this.resolve(uri);
+      if (!result) {
+        throw new Error(`bad argument #0 to 'get_stats' (could not resolve '${uri}')`);
+      }
+      const {path: path5, storage: storage2} = result;
+      return storage2.get_stats(path5);
+    }
+    read_directory(namespace, options = {}) {
+      const node = this.get(namespace);
+      if (!node) {
+        throw new Error(`bad argument #0 to 'read_directory' (could not resolve '${namespace}')`);
+      }
+      const {storage: storage2} = node;
+      return storage2.read_directory(options);
+    }
+    read_file(uri) {
+      const result = this.resolve(uri);
+      if (!result) {
+        throw new Error(`bad argument #0 to 'read_file' (could not resolve '${uri}')`);
+      }
+      const {path: path5, storage: storage2} = result;
+      return storage2.read_file(path5);
+    }
+    remove_directory(uri, options = {}) {
+      const result = this.resolve(uri);
+      if (!result) {
+        throw new Error(`bad argument #0 to 'remove_directory' (could not resolve '${uri}')`);
+      }
+      const {path: path5, storage: storage2} = result;
+      return storage2.remove_directory(path5, options);
+    }
+    remove_file(uri) {
+      const result = this.resolve(uri);
+      if (!result) {
+        throw new Error(`bad argument #0 to 'remove_file' (could not resolve '${uri}')`);
+      }
+      const {path: path5, storage: storage2} = result;
+      return storage2.remove_file(path5);
+    }
+    watch_directory(uri, options = {}) {
+      const result = this.resolve(uri);
+      if (!result) {
+        throw new Error(`bad argument #0 to 'watch_directory' (could not resolve '${uri}')`);
+      }
+      const {path: path5, storage: storage2} = result;
+      return storage2.watch_directory(path5, options);
+    }
+    watch_file(uri) {
+      const result = this.resolve(uri);
+      if (!result) {
+        throw new Error(`bad argument #0 to 'watch_file' (could not resolve '${uri}')`);
+      }
+      const {path: path5, storage: storage2} = result;
+      return storage2.watch_file(path5);
+    }
+    write_file(uri, payload) {
+      const result = this.resolve(uri);
+      if (!result) {
+        throw new Error(`bad argument #0 to 'write_file' (could not resolve '${uri}')`);
+      }
+      const {path: path5, storage: storage2} = result;
+      return storage2.write_file(path5, payload);
+    }
+    read_file_json(uri, reviver) {
+      const result = this.resolve(uri);
+      if (!result) {
+        throw new Error(`bad argument #0 to 'read_file_json' (could not resolve '${uri}')`);
+      }
+      const {path: path5, storage: storage2} = result;
+      return storage2.read_file_json(path5, reviver);
+    }
+    read_file_text(uri) {
+      const result = this.resolve(uri);
+      if (!result) {
+        throw new Error(`bad argument #0 to 'read_file_text' (could not resolve '${uri}')`);
+      }
+      const {path: path5, storage: storage2} = result;
+      return storage2.read_file_text(path5);
+    }
+    write_file_json(uri, value, replacer, space) {
+      const result = this.resolve(uri);
+      if (!result) {
+        throw new Error(`bad argument #0 to 'write_file_json' (could not resolve '${uri}')`);
+      }
+      const {path: path5, storage: storage2} = result;
+      return storage2.write_file_json(path5, value, replacer, space);
+    }
+    write_file_text(uri, text) {
+      const result = this.resolve(uri);
+      if (!result) {
+        throw new Error(`bad argument #0 to 'write_file_text' (could not resolve '${uri}')`);
+      }
+      const {path: path5, storage: storage2} = result;
+      return storage2.write_file_text(path5, text);
+    }
+  }
 
   // src/overlays/base_overlay.ts
   class BaseOverlay {
@@ -11168,61 +10196,9 @@ var URIStorage = (() => {
       const encoded = JSON.stringify(value, replacer, space);
       return this.write_file_text(file_path, encoded);
     }
-    write_file_text(file_path, text2) {
-      const encoded = encode_utf8(text2);
+    write_file_text(file_path, text) {
+      const encoded = encode_utf8(text);
       return this.write_file(file_path, encoded);
-    }
-  }
-
-  // src/storage_registry.ts
-  class StorageRegistry extends ImmutableMap {
-    constructor() {
-      super();
-      this.EVENT_MOUNTED = event();
-      this.EVENT_REGISTERED = event();
-      this.EVENT_UNMOUNTED = event();
-      this.EVENT_UNREGISTERED = event();
-      this.clone = (node) => {
-        const {storage} = node;
-        return {storage};
-      };
-    }
-    clear() {
-      const nodes = this.entries();
-      for (const [namespace, node] of nodes) {
-        const {storage} = node;
-        this.EVENT_UNREGISTERED.dispatch({namespace, storage});
-      }
-      super.clear();
-    }
-    delete(namespace) {
-      const node = this.get(namespace);
-      const deleted = super.delete(namespace);
-      if (deleted && node) {
-        this.EVENT_UNREGISTERED.dispatch({namespace, storage: node.storage});
-      }
-      return deleted;
-    }
-    resolve(uri2) {
-      let url;
-      try {
-        url = new URL(uri2);
-      } catch (err) {
-        return void 0;
-      }
-      const namespace = url.protocol.slice(0, -1);
-      const node = this.get(namespace);
-      if (!node)
-        return void 0;
-      return {...node, namespace, path: url.pathname};
-    }
-    set(namespace, node) {
-      const {storage} = node;
-      super.set(namespace, {...node, namespace});
-      storage.EVENT_MOUNTED.subscribe(() => this.EVENT_MOUNTED.dispatch({namespace, storage}));
-      storage.EVENT_UNMOUNTED.subscribe(() => this.EVENT_UNMOUNTED.dispatch({namespace, storage}));
-      this.EVENT_REGISTERED.dispatch({namespace, storage});
-      return this;
     }
   }
   return require_src();

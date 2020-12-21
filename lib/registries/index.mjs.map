@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/registries/index.ts"],
+  "sourcesContent": ["export * from \"./file_system\";\nexport * from \"./storage\";\n"],
+  "mappings": "AAAA;AACA;",
+  "names": []
+}
