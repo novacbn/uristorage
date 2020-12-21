@@ -3,7 +3,7 @@ import {NODE_CHANGES, NODE_TYPES} from "../util/constants";
 import {decode_utf8, encode_utf8} from "../util/encoding";
 import {IEvent, event} from "../util/event";
 import {dirname, join, normalize} from "../util/path";
-import {IJSONReplacer, IJSONReviver, IJSONTypes} from "../util/types";
+import {IJSONReplacer, IJSONReviver, IJSONValue} from "../util/types";
 
 import {BaseOverlay} from "./base_overlay";
 
@@ -728,7 +728,7 @@ export class FileSystemOverlay extends BaseOverlay {
      * @param file_path
      * @param reviver
      */
-    async read_file_json<T extends IJSONTypes = IJSONTypes>(
+    async read_file_json<T extends IJSONValue = IJSONValue>(
         file_path: string,
         reviver?: IJSONReviver
     ): Promise<T> {
@@ -754,7 +754,7 @@ export class FileSystemOverlay extends BaseOverlay {
      * @param replacer
      * @param space
      */
-    write_file_json<T extends IJSONTypes = IJSONTypes>(
+    write_file_json<T extends IJSONValue = IJSONValue>(
         file_path: string,
         value: T,
         replacer?: IJSONReplacer,

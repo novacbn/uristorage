@@ -1,4 +1,4 @@
-import MIME_TYPES from "../data/mime_types.json";
+import MIME_TYPES from "../data/mime_types";
 
 import {extname} from "./path";
 

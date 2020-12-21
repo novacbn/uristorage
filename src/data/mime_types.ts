@@ -1,4 +1,4 @@
-{
+export default {
     "123": "application/vnd.lotus-1-2-3",
     "ez": "application/andrew-inset",
     "aw": "application/applixware",
@@ -1155,4 +1155,4 @@
     "movie": "video/x-sgi-movie",
     "smv": "video/x-smv",
     "ice": "x-conference/x-cooltalk"
-}
+} as {[key: string]: string};

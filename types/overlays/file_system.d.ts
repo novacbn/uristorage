@@ -1,7 +1,7 @@
 import { BaseAdapter, IURLObject } from "../adapters/base_adapter";
 import { NODE_TYPES } from "../util/constants";
 import { IEvent } from "../util/event";
-import { IJSONReplacer, IJSONReviver, IJSONTypes } from "../util/types";
+import { IJSONReplacer, IJSONReviver, IJSONValue } from "../util/types";
 import { BaseOverlay } from "./base_overlay";
 /**
  * ...
@@ -245,7 +245,7 @@ export declare class FileSystemOverlay extends BaseOverlay {
      * @param file_path
      * @param reviver
      */
-    read_file_json<T extends IJSONTypes = IJSONTypes>(file_path: string, reviver?: IJSONReviver): Promise<T>;
+    read_file_json<T extends IJSONValue = IJSONValue>(file_path: string, reviver?: IJSONReviver): Promise<T>;
     /**
      * Returns UTF-8 text read from the given `file_path`
      * @param file_path
@@ -258,7 +258,7 @@ export declare class FileSystemOverlay extends BaseOverlay {
      * @param replacer
      * @param space
      */
-    write_file_json<T extends IJSONTypes = IJSONTypes>(file_path: string, value: T, replacer?: IJSONReplacer, space?: number | string): Promise<void>;
+    write_file_json<T extends IJSONValue = IJSONValue>(file_path: string, value: T, replacer?: IJSONReplacer, space?: number | string): Promise<void>;
     /**
      * Writes to the given `file_path`, encoding `text` as UTF-8 bytes
      * @param file_path

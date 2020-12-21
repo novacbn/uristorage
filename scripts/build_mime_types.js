@@ -2,6 +2,13 @@ const {writeFileSync} = require("fs");
 
 const {types} = require("mime-types");
 
-const PATH_JSON = "./src/data/mime_types.json";
+const PATH_MODULE = "./src/data/mime_types.ts";
 
-writeFileSync(PATH_JSON, JSON.stringify(types, null, 4));
+const TEMPLATE_MODULE = ({json}) => `export default ${json} as {[key: string]: string};`;
+
+writeFileSync(
+    PATH_MODULE,
+    TEMPLATE_MODULE({
+        json: JSON.stringify(types, null, 4),
+    })
+);
