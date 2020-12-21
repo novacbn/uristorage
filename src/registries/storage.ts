@@ -72,7 +72,7 @@ export class StorageRegistry<
 
         // @ts-ignore
         const node: V = {namespace, storage};
-        this.set(namespace, node);
+        super.set(namespace, node);
 
         storage.EVENT_MOUNTED.subscribe(() => this.EVENT_MOUNTED.dispatch({namespace, storage}));
         storage.EVENT_UNMOUNTED.subscribe(() =>
@@ -91,11 +91,7 @@ export class StorageRegistry<
             );
         }
 
-        const {storage} = node;
-
-        if (storage.is_mounted()) storage.unmount();
         super.delete(namespace);
-
         this.EVENT_UNREGISTERED.dispatch({namespace, storage: node.storage});
         return this;
     }
