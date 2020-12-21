@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.0.4 (?)
+
+-   Added `IJSONArray` / `IJSONObject` types to exports as shortcut aliases
+-   Added `FileSystemRegistry` which extends `StorageRegistry`
+    -   Supports all `FileSystemOverlay` methods, selecting the appropriate registered `FileSystemOverlay` by URI protocol
+-   Updated `StorageRegistry.(delete / set)` to `StorageRegistry.(register / unregister)`
+    -   Updated `StorageRegistry.unregister` to unmount Storage nodes
+-   Updated `StorageRegister.resolve` to return `null` on non-registered protocols
+-   Updated mimetypes build script to export a TypeScript (`.ts`) file instead of a JSON (`.json`) file
+-   Updated build script to export ECMAScript Module (`.mjs`) files instead of separate directory
+
 ## v0.0.3 (2020/12/07)
 
 -   Fixed bug where `WebStorageAdapter` would not remove directories

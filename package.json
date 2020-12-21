@@ -1,6 +1,6 @@
 {
     "name": "uristorage",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "Provides abstractions for working with different backends as a simplistic Object Storage",
     "author": "novacbn",
     "main": "lib/index.js",
