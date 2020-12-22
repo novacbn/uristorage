@@ -182,7 +182,7 @@ export function join() {
         }
     }
     if (joined === undefined) return ".";
-    return posix.normalize(joined);
+    return normalize(joined);
 }
 
 export function relative(from, to) {
@@ -191,8 +191,8 @@ export function relative(from, to) {
 
     if (from === to) return "";
 
-    from = posix.resolve(from);
-    to = posix.resolve(to);
+    from = resolve(from);
+    to = resolve(to);
 
     if (from === to) return "";
 
