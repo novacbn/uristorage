@@ -24,7 +24,11 @@ const OPTIONS_NODE = {
     ...OPTIONS_DEFAULT,
 
     platform: "node",
-    entryPoints: [...glob.sync("./src/**/*.ts"), ...glob.sync("./src/**/*.json")],
+    entryPoints: [
+        ...glob.sync("./src/**/*.js"),
+        ...glob.sync("./src/**/*.ts"),
+        ...glob.sync("./src/**/*.json"),
+    ],
 };
 
 (async () => {

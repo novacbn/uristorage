@@ -1,6 +1,6 @@
 {
     "name": "uristorage",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "description": "Provides abstractions for working with different backends as a simplistic Object Storage",
     "author": "novacbn",
     "main": "lib/index.js",
@@ -36,8 +36,7 @@
         "dexie": "^3.0.2",
         "dexie-observable": "^3.0.0-beta.10",
         "glob-to-regexp": "^0.4.1",
-        "lzutf8": "^0.5.6",
-        "path-browserify": "^1.0.1"
+        "lzutf8": "^0.5.6"
     },
     "devDependencies": {
         "@types/glob-to-regexp": "^0.4.0",

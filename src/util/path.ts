@@ -1,5 +1,5 @@
 // @ts-ignore
-import * as _path from "path-browserify";
+import * as _path from "../vendor/path-browserify";
 
 // NOTE: Abstracted for backend / package changes while remaining API-compatible
 
@@ -15,12 +15,12 @@ const REGEX_TRAILING_SLASH = /[\/]*$/;
 /**
  * The platform-specific file delimiter. Always ':'.
  */
-export const delimiter: string = _path.delimiter;
+export const delimiter: string = ":";
 
 /**
  * The platform-specific file separator. Always '/'.
  */
-export const sep: string = _path.sep;
+export const sep: string = "/";
 
 /**
  * Return the last portion of a path. Similar to the Unix basename command.

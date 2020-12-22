@@ -122,427 +122,6 @@ var URIStorage = (() => {
     };
   });
 
-  // node_modules/path-browserify/index.js
-  var require_path_browserify = __commonJS((exports, module) => {
-    "use strict";
-    function assertPath(path5) {
-      if (typeof path5 !== "string") {
-        throw new TypeError("Path must be a string. Received " + JSON.stringify(path5));
-      }
-    }
-    function normalizeStringPosix(path5, allowAboveRoot) {
-      var res = "";
-      var lastSegmentLength = 0;
-      var lastSlash = -1;
-      var dots = 0;
-      var code;
-      for (var i = 0; i <= path5.length; ++i) {
-        if (i < path5.length)
-          code = path5.charCodeAt(i);
-        else if (code === 47)
-          break;
-        else
-          code = 47;
-        if (code === 47) {
-          if (lastSlash === i - 1 || dots === 1) {
-          } else if (lastSlash !== i - 1 && dots === 2) {
-            if (res.length < 2 || lastSegmentLength !== 2 || res.charCodeAt(res.length - 1) !== 46 || res.charCodeAt(res.length - 2) !== 46) {
-              if (res.length > 2) {
-                var lastSlashIndex = res.lastIndexOf("/");
-                if (lastSlashIndex !== res.length - 1) {
-                  if (lastSlashIndex === -1) {
-                    res = "";
-                    lastSegmentLength = 0;
-                  } else {
-                    res = res.slice(0, lastSlashIndex);
-                    lastSegmentLength = res.length - 1 - res.lastIndexOf("/");
-                  }
-                  lastSlash = i;
-                  dots = 0;
-                  continue;
-                }
-              } else if (res.length === 2 || res.length === 1) {
-                res = "";
-                lastSegmentLength = 0;
-                lastSlash = i;
-                dots = 0;
-                continue;
-              }
-            }
-            if (allowAboveRoot) {
-              if (res.length > 0)
-                res += "/..";
-              else
-                res = "..";
-              lastSegmentLength = 2;
-            }
-          } else {
-            if (res.length > 0)
-              res += "/" + path5.slice(lastSlash + 1, i);
-            else
-              res = path5.slice(lastSlash + 1, i);
-            lastSegmentLength = i - lastSlash - 1;
-          }
-          lastSlash = i;
-          dots = 0;
-        } else if (code === 46 && dots !== -1) {
-          ++dots;
-        } else {
-          dots = -1;
-        }
-      }
-      return res;
-    }
-    function _format(sep3, pathObject) {
-      var dir = pathObject.dir || pathObject.root;
-      var base = pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
-      if (!dir) {
-        return base;
-      }
-      if (dir === pathObject.root) {
-        return dir + base;
-      }
-      return dir + sep3 + base;
-    }
-    var posix = {
-      resolve: function resolve3() {
-        var resolvedPath = "";
-        var resolvedAbsolute = false;
-        var cwd;
-        for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-          var path5;
-          if (i >= 0)
-            path5 = arguments[i];
-          else {
-            if (cwd === void 0)
-              cwd = process.cwd();
-            path5 = cwd;
-          }
-          assertPath(path5);
-          if (path5.length === 0) {
-            continue;
-          }
-          resolvedPath = path5 + "/" + resolvedPath;
-          resolvedAbsolute = path5.charCodeAt(0) === 47;
-        }
-        resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute);
-        if (resolvedAbsolute) {
-          if (resolvedPath.length > 0)
-            return "/" + resolvedPath;
-          else
-            return "/";
-        } else if (resolvedPath.length > 0) {
-          return resolvedPath;
-        } else {
-          return ".";
-        }
-      },
-      normalize: function normalize3(path5) {
-        assertPath(path5);
-        if (path5.length === 0)
-          return ".";
-        var isAbsolute = path5.charCodeAt(0) === 47;
-        var trailingSeparator = path5.charCodeAt(path5.length - 1) === 47;
-        path5 = normalizeStringPosix(path5, !isAbsolute);
-        if (path5.length === 0 && !isAbsolute)
-          path5 = ".";
-        if (path5.length > 0 && trailingSeparator)
-          path5 += "/";
-        if (isAbsolute)
-          return "/" + path5;
-        return path5;
-      },
-      isAbsolute: function isAbsolute(path5) {
-        assertPath(path5);
-        return path5.length > 0 && path5.charCodeAt(0) === 47;
-      },
-      join: function join3() {
-        if (arguments.length === 0)
-          return ".";
-        var joined;
-        for (var i = 0; i < arguments.length; ++i) {
-          var arg = arguments[i];
-          assertPath(arg);
-          if (arg.length > 0) {
-            if (joined === void 0)
-              joined = arg;
-            else
-              joined += "/" + arg;
-          }
-        }
-        if (joined === void 0)
-          return ".";
-        return posix.normalize(joined);
-      },
-      relative: function relative3(from, to) {
-        assertPath(from);
-        assertPath(to);
-        if (from === to)
-          return "";
-        from = posix.resolve(from);
-        to = posix.resolve(to);
-        if (from === to)
-          return "";
-        var fromStart = 1;
-        for (; fromStart < from.length; ++fromStart) {
-          if (from.charCodeAt(fromStart) !== 47)
-            break;
-        }
-        var fromEnd = from.length;
-        var fromLen = fromEnd - fromStart;
-        var toStart = 1;
-        for (; toStart < to.length; ++toStart) {
-          if (to.charCodeAt(toStart) !== 47)
-            break;
-        }
-        var toEnd = to.length;
-        var toLen = toEnd - toStart;
-        var length = fromLen < toLen ? fromLen : toLen;
-        var lastCommonSep = -1;
-        var i = 0;
-        for (; i <= length; ++i) {
-          if (i === length) {
-            if (toLen > length) {
-              if (to.charCodeAt(toStart + i) === 47) {
-                return to.slice(toStart + i + 1);
-              } else if (i === 0) {
-                return to.slice(toStart + i);
-              }
-            } else if (fromLen > length) {
-              if (from.charCodeAt(fromStart + i) === 47) {
-                lastCommonSep = i;
-              } else if (i === 0) {
-                lastCommonSep = 0;
-              }
-            }
-            break;
-          }
-          var fromCode = from.charCodeAt(fromStart + i);
-          var toCode = to.charCodeAt(toStart + i);
-          if (fromCode !== toCode)
-            break;
-          else if (fromCode === 47)
-            lastCommonSep = i;
-        }
-        var out = "";
-        for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) {
-          if (i === fromEnd || from.charCodeAt(i) === 47) {
-            if (out.length === 0)
-              out += "..";
-            else
-              out += "/..";
-          }
-        }
-        if (out.length > 0)
-          return out + to.slice(toStart + lastCommonSep);
-        else {
-          toStart += lastCommonSep;
-          if (to.charCodeAt(toStart) === 47)
-            ++toStart;
-          return to.slice(toStart);
-        }
-      },
-      _makeLong: function _makeLong(path5) {
-        return path5;
-      },
-      dirname: function dirname3(path5) {
-        assertPath(path5);
-        if (path5.length === 0)
-          return ".";
-        var code = path5.charCodeAt(0);
-        var hasRoot = code === 47;
-        var end = -1;
-        var matchedSlash = true;
-        for (var i = path5.length - 1; i >= 1; --i) {
-          code = path5.charCodeAt(i);
-          if (code === 47) {
-            if (!matchedSlash) {
-              end = i;
-              break;
-            }
-          } else {
-            matchedSlash = false;
-          }
-        }
-        if (end === -1)
-          return hasRoot ? "/" : ".";
-        if (hasRoot && end === 1)
-          return "//";
-        return path5.slice(0, end);
-      },
-      basename: function basename3(path5, ext) {
-        if (ext !== void 0 && typeof ext !== "string")
-          throw new TypeError('"ext" argument must be a string');
-        assertPath(path5);
-        var start = 0;
-        var end = -1;
-        var matchedSlash = true;
-        var i;
-        if (ext !== void 0 && ext.length > 0 && ext.length <= path5.length) {
-          if (ext.length === path5.length && ext === path5)
-            return "";
-          var extIdx = ext.length - 1;
-          var firstNonSlashEnd = -1;
-          for (i = path5.length - 1; i >= 0; --i) {
-            var code = path5.charCodeAt(i);
-            if (code === 47) {
-              if (!matchedSlash) {
-                start = i + 1;
-                break;
-              }
-            } else {
-              if (firstNonSlashEnd === -1) {
-                matchedSlash = false;
-                firstNonSlashEnd = i + 1;
-              }
-              if (extIdx >= 0) {
-                if (code === ext.charCodeAt(extIdx)) {
-                  if (--extIdx === -1) {
-                    end = i;
-                  }
-                } else {
-                  extIdx = -1;
-                  end = firstNonSlashEnd;
-                }
-              }
-            }
-          }
-          if (start === end)
-            end = firstNonSlashEnd;
-          else if (end === -1)
-            end = path5.length;
-          return path5.slice(start, end);
-        } else {
-          for (i = path5.length - 1; i >= 0; --i) {
-            if (path5.charCodeAt(i) === 47) {
-              if (!matchedSlash) {
-                start = i + 1;
-                break;
-              }
-            } else if (end === -1) {
-              matchedSlash = false;
-              end = i + 1;
-            }
-          }
-          if (end === -1)
-            return "";
-          return path5.slice(start, end);
-        }
-      },
-      extname: function extname3(path5) {
-        assertPath(path5);
-        var startDot = -1;
-        var startPart = 0;
-        var end = -1;
-        var matchedSlash = true;
-        var preDotState = 0;
-        for (var i = path5.length - 1; i >= 0; --i) {
-          var code = path5.charCodeAt(i);
-          if (code === 47) {
-            if (!matchedSlash) {
-              startPart = i + 1;
-              break;
-            }
-            continue;
-          }
-          if (end === -1) {
-            matchedSlash = false;
-            end = i + 1;
-          }
-          if (code === 46) {
-            if (startDot === -1)
-              startDot = i;
-            else if (preDotState !== 1)
-              preDotState = 1;
-          } else if (startDot !== -1) {
-            preDotState = -1;
-          }
-        }
-        if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
-          return "";
-        }
-        return path5.slice(startDot, end);
-      },
-      format: function format(pathObject) {
-        if (pathObject === null || typeof pathObject !== "object") {
-          throw new TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
-        }
-        return _format("/", pathObject);
-      },
-      parse: function parse(path5) {
-        assertPath(path5);
-        var ret = {root: "", dir: "", base: "", ext: "", name: ""};
-        if (path5.length === 0)
-          return ret;
-        var code = path5.charCodeAt(0);
-        var isAbsolute = code === 47;
-        var start;
-        if (isAbsolute) {
-          ret.root = "/";
-          start = 1;
-        } else {
-          start = 0;
-        }
-        var startDot = -1;
-        var startPart = 0;
-        var end = -1;
-        var matchedSlash = true;
-        var i = path5.length - 1;
-        var preDotState = 0;
-        for (; i >= start; --i) {
-          code = path5.charCodeAt(i);
-          if (code === 47) {
-            if (!matchedSlash) {
-              startPart = i + 1;
-              break;
-            }
-            continue;
-          }
-          if (end === -1) {
-            matchedSlash = false;
-            end = i + 1;
-          }
-          if (code === 46) {
-            if (startDot === -1)
-              startDot = i;
-            else if (preDotState !== 1)
-              preDotState = 1;
-          } else if (startDot !== -1) {
-            preDotState = -1;
-          }
-        }
-        if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
-          if (end !== -1) {
-            if (startPart === 0 && isAbsolute)
-              ret.base = ret.name = path5.slice(1, end);
-            else
-              ret.base = ret.name = path5.slice(startPart, end);
-          }
-        } else {
-          if (startPart === 0 && isAbsolute) {
-            ret.name = path5.slice(1, startDot);
-            ret.base = path5.slice(1, end);
-          } else {
-            ret.name = path5.slice(startPart, startDot);
-            ret.base = path5.slice(startPart, end);
-          }
-          ret.ext = path5.slice(startDot, end);
-        }
-        if (startPart > 0)
-          ret.dir = path5.slice(0, startPart - 1);
-        else if (isAbsolute)
-          ret.dir = "/";
-        return ret;
-      },
-      sep: "/",
-      delimiter: ":",
-      win32: null,
-      posix: null
-    };
-    posix.posix = posix;
-    module.exports = posix;
-  });
-
   // node_modules/lzutf8/build/production/lzutf8.js
   var require_lzutf8 = __commonJS((exports, module) => {
     /*!
@@ -2408,7 +1987,7 @@ var URIStorage = (() => {
       decode_safe: () => decode_safe,
       decode_utf8: () => decode_utf8,
       decompress: () => decompress,
-      delimiter: () => delimiter2,
+      delimiter: () => delimiter,
       dirname: () => dirname2,
       encode_safe: () => encode_safe,
       encode_utf8: () => encode_utf8,
@@ -2421,7 +2000,7 @@ var URIStorage = (() => {
       normalize: () => normalize2,
       relative: () => relative2,
       resolve: () => resolve2,
-      sep: () => sep2
+      sep: () => sep
     });
   });
 
@@ -2483,26 +2062,347 @@ var URIStorage = (() => {
     return glob_to_regexp.default(pattern, {extended: true, globstar: true});
   }
 
+  // src/vendor/path-browserify.js
+  "use strict";
+  function assertPath(path5) {
+    if (typeof path5 !== "string") {
+      throw new TypeError("Path must be a string. Received " + JSON.stringify(path5));
+    }
+  }
+  function normalizeStringPosix(path5, allowAboveRoot) {
+    var res = "";
+    var lastSegmentLength = 0;
+    var lastSlash = -1;
+    var dots = 0;
+    var code;
+    for (var i = 0; i <= path5.length; ++i) {
+      if (i < path5.length)
+        code = path5.charCodeAt(i);
+      else if (code === 47)
+        break;
+      else
+        code = 47;
+      if (code === 47) {
+        if (lastSlash === i - 1 || dots === 1) {
+        } else if (lastSlash !== i - 1 && dots === 2) {
+          if (res.length < 2 || lastSegmentLength !== 2 || res.charCodeAt(res.length - 1) !== 46 || res.charCodeAt(res.length - 2) !== 46) {
+            if (res.length > 2) {
+              var lastSlashIndex = res.lastIndexOf("/");
+              if (lastSlashIndex !== res.length - 1) {
+                if (lastSlashIndex === -1) {
+                  res = "";
+                  lastSegmentLength = 0;
+                } else {
+                  res = res.slice(0, lastSlashIndex);
+                  lastSegmentLength = res.length - 1 - res.lastIndexOf("/");
+                }
+                lastSlash = i;
+                dots = 0;
+                continue;
+              }
+            } else if (res.length === 2 || res.length === 1) {
+              res = "";
+              lastSegmentLength = 0;
+              lastSlash = i;
+              dots = 0;
+              continue;
+            }
+          }
+          if (allowAboveRoot) {
+            if (res.length > 0)
+              res += "/..";
+            else
+              res = "..";
+            lastSegmentLength = 2;
+          }
+        } else {
+          if (res.length > 0)
+            res += "/" + path5.slice(lastSlash + 1, i);
+          else
+            res = path5.slice(lastSlash + 1, i);
+          lastSegmentLength = i - lastSlash - 1;
+        }
+        lastSlash = i;
+        dots = 0;
+      } else if (code === 46 && dots !== -1) {
+        ++dots;
+      } else {
+        dots = -1;
+      }
+    }
+    return res;
+  }
+  function resolve() {
+    var resolvedPath = "";
+    var resolvedAbsolute = false;
+    var cwd;
+    for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
+      var path5;
+      if (i >= 0)
+        path5 = arguments[i];
+      else {
+        if (cwd === void 0)
+          cwd = "/";
+        path5 = cwd;
+      }
+      assertPath(path5);
+      if (path5.length === 0) {
+        continue;
+      }
+      resolvedPath = path5 + "/" + resolvedPath;
+      resolvedAbsolute = path5.charCodeAt(0) === 47;
+    }
+    resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute);
+    if (resolvedAbsolute) {
+      if (resolvedPath.length > 0)
+        return "/" + resolvedPath;
+      else
+        return "/";
+    } else if (resolvedPath.length > 0) {
+      return resolvedPath;
+    } else {
+      return ".";
+    }
+  }
+  function normalize(path5) {
+    assertPath(path5);
+    if (path5.length === 0)
+      return ".";
+    var isAbsolute = path5.charCodeAt(0) === 47;
+    var trailingSeparator = path5.charCodeAt(path5.length - 1) === 47;
+    path5 = normalizeStringPosix(path5, !isAbsolute);
+    if (path5.length === 0 && !isAbsolute)
+      path5 = ".";
+    if (path5.length > 0 && trailingSeparator)
+      path5 += "/";
+    if (isAbsolute)
+      return "/" + path5;
+    return path5;
+  }
+  function join() {
+    if (arguments.length === 0)
+      return ".";
+    var joined;
+    for (var i = 0; i < arguments.length; ++i) {
+      var arg = arguments[i];
+      assertPath(arg);
+      if (arg.length > 0) {
+        if (joined === void 0)
+          joined = arg;
+        else
+          joined += "/" + arg;
+      }
+    }
+    if (joined === void 0)
+      return ".";
+    return posix.normalize(joined);
+  }
+  function relative(from, to) {
+    assertPath(from);
+    assertPath(to);
+    if (from === to)
+      return "";
+    from = posix.resolve(from);
+    to = posix.resolve(to);
+    if (from === to)
+      return "";
+    var fromStart = 1;
+    for (; fromStart < from.length; ++fromStart) {
+      if (from.charCodeAt(fromStart) !== 47)
+        break;
+    }
+    var fromEnd = from.length;
+    var fromLen = fromEnd - fromStart;
+    var toStart = 1;
+    for (; toStart < to.length; ++toStart) {
+      if (to.charCodeAt(toStart) !== 47)
+        break;
+    }
+    var toEnd = to.length;
+    var toLen = toEnd - toStart;
+    var length = fromLen < toLen ? fromLen : toLen;
+    var lastCommonSep = -1;
+    var i = 0;
+    for (; i <= length; ++i) {
+      if (i === length) {
+        if (toLen > length) {
+          if (to.charCodeAt(toStart + i) === 47) {
+            return to.slice(toStart + i + 1);
+          } else if (i === 0) {
+            return to.slice(toStart + i);
+          }
+        } else if (fromLen > length) {
+          if (from.charCodeAt(fromStart + i) === 47) {
+            lastCommonSep = i;
+          } else if (i === 0) {
+            lastCommonSep = 0;
+          }
+        }
+        break;
+      }
+      var fromCode = from.charCodeAt(fromStart + i);
+      var toCode = to.charCodeAt(toStart + i);
+      if (fromCode !== toCode)
+        break;
+      else if (fromCode === 47)
+        lastCommonSep = i;
+    }
+    var out = "";
+    for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) {
+      if (i === fromEnd || from.charCodeAt(i) === 47) {
+        if (out.length === 0)
+          out += "..";
+        else
+          out += "/..";
+      }
+    }
+    if (out.length > 0)
+      return out + to.slice(toStart + lastCommonSep);
+    else {
+      toStart += lastCommonSep;
+      if (to.charCodeAt(toStart) === 47)
+        ++toStart;
+      return to.slice(toStart);
+    }
+  }
+  function dirname(path5) {
+    assertPath(path5);
+    if (path5.length === 0)
+      return ".";
+    var code = path5.charCodeAt(0);
+    var hasRoot = code === 47;
+    var end = -1;
+    var matchedSlash = true;
+    for (var i = path5.length - 1; i >= 1; --i) {
+      code = path5.charCodeAt(i);
+      if (code === 47) {
+        if (!matchedSlash) {
+          end = i;
+          break;
+        }
+      } else {
+        matchedSlash = false;
+      }
+    }
+    if (end === -1)
+      return hasRoot ? "/" : ".";
+    if (hasRoot && end === 1)
+      return "//";
+    return path5.slice(0, end);
+  }
+  function basename(path5, ext) {
+    if (ext !== void 0 && typeof ext !== "string")
+      throw new TypeError('"ext" argument must be a string');
+    assertPath(path5);
+    var start = 0;
+    var end = -1;
+    var matchedSlash = true;
+    var i;
+    if (ext !== void 0 && ext.length > 0 && ext.length <= path5.length) {
+      if (ext.length === path5.length && ext === path5)
+        return "";
+      var extIdx = ext.length - 1;
+      var firstNonSlashEnd = -1;
+      for (i = path5.length - 1; i >= 0; --i) {
+        var code = path5.charCodeAt(i);
+        if (code === 47) {
+          if (!matchedSlash) {
+            start = i + 1;
+            break;
+          }
+        } else {
+          if (firstNonSlashEnd === -1) {
+            matchedSlash = false;
+            firstNonSlashEnd = i + 1;
+          }
+          if (extIdx >= 0) {
+            if (code === ext.charCodeAt(extIdx)) {
+              if (--extIdx === -1) {
+                end = i;
+              }
+            } else {
+              extIdx = -1;
+              end = firstNonSlashEnd;
+            }
+          }
+        }
+      }
+      if (start === end)
+        end = firstNonSlashEnd;
+      else if (end === -1)
+        end = path5.length;
+      return path5.slice(start, end);
+    } else {
+      for (i = path5.length - 1; i >= 0; --i) {
+        if (path5.charCodeAt(i) === 47) {
+          if (!matchedSlash) {
+            start = i + 1;
+            break;
+          }
+        } else if (end === -1) {
+          matchedSlash = false;
+          end = i + 1;
+        }
+      }
+      if (end === -1)
+        return "";
+      return path5.slice(start, end);
+    }
+  }
+  function extname(path5) {
+    assertPath(path5);
+    var startDot = -1;
+    var startPart = 0;
+    var end = -1;
+    var matchedSlash = true;
+    var preDotState = 0;
+    for (var i = path5.length - 1; i >= 0; --i) {
+      var code = path5.charCodeAt(i);
+      if (code === 47) {
+        if (!matchedSlash) {
+          startPart = i + 1;
+          break;
+        }
+        continue;
+      }
+      if (end === -1) {
+        matchedSlash = false;
+        end = i + 1;
+      }
+      if (code === 46) {
+        if (startDot === -1)
+          startDot = i;
+        else if (preDotState !== 1)
+          preDotState = 1;
+      } else if (startDot !== -1) {
+        preDotState = -1;
+      }
+    }
+    if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
+      return "";
+    }
+    return path5.slice(startDot, end);
+  }
+
   // src/util/path.ts
-  const _path = __toModule(require_path_browserify());
   const REGEX_TRAILING_SLASH = /[\/]*$/;
-  const delimiter2 = _path.delimiter;
-  const sep2 = _path.sep;
-  const basename2 = _path.basename;
-  const extname2 = _path.extname;
-  const join2 = _path.join;
-  const relative2 = _path.relative;
-  const resolve2 = _path.resolve;
+  const delimiter = ":";
+  const sep = "/";
+  const basename2 = basename;
+  const extname2 = extname;
+  const join2 = join;
+  const relative2 = relative;
+  const resolve2 = resolve;
   function dirname2(p) {
-    p = _path.dirname(p);
-    return p === "." ? sep2 : p;
+    p = dirname(p);
+    return p === "." ? sep : p;
   }
   function normalize2(p) {
-    p = _path.normalize(p);
-    if (p === "." || p === sep2)
-      return sep2;
-    if (p.slice(0, 1) !== sep2)
-      p = sep2 + p;
+    p = normalize(p);
+    if (p === "." || p === sep)
+      return sep;
+    if (p.slice(0, 1) !== sep)
+      p = sep + p;
     return p.replace(REGEX_TRAILING_SLASH, "");
   }
 
