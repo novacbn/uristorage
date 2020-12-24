@@ -10,7 +10,7 @@ import * as _path from "../vendor/path-browserify";
  *
  * @internal
  */
-const REGEX_TRAILING_SLASH = /[\/]*$/;
+export const REGEX_TRAILING_SLASH = /[\/]*$/;
 
 /**
  * The platform-specific file delimiter. Always ':'.

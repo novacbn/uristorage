@@ -3,6 +3,7 @@ import {BaseOverlay} from "../overlays/base_overlay";
 
 import {event} from "../util/event";
 import {ImmutableMap} from "../util/map";
+import {REGEX_TRAILING_SLASH, normalize} from "../util/path";
 
 // TODO: Documentation
 
@@ -30,6 +31,18 @@ export interface IRegistryRegisterEvent<T extends IStorage> {
     storage: T;
 }
 
+function get_namespace(url: URL): string {
+    const {protocol} = url;
+
+    return protocol.replace(REGEX_TRAILING_SLASH, "").slice(0, -1);
+}
+
+function get_path(url: URL): string {
+    const {pathname} = url;
+
+    return normalize(pathname);
+}
+
 export class StorageRegistry<
     T extends IStorage = IStorage,
     V extends IRegistryNode<T> = IRegistryNode<T>
@@ -46,10 +59,10 @@ export class StorageRegistry<
         super();
     }
 
-    clone = (node: V): any => {
+    clone = (node: V): V => {
         const {namespace, storage} = node;
 
-        return {namespace, storage};
+        return {namespace, storage} as V;
     };
 
     clear(): void {
@@ -105,10 +118,12 @@ export class StorageRegistry<
             }
         }
 
-        const namespace = uri.protocol.slice(0, -1);
-        const node = this.get(namespace);
+        const namespace = get_namespace(uri);
+        const path = get_path(uri);
 
+        const node = this.get(namespace);
         if (!node) return null;
-        return {...node, path: uri.pathname};
+
+        return {...node, path};
     }
 }

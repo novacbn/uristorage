@@ -14,9 +14,21 @@ import type {IEvent} from "../util/event";
 
 import type {IJSONReplacer, IJSONReviver, IJSONValue} from "../util/types";
 
+import type {IRegistryNode} from "./storage";
 import {StorageRegistry} from "./storage";
 
-export class FileSystemRegistry extends StorageRegistry<FileSystemOverlay> {
+export interface IFileSystemRegistryNode extends IRegistryNode<FileSystemOverlay> {}
+
+export class FileSystemRegistry extends StorageRegistry<
+    FileSystemOverlay,
+    IFileSystemRegistryNode
+> {
+    clone = (node: IFileSystemRegistryNode): IFileSystemRegistryNode => {
+        const {namespace, storage} = node;
+
+        return {namespace, storage};
+    };
+
     create_url_object(uri: string): Promise<IURLObject> {
         const result = this.resolve(uri);
         if (!result) {
