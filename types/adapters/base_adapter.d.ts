@@ -213,7 +213,11 @@ export declare function hook_watcher(watcher: IEvent<IWatchEvent>, options?: IWa
  */
 export declare class BaseAdapter {
     /**
-     * Represents of the Adapter can utilize [[BaseAdapter.create_url_object]]
+     * Represents a static identifier useful for handling of Adapters
+     */
+    static identifier: string;
+    /**
+     * Represents if the Adapter can utilize [[BaseAdapter.create_url_object]]
      */
     static can_hotlink: boolean;
     /**

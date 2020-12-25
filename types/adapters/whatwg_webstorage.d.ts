@@ -51,6 +51,7 @@ declare class WebStorage {
  * Represents a URIStorage Adapter that targets the Browsers' [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API)
  */
 export declare class WebStorageAdapter extends BaseAdapter {
+    static identifier: string;
     static can_hotlink: boolean;
     static can_watch: boolean;
     static is_available: boolean;
@@ -88,6 +89,7 @@ export declare class WebStorageAdapter extends BaseAdapter {
  * > **NOTE**: Some Browsers may delete `localStorage` contents after a period of in-activity and may enforce harsh storage limits, e.g. 5 MB max
  */
 export declare class LocalStorageAdapter extends WebStorageAdapter {
+    static identifier: string;
     static is_available: boolean;
     constructor(options?: Partial<IWebStorageOptions>);
 }
@@ -97,6 +99,7 @@ export declare class LocalStorageAdapter extends WebStorageAdapter {
  * > **NOTE**: Browsers delete `sessionStorage` contents after a browsing session is closed and may enforce harsh storage limits, e.g. 5 MB max
  */
 export declare class SessionStorageAdapter extends WebStorageAdapter {
+    static identifier: string;
     static is_available: boolean;
     constructor(options?: Partial<IWebStorageOptions>);
 }

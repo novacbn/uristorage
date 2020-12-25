@@ -1977,6 +1977,7 @@ var URIStorage = (() => {
       IndexedDBAdapter: () => IndexedDBAdapter,
       LocalStorageAdapter: () => LocalStorageAdapter,
       MemoryAdapter: () => MemoryAdapter,
+      REGEX_TRAILING_SLASH: () => REGEX_TRAILING_SLASH,
       SessionStorageAdapter: () => SessionStorageAdapter,
       StorageRegistry: () => StorageRegistry,
       WebStorageAdapter: () => WebStorageAdapter,
@@ -2064,20 +2065,20 @@ var URIStorage = (() => {
 
   // src/vendor/path-browserify.js
   "use strict";
-  function assertPath(path5) {
-    if (typeof path5 !== "string") {
-      throw new TypeError("Path must be a string. Received " + JSON.stringify(path5));
+  function assertPath(path6) {
+    if (typeof path6 !== "string") {
+      throw new TypeError("Path must be a string. Received " + JSON.stringify(path6));
     }
   }
-  function normalizeStringPosix(path5, allowAboveRoot) {
+  function normalizeStringPosix(path6, allowAboveRoot) {
     var res = "";
     var lastSegmentLength = 0;
     var lastSlash = -1;
     var dots = 0;
     var code;
-    for (var i = 0; i <= path5.length; ++i) {
-      if (i < path5.length)
-        code = path5.charCodeAt(i);
+    for (var i = 0; i <= path6.length; ++i) {
+      if (i < path6.length)
+        code = path6.charCodeAt(i);
       else if (code === 47)
         break;
       else
@@ -2117,9 +2118,9 @@ var URIStorage = (() => {
           }
         } else {
           if (res.length > 0)
-            res += "/" + path5.slice(lastSlash + 1, i);
+            res += "/" + path6.slice(lastSlash + 1, i);
           else
-            res = path5.slice(lastSlash + 1, i);
+            res = path6.slice(lastSlash + 1, i);
           lastSegmentLength = i - lastSlash - 1;
         }
         lastSlash = i;
@@ -2137,20 +2138,20 @@ var URIStorage = (() => {
     var resolvedAbsolute = false;
     var cwd;
     for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-      var path5;
+      var path6;
       if (i >= 0)
-        path5 = arguments[i];
+        path6 = arguments[i];
       else {
         if (cwd === void 0)
           cwd = "/";
-        path5 = cwd;
+        path6 = cwd;
       }
-      assertPath(path5);
-      if (path5.length === 0) {
+      assertPath(path6);
+      if (path6.length === 0) {
         continue;
       }
-      resolvedPath = path5 + "/" + resolvedPath;
-      resolvedAbsolute = path5.charCodeAt(0) === 47;
+      resolvedPath = path6 + "/" + resolvedPath;
+      resolvedAbsolute = path6.charCodeAt(0) === 47;
     }
     resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute);
     if (resolvedAbsolute) {
@@ -2164,20 +2165,20 @@ var URIStorage = (() => {
       return ".";
     }
   }
-  function normalize(path5) {
-    assertPath(path5);
-    if (path5.length === 0)
+  function normalize(path6) {
+    assertPath(path6);
+    if (path6.length === 0)
       return ".";
-    var isAbsolute = path5.charCodeAt(0) === 47;
-    var trailingSeparator = path5.charCodeAt(path5.length - 1) === 47;
-    path5 = normalizeStringPosix(path5, !isAbsolute);
-    if (path5.length === 0 && !isAbsolute)
-      path5 = ".";
-    if (path5.length > 0 && trailingSeparator)
-      path5 += "/";
+    var isAbsolute = path6.charCodeAt(0) === 47;
+    var trailingSeparator = path6.charCodeAt(path6.length - 1) === 47;
+    path6 = normalizeStringPosix(path6, !isAbsolute);
+    if (path6.length === 0 && !isAbsolute)
+      path6 = ".";
+    if (path6.length > 0 && trailingSeparator)
+      path6 += "/";
     if (isAbsolute)
-      return "/" + path5;
-    return path5;
+      return "/" + path6;
+    return path6;
   }
   function join() {
     if (arguments.length === 0)
@@ -2195,15 +2196,15 @@ var URIStorage = (() => {
     }
     if (joined === void 0)
       return ".";
-    return posix.normalize(joined);
+    return normalize(joined);
   }
   function relative(from, to) {
     assertPath(from);
     assertPath(to);
     if (from === to)
       return "";
-    from = posix.resolve(from);
-    to = posix.resolve(to);
+    from = resolve(from);
+    to = resolve(to);
     if (from === to)
       return "";
     var fromStart = 1;
@@ -2265,16 +2266,16 @@ var URIStorage = (() => {
       return to.slice(toStart);
     }
   }
-  function dirname(path5) {
-    assertPath(path5);
-    if (path5.length === 0)
+  function dirname(path6) {
+    assertPath(path6);
+    if (path6.length === 0)
       return ".";
-    var code = path5.charCodeAt(0);
+    var code = path6.charCodeAt(0);
     var hasRoot = code === 47;
     var end = -1;
     var matchedSlash = true;
-    for (var i = path5.length - 1; i >= 1; --i) {
-      code = path5.charCodeAt(i);
+    for (var i = path6.length - 1; i >= 1; --i) {
+      code = path6.charCodeAt(i);
       if (code === 47) {
         if (!matchedSlash) {
           end = i;
@@ -2288,23 +2289,23 @@ var URIStorage = (() => {
       return hasRoot ? "/" : ".";
     if (hasRoot && end === 1)
       return "//";
-    return path5.slice(0, end);
+    return path6.slice(0, end);
   }
-  function basename(path5, ext) {
+  function basename(path6, ext) {
     if (ext !== void 0 && typeof ext !== "string")
       throw new TypeError('"ext" argument must be a string');
-    assertPath(path5);
+    assertPath(path6);
     var start = 0;
     var end = -1;
     var matchedSlash = true;
     var i;
-    if (ext !== void 0 && ext.length > 0 && ext.length <= path5.length) {
-      if (ext.length === path5.length && ext === path5)
+    if (ext !== void 0 && ext.length > 0 && ext.length <= path6.length) {
+      if (ext.length === path6.length && ext === path6)
         return "";
       var extIdx = ext.length - 1;
       var firstNonSlashEnd = -1;
-      for (i = path5.length - 1; i >= 0; --i) {
-        var code = path5.charCodeAt(i);
+      for (i = path6.length - 1; i >= 0; --i) {
+        var code = path6.charCodeAt(i);
         if (code === 47) {
           if (!matchedSlash) {
             start = i + 1;
@@ -2330,11 +2331,11 @@ var URIStorage = (() => {
       if (start === end)
         end = firstNonSlashEnd;
       else if (end === -1)
-        end = path5.length;
-      return path5.slice(start, end);
+        end = path6.length;
+      return path6.slice(start, end);
     } else {
-      for (i = path5.length - 1; i >= 0; --i) {
-        if (path5.charCodeAt(i) === 47) {
+      for (i = path6.length - 1; i >= 0; --i) {
+        if (path6.charCodeAt(i) === 47) {
           if (!matchedSlash) {
             start = i + 1;
             break;
@@ -2346,18 +2347,18 @@ var URIStorage = (() => {
       }
       if (end === -1)
         return "";
-      return path5.slice(start, end);
+      return path6.slice(start, end);
     }
   }
-  function extname(path5) {
-    assertPath(path5);
+  function extname(path6) {
+    assertPath(path6);
     var startDot = -1;
     var startPart = 0;
     var end = -1;
     var matchedSlash = true;
     var preDotState = 0;
-    for (var i = path5.length - 1; i >= 0; --i) {
-      var code = path5.charCodeAt(i);
+    for (var i = path6.length - 1; i >= 0; --i) {
+      var code = path6.charCodeAt(i);
       if (code === 47) {
         if (!matchedSlash) {
           startPart = i + 1;
@@ -2381,7 +2382,7 @@ var URIStorage = (() => {
     if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
       return "";
     }
-    return path5.slice(startDot, end);
+    return path6.slice(startDot, end);
   }
 
   // src/util/path.ts
@@ -2427,7 +2428,7 @@ var URIStorage = (() => {
     };
   }
   function can_watch(event9, options = {}) {
-    const {change, glob: glob3, inclusive = false, path: path5 = "/", recursive = false, regex, type} = options;
+    const {change, glob: glob3, inclusive = false, path: path6 = "/", recursive = false, regex, type} = options;
     if (type) {
       if (typeof type === "string") {
         if (event9.type !== type)
@@ -2449,30 +2450,30 @@ var URIStorage = (() => {
       return regex.test(event9.path);
     } else {
       if (inclusive) {
-        const _path2 = recursive ? join2(path5, "**") : join2(path5, "*");
+        const _path2 = recursive ? join2(path6, "**") : join2(path6, "*");
         const regex2 = make_glob(normalize2(_path2));
         return regex2.test(event9.path);
       }
-      return event9.path === normalize2(path5);
+      return event9.path === normalize2(path6);
     }
   }
   function filter_query(nodes, options = {}) {
-    const {path: path5 = {}, type} = options;
+    const {path: path6 = {}, type} = options;
     if (type) {
       if (typeof type === "string")
         nodes = nodes.filter((node) => node.type === type);
       else
         nodes = nodes.filter((node) => type.includes(node.type));
     }
-    if (path5.glob) {
-      const regex = make_glob(normalize2(path5.glob));
+    if (path6.glob) {
+      const regex = make_glob(normalize2(path6.glob));
       nodes = nodes.filter((node) => regex.test(node.path));
-    } else if (path5.regex) {
-      const {regex} = path5;
+    } else if (path6.regex) {
+      const {regex} = path6;
       nodes = nodes.filter((node) => regex.test(node.path));
     } else {
-      let {path: _path2 = "/"} = path5;
-      _path2 = path5.recursive ? join2(_path2, "**") : join2(_path2, "*");
+      let {path: _path2 = "/"} = path6;
+      _path2 = path6.recursive ? join2(_path2, "**") : join2(_path2, "*");
       const regex = make_glob(normalize2(_path2));
       nodes = nodes.filter((node) => regex.test(node.path));
     }
@@ -2493,34 +2494,34 @@ var URIStorage = (() => {
       this.EVENT_UNMOUNTED = event();
       this.options = BaseAdapterOptions(options);
     }
-    normalize(path5) {
-      return normalize2(path5);
+    normalize(path6) {
+      return normalize2(path6);
     }
-    async create_url_object(path5) {
+    async create_url_object(path6) {
       throw new Error("bad dispatch to 'create_url_object' (not implemented)");
     }
-    async get(path5) {
+    async get(path6) {
       throw new Error("bad dispatch to 'get' (not implemented)");
     }
-    async put(path5, type = NODE_TYPES.undefined, mime_type) {
+    async put(path6, type = NODE_TYPES.undefined, mime_type) {
       throw new Error("bad dispatch to 'put' (not implemented)");
     }
     async query(options = {}) {
       throw new Error("bad dispatch to 'query' (not implemented)");
     }
-    async read(path5) {
+    async read(path6) {
       throw new Error("bad dispatch to 'get_stats' (not implemented)");
     }
     async reload() {
       throw new Error("bad dispatch to 'reload' (not implemented)");
     }
-    async remove(path5) {
+    async remove(path6) {
       throw new Error("bad dispatch to 'remove' (not implemented)");
     }
     async watch(options = {}) {
       throw new Error("bad dispatch to 'watch' (not implemented)");
     }
-    async write(path5, payload) {
+    async write(path6, payload) {
       throw new Error("bad dispatch to 'put_payload' (not implemented)");
     }
     is_mounted() {
@@ -2533,6 +2534,7 @@ var URIStorage = (() => {
       throw new Error("bad dispatch to 'unmount' (not implemented)");
     }
   }
+  BaseAdapter.identifier = "base";
   BaseAdapter.can_hotlink = false;
   BaseAdapter.can_watch = false;
   BaseAdapter.can_watch_reload = false;
@@ -3766,8 +3768,8 @@ var URIStorage = (() => {
   };
 
   // src/util/mime_types.ts
-  function get_mime_type(path5) {
-    const extension = extname2("x." + path5).toLowerCase().substr(1);
+  function get_mime_type(path6) {
+    const extension = extname2("x." + path6).toLowerCase().substr(1);
     if (!extension)
       return null;
     const mime_type = mime_types_default[extension];
@@ -3780,11 +3782,11 @@ var URIStorage = (() => {
       super(...arguments);
       this.EVENT_WATCH = event();
       this.clone = (node) => {
-        const {ctime, mime_type, mtime, path: path5, type} = node;
+        const {ctime, mime_type, mtime, path: path6, type} = node;
         let {payload} = node;
         if (payload)
           payload = payload.slice();
-        return {ctime, mime_type, mtime, payload, path: path5, type};
+        return {ctime, mime_type, mtime, payload, path: path6, type};
       };
     }
     delete(key) {
@@ -3841,10 +3843,10 @@ var URIStorage = (() => {
       super(MemoryOptions(options));
       this.storage = new NodeMap();
     }
-    async create_url_object(path5) {
+    async create_url_object(path6) {
       const {storage: storage2} = this;
       const {compressed} = this.options;
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       if (!storage2.has(uri)) {
         throw new Error("bad argument #0 to 'create_url_object' (Node must be created before using 'create_url_object')");
       }
@@ -3860,9 +3862,9 @@ var URIStorage = (() => {
         url: object.url
       };
     }
-    async get(path5) {
+    async get(path6) {
       const {storage: storage2} = this;
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       if (!storage2.has(uri))
         return null;
       const node = storage2.get(uri);
@@ -3874,9 +3876,9 @@ var URIStorage = (() => {
         type: node.type
       };
     }
-    async put(path5, type = NODE_TYPES.undefined, mime_type) {
+    async put(path6, type = NODE_TYPES.undefined, mime_type) {
       const {storage: storage2} = this;
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       const timestamp = get_epoch_timestamp();
       if (!mime_type)
         mime_type = get_mime_type(uri) || DEFAULT_MIME_TYPE;
@@ -3898,16 +3900,16 @@ var URIStorage = (() => {
     async query(options = {}) {
       const entries = Array.from(this.storage.entries());
       const nodes = entries.map((entry, index) => {
-        const path5 = entry[0];
+        const path6 = entry[0];
         const {type = NODE_TYPES.undefined} = entry[1];
-        return {path: path5, type};
+        return {path: path6, type};
       });
       return filter_query(nodes, options);
     }
-    async read(path5) {
+    async read(path6) {
       const {storage: storage2} = this;
       const {compressed} = this.options;
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       if (!storage2.has(uri))
         return null;
       const node = storage2.get(uri);
@@ -3915,18 +3917,18 @@ var URIStorage = (() => {
         return null;
       return compressed ? decompress(node.payload) : node.payload;
     }
-    async remove(path5) {
+    async remove(path6) {
       const {storage: storage2} = this;
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       return storage2.delete(uri);
     }
     async watch(options = {}) {
       return hook_watcher(this.storage.EVENT_WATCH, options);
     }
-    async write(path5, payload) {
+    async write(path6, payload) {
       const {storage: storage2} = this;
       const {compressed} = this.options;
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       if (!storage2.has(uri)) {
         throw new Error("bad argument #0 to 'attach' (Node must be created before using 'attach')");
       }
@@ -3943,6 +3945,7 @@ var URIStorage = (() => {
     async unmount() {
     }
   }
+  MemoryAdapter.identifier = "memory";
   MemoryAdapter.can_hotlink = true;
   MemoryAdapter.can_watch = true;
   MemoryAdapter.is_available = true;
@@ -9124,12 +9127,12 @@ var URIStorage = (() => {
     constructor(options = {}) {
       super(options);
     }
-    async create_url_object(path5) {
+    async create_url_object(path6) {
       const {storage: storage2} = this;
       if (!storage2) {
         throw new Error("bad dispatch to 'create_url_object' (database is not mounted)");
       }
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       const node = await storage2.nodes.get(uri);
       if (!node) {
         throw new Error("bad argument #0 to 'create_url_object' (Node must be created before using 'create_url_object')");
@@ -9144,12 +9147,12 @@ var URIStorage = (() => {
         url: object.url
       };
     }
-    async get(path5) {
+    async get(path6) {
       const {storage: storage2} = this;
       if (!storage2) {
         throw new Error("bad dispatch to 'get' (database is not mounted)");
       }
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       const node = await storage2.nodes.get(uri);
       if (!node)
         return null;
@@ -9161,12 +9164,12 @@ var URIStorage = (() => {
         type: node.type
       };
     }
-    async put(path5, type = NODE_TYPES.undefined, mime_type) {
+    async put(path6, type = NODE_TYPES.undefined, mime_type) {
       const {storage: storage2} = this;
       if (!storage2) {
         throw new Error("bad dispatch to 'put' (database is not mounted)");
       }
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       const node = await storage2.nodes.get(uri);
       const timestamp = get_epoch_timestamp();
       if (!mime_type)
@@ -9192,7 +9195,7 @@ var URIStorage = (() => {
       if (!storage2) {
         throw new Error("bad dispatch to 'query' (database is not mounted)");
       }
-      const {path: path5 = {}, type} = options;
+      const {path: path6 = {}, type} = options;
       let collection = storage2.nodes.toCollection();
       if (type) {
         if (typeof type === "string") {
@@ -9200,41 +9203,41 @@ var URIStorage = (() => {
         } else
           collection = collection.filter((node) => type.includes(node.type));
       }
-      if (path5.glob) {
-        const regex = make_glob(normalize2(path5.glob));
+      if (path6.glob) {
+        const regex = make_glob(normalize2(path6.glob));
         collection = collection.filter((node) => regex.test(node.path));
-      } else if (path5.regex) {
-        const {regex} = path5;
+      } else if (path6.regex) {
+        const {regex} = path6;
         collection = collection.filter((node) => regex.test(node.path));
       } else {
-        let {path: _path2 = "/"} = path5;
-        _path2 = path5.recursive ? join2(_path2, "**") : join2(_path2, "*");
+        let {path: _path2 = "/"} = path6;
+        _path2 = path6.recursive ? join2(_path2, "**") : join2(_path2, "*");
         const regex = make_glob(normalize2(_path2));
         collection = collection.filter((node) => regex.test(node.path));
       }
       const results = await collection.toArray();
       return results.map((node, index) => {
-        const {path: path6, type: type2} = node;
-        return {path: path6, type: type2};
+        const {path: path7, type: type2} = node;
+        return {path: path7, type: type2};
       });
     }
-    async read(path5) {
+    async read(path6) {
       const {storage: storage2} = this;
       if (!storage2) {
         throw new Error("bad dispatch to 'get_payload' (database is not mounted)");
       }
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       const node = await storage2.nodes.get(uri);
       if (!node || !node.payload)
         return null;
       return node.payload;
     }
-    async remove(path5) {
+    async remove(path6) {
       const {storage: storage2} = this;
       if (!storage2) {
         throw new Error("bad dispatch to 'remove' (database is not mounted)");
       }
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       const node = await storage2.nodes.get(uri);
       if (!node)
         return false;
@@ -9248,12 +9251,12 @@ var URIStorage = (() => {
       }
       return hook_watcher(storage2.EVENT_WATCH, options);
     }
-    async write(path5, payload) {
+    async write(path6, payload) {
       const {storage: storage2} = this;
       if (!storage2) {
         throw new Error("bad dispatch to 'attach' (database is not mounted)");
       }
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       const node = await storage2.nodes.get(uri);
       if (!node) {
         throw new Error("bad argument #0 to 'attach' (Node must be created before using 'attach')");
@@ -9284,6 +9287,7 @@ var URIStorage = (() => {
       delete this.storage;
     }
   }
+  IndexedDBAdapter.identifier = "indexeddb";
   IndexedDBAdapter.can_hotlink = true;
   IndexedDBAdapter.can_watch = true;
   IndexedDBAdapter.is_available = !!(typeof window === "object" && window.indexedDB);
@@ -9330,21 +9334,21 @@ var URIStorage = (() => {
       this.prefix_payload = `uristorage:${namespace}:p:`;
       this.storage = storage2;
     }
-    attach(path5, payload, mtime) {
+    attach(path6, payload, mtime) {
       const {storage: storage2} = this;
-      const key_node = this.prefix_node + path5;
-      const key_payload = this.prefix_payload + path5;
+      const key_node = this.prefix_node + path6;
+      const key_payload = this.prefix_payload + path6;
       const node = {...JSON.parse(storage2.getItem(key_node)), mtime};
       storage2.setItem(key_node, JSON.stringify(node));
       storage2.setItem(key_payload, encode_safe(payload));
       this.EVENT_WATCH.dispatch({
         change: NODE_CHANGES.attached,
-        path: path5,
+        path: path6,
         type: node.type
       });
     }
-    get(path5) {
-      const key = this.prefix_node + path5;
+    get(path6) {
+      const key = this.prefix_node + path6;
       const item = this.storage.getItem(key);
       if (item) {
         const {
@@ -9357,22 +9361,22 @@ var URIStorage = (() => {
           ctime,
           mime_type,
           mtime,
-          path: path5,
+          path: path6,
           type
         };
       }
       return null;
     }
-    get_payload(path5) {
-      const key = this.prefix_payload + path5;
+    get_payload(path6) {
+      const key = this.prefix_payload + path6;
       const item = this.storage.getItem(key);
       if (item)
         return decode_safe(item, {mode: ENCODING_MODE.bytes});
       return null;
     }
-    has(path5) {
-      path5 = this.prefix_node + path5;
-      return !!this.storage.getItem(path5);
+    has(path6) {
+      path6 = this.prefix_node + path6;
+      return !!this.storage.getItem(path6);
     }
     *nodes() {
       const {prefix_node, storage: storage2} = this;
@@ -9388,36 +9392,36 @@ var URIStorage = (() => {
         }
       }
     }
-    put(path5, node) {
-      const _node = {...node, path: path5};
+    put(path6, node) {
+      const _node = {...node, path: path6};
       const item = JSON.stringify(_node);
-      this.storage.setItem(this.prefix_node + path5, item);
+      this.storage.setItem(this.prefix_node + path6, item);
       this.EVENT_WATCH.dispatch({
         change: NODE_CHANGES.created,
-        path: path5,
+        path: path6,
         type: _node.type
       });
     }
-    remove(path5) {
+    remove(path6) {
       const {storage: storage2} = this;
-      const key_node = this.prefix_node + path5;
+      const key_node = this.prefix_node + path6;
       const item = storage2.getItem(key_node);
       if (!item)
         return false;
       const node = JSON.parse(item);
       storage2.removeItem(key_node);
-      storage2.removeItem(this.prefix_payload + path5);
+      storage2.removeItem(this.prefix_payload + path6);
       this.EVENT_WATCH.dispatch({
         change: NODE_CHANGES.removed,
-        path: path5,
+        path: path6,
         type: node.type
       });
       return true;
     }
-    update(path5, value) {
+    update(path6, value) {
       const {storage: storage2} = this;
-      const key = this.prefix_node + path5;
-      const node = {...JSON.parse(storage2.getItem(key)), ...value, path: path5};
+      const key = this.prefix_node + path6;
+      const node = {...JSON.parse(storage2.getItem(key)), ...value, path: path6};
       storage2.setItem(key, JSON.stringify(node));
       this.EVENT_WATCH.dispatch({
         change: NODE_CHANGES.updated,
@@ -9439,10 +9443,10 @@ var URIStorage = (() => {
       const {namespace} = this.options;
       this.storage = new WebStorage(namespace, storage2);
     }
-    async create_url_object(path5) {
+    async create_url_object(path6) {
       const {storage: storage2} = this;
       const {compressed} = this.options;
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       if (!storage2.has(uri)) {
         throw new Error("bad argument #0 to 'create_url_object' (Node must be created before using 'create_url_object')");
       }
@@ -9459,13 +9463,13 @@ var URIStorage = (() => {
         url: object.url
       };
     }
-    async get(path5) {
-      const uri = this.normalize(path5);
+    async get(path6) {
+      const uri = this.normalize(path6);
       return this.storage.get(uri);
     }
-    async put(path5, type = NODE_TYPES.undefined, mime_type) {
+    async put(path6, type = NODE_TYPES.undefined, mime_type) {
       const {storage: storage2} = this;
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       const timestamp = get_epoch_timestamp();
       if (!mime_type)
         mime_type = get_mime_type(uri) || DEFAULT_MIME_TYPE;
@@ -9488,25 +9492,25 @@ var URIStorage = (() => {
       const nodes = Array.from(this.storage.nodes());
       return filter_query(nodes, options);
     }
-    async read(path5) {
+    async read(path6) {
       const {compressed} = this.options;
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       const payload = this.storage.get_payload(uri);
       if (!payload)
         return null;
       return compressed ? decompress(payload) : payload;
     }
-    async remove(path5) {
-      const uri = this.normalize(path5);
+    async remove(path6) {
+      const uri = this.normalize(path6);
       return this.storage.remove(uri);
     }
     async watch(options = {}) {
       return hook_watcher(this.storage.EVENT_WATCH, options);
     }
-    async write(path5, payload) {
+    async write(path6, payload) {
       const {storage: storage2} = this;
       const {compressed} = this.options;
-      const uri = this.normalize(path5);
+      const uri = this.normalize(path6);
       if (!storage2.has(uri)) {
         throw new Error("bad argument #0 to 'attach' (Node must be created before using 'attach')");
       }
@@ -9521,6 +9525,7 @@ var URIStorage = (() => {
     async unmount() {
     }
   }
+  WebStorageAdapter.identifier = "webstorage";
   WebStorageAdapter.can_hotlink = true;
   WebStorageAdapter.can_watch = true;
   WebStorageAdapter.is_available = false;
@@ -9530,15 +9535,25 @@ var URIStorage = (() => {
       super(window.localStorage, options);
     }
   }
+  LocalStorageAdapter.identifier = "localstorage";
   LocalStorageAdapter.is_available = !!(typeof window === "object" && window.localStorage);
   class SessionStorageAdapter extends WebStorageAdapter {
     constructor(options = {}) {
       super(window.sessionStorage, options);
     }
   }
+  SessionStorageAdapter.identifier = "sessionstorage";
   SessionStorageAdapter.is_available = !!(typeof window === "object" && window.sessionStorage);
 
   // src/registries/storage.ts
+  function get_namespace(url) {
+    const {protocol} = url;
+    return protocol.replace(REGEX_TRAILING_SLASH, "").slice(0, -1);
+  }
+  function get_path(url) {
+    const {pathname} = url;
+    return normalize2(pathname);
+  }
   class StorageRegistry extends ImmutableMap {
     constructor() {
       super();
@@ -9587,47 +9602,55 @@ var URIStorage = (() => {
           return null;
         }
       }
-      const namespace = uri.protocol.slice(0, -1);
+      const namespace = get_namespace(uri);
+      const path6 = get_path(uri);
       const node = this.get(namespace);
       if (!node)
         return null;
-      return {...node, path: uri.pathname};
+      return {...node, path: path6};
     }
   }
 
   // src/registries/file_system.ts
   class FileSystemRegistry extends StorageRegistry {
+    constructor() {
+      super(...arguments);
+      this.clone = (node) => {
+        const {namespace, storage: storage2} = node;
+        return {namespace, storage: storage2};
+      };
+    }
     create_url_object(uri) {
       const result = this.resolve(uri);
       if (!result) {
         throw new Error(`bad argument #0 to 'create_url_object' (could not resolve '${uri}')`);
       }
-      const {path: path5, storage: storage2} = result;
-      return storage2.create_url_object(path5);
+      const {path: path6, storage: storage2} = result;
+      return storage2.create_url_object(path6);
     }
     create_directory(uri) {
       const result = this.resolve(uri);
       if (!result) {
         throw new Error(`bad argument #0 to 'create_directory' (could not resolve '${uri}')`);
       }
-      const {path: path5, storage: storage2} = result;
-      return storage2.create_directory(path5);
+      const {path: path6, storage: storage2} = result;
+      return storage2.create_directory(path6);
     }
     exists(uri) {
       const result = this.resolve(uri);
       if (!result) {
         throw new Error(`bad argument #0 to 'exists' (could not resolve '${uri}')`);
       }
-      const {path: path5, storage: storage2} = result;
-      return storage2.exists(path5);
+      const {path: path6, storage: storage2} = result;
+      return storage2.exists(path6);
     }
     get_stats(uri) {
       const result = this.resolve(uri);
       if (!result) {
         throw new Error(`bad argument #0 to 'get_stats' (could not resolve '${uri}')`);
       }
-      const {path: path5, storage: storage2} = result;
-      return storage2.get_stats(path5);
+      const {path: path6, storage: storage2} = result;
+      return storage2.get_stats(path6);
     }
     read_directory(namespace, options = {}) {
       const node = this.get(namespace);
@@ -9642,80 +9665,80 @@ var URIStorage = (() => {
       if (!result) {
         throw new Error(`bad argument #0 to 'read_file' (could not resolve '${uri}')`);
       }
-      const {path: path5, storage: storage2} = result;
-      return storage2.read_file(path5);
+      const {path: path6, storage: storage2} = result;
+      return storage2.read_file(path6);
     }
     remove_directory(uri, options = {}) {
       const result = this.resolve(uri);
       if (!result) {
         throw new Error(`bad argument #0 to 'remove_directory' (could not resolve '${uri}')`);
       }
-      const {path: path5, storage: storage2} = result;
-      return storage2.remove_directory(path5, options);
+      const {path: path6, storage: storage2} = result;
+      return storage2.remove_directory(path6, options);
     }
     remove_file(uri) {
       const result = this.resolve(uri);
       if (!result) {
         throw new Error(`bad argument #0 to 'remove_file' (could not resolve '${uri}')`);
       }
-      const {path: path5, storage: storage2} = result;
-      return storage2.remove_file(path5);
+      const {path: path6, storage: storage2} = result;
+      return storage2.remove_file(path6);
     }
     watch_directory(uri, options = {}) {
       const result = this.resolve(uri);
       if (!result) {
         throw new Error(`bad argument #0 to 'watch_directory' (could not resolve '${uri}')`);
       }
-      const {path: path5, storage: storage2} = result;
-      return storage2.watch_directory(path5, options);
+      const {path: path6, storage: storage2} = result;
+      return storage2.watch_directory(path6, options);
     }
     watch_file(uri) {
       const result = this.resolve(uri);
       if (!result) {
         throw new Error(`bad argument #0 to 'watch_file' (could not resolve '${uri}')`);
       }
-      const {path: path5, storage: storage2} = result;
-      return storage2.watch_file(path5);
+      const {path: path6, storage: storage2} = result;
+      return storage2.watch_file(path6);
     }
     write_file(uri, payload) {
       const result = this.resolve(uri);
       if (!result) {
         throw new Error(`bad argument #0 to 'write_file' (could not resolve '${uri}')`);
       }
-      const {path: path5, storage: storage2} = result;
-      return storage2.write_file(path5, payload);
+      const {path: path6, storage: storage2} = result;
+      return storage2.write_file(path6, payload);
     }
     read_file_json(uri, reviver) {
       const result = this.resolve(uri);
       if (!result) {
         throw new Error(`bad argument #0 to 'read_file_json' (could not resolve '${uri}')`);
       }
-      const {path: path5, storage: storage2} = result;
-      return storage2.read_file_json(path5, reviver);
+      const {path: path6, storage: storage2} = result;
+      return storage2.read_file_json(path6, reviver);
     }
     read_file_text(uri) {
       const result = this.resolve(uri);
       if (!result) {
         throw new Error(`bad argument #0 to 'read_file_text' (could not resolve '${uri}')`);
       }
-      const {path: path5, storage: storage2} = result;
-      return storage2.read_file_text(path5);
+      const {path: path6, storage: storage2} = result;
+      return storage2.read_file_text(path6);
     }
     write_file_json(uri, value, replacer, space) {
       const result = this.resolve(uri);
       if (!result) {
         throw new Error(`bad argument #0 to 'write_file_json' (could not resolve '${uri}')`);
       }
-      const {path: path5, storage: storage2} = result;
-      return storage2.write_file_json(path5, value, replacer, space);
+      const {path: path6, storage: storage2} = result;
+      return storage2.write_file_json(path6, value, replacer, space);
     }
     write_file_text(uri, text) {
       const result = this.resolve(uri);
       if (!result) {
         throw new Error(`bad argument #0 to 'write_file_text' (could not resolve '${uri}')`);
       }
-      const {path: path5, storage: storage2} = result;
-      return storage2.write_file_text(path5, text);
+      const {path: path6, storage: storage2} = result;
+      return storage2.write_file_text(path6, text);
     }
   }
 
@@ -9755,8 +9778,8 @@ var URIStorage = (() => {
   })(FILE_SYSTEM_CHANGES || (FILE_SYSTEM_CHANGES = {}));
   const PATTERN_SEPARATOR_SEARCH = /\//g;
   const SCOPE_NOOP = (part) => part;
-  function count_slashes(path5) {
-    const matches = path5.match(PATTERN_SEPARATOR_SEARCH);
+  function count_slashes(path6) {
+    const matches = path6.match(PATTERN_SEPARATOR_SEARCH);
     if (!matches)
       return 0;
     return matches.length;
@@ -9775,9 +9798,9 @@ var URIStorage = (() => {
       this.options = FileSystemOptions(options);
       this.scope = this.options.scope;
     }
-    create_scope(path5) {
+    create_scope(path6) {
       const filesystem = new FileSystemOverlay(this.adapter, {
-        scope: this.scope(path5)
+        scope: this.scope(path6)
       });
       return filesystem;
     }
@@ -9825,14 +9848,14 @@ var URIStorage = (() => {
       }
       return adapter.put(directory_path, NODE_TYPES.directory);
     }
-    async exists(path5) {
-      path5 = this.scope(path5);
-      const node = await this.adapter.get(path5);
+    async exists(path6) {
+      path6 = this.scope(path6);
+      const node = await this.adapter.get(path6);
       return !!node;
     }
-    async get_stats(path5) {
-      path5 = this.scope(path5);
-      const node = await this.adapter.get(path5);
+    async get_stats(path6) {
+      path6 = this.scope(path6);
+      const node = await this.adapter.get(path6);
       if (!node) {
         throw new Error("bad argument #0 to 'get_stats' (path not found)");
       }
@@ -9846,7 +9869,7 @@ var URIStorage = (() => {
     }
     async read_directory(options = {}) {
       const {adapter} = this;
-      const {is_directory, is_file, glob: glob3, regex, path: path5, recursive = false} = options;
+      const {is_directory, is_file, glob: glob3, regex, path: path6, recursive = false} = options;
       let type;
       if (is_directory)
         type = NODE_TYPES.directory;
@@ -9855,8 +9878,8 @@ var URIStorage = (() => {
       else
         type = [NODE_TYPES.directory, NODE_TYPES.file];
       let results;
-      if (path5 || path5 === "") {
-        let directory_path = this.scope(path5);
+      if (path6 || path6 === "") {
+        let directory_path = this.scope(path6);
         directory_path = normalize2(directory_path);
         const node = await adapter.get(directory_path);
         if (directory_path !== "/") {
@@ -9895,9 +9918,9 @@ var URIStorage = (() => {
         });
       }
       return results.map((result, index) => {
-        const {path: path6, type: type2} = result;
+        const {path: path7, type: type2} = result;
         return {
-          path: path6,
+          path: path7,
           is_directory: type2 === NODE_TYPES.directory,
           is_file: type2 === NODE_TYPES.file
         };

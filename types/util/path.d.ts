@@ -1,4 +1,10 @@
 /**
+ * Represents the Regular Expression used to reduce trailing separators
+ *
+ * @internal
+ */
+export declare const REGEX_TRAILING_SLASH: RegExp;
+/**
  * The platform-specific file delimiter. Always ':'.
  */
 export declare const delimiter: string;

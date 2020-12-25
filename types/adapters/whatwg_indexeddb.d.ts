@@ -2,7 +2,7 @@ import Dexie from "dexie";
 import "dexie-observable";
 import { NODE_TYPES } from "../util/constants";
 import { IEvent } from "../util/event";
-import { IBaseAdapterOptions, INode, IQueryOptions, IQueryResult, IWatchEvent, IURLObject, BaseAdapter, IWatchOptions } from "./base_adapter";
+import { IBaseAdapterOptions, INode, IQueryOptions, IQueryResult, IWatchEvent, IURLObject, IWatchOptions, BaseAdapter } from "./base_adapter";
 /**
  * Represents a persisted Node in a `IndexedDBAdapter` Adapter
  *
@@ -31,6 +31,7 @@ declare class IndexedDBStorage extends Dexie {
  * Represents a URIStorage Adapter that persists all data into the Browser's [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
  */
 export declare class IndexedDBAdapter extends BaseAdapter {
+    static identifier: string;
     static can_hotlink: boolean;
     static can_watch: boolean;
     static is_available: boolean;

@@ -45,6 +45,7 @@ export interface IMemoryOptions extends IBaseAdapterOptions {
  * > **NOTE**: As this Adapter backend persists data into memory, it is not shared between tabs, pages, nor browsing sessions
  */
 export declare class MemoryAdapter extends BaseAdapter {
+    static identifier: string;
     static can_hotlink: boolean;
     static can_watch: boolean;
     static is_available: boolean;
