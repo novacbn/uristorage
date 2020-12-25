@@ -111,7 +111,7 @@
 				<h3>Installation</h3>
 			</a>
 			<p>Open your terminal and install via <code>npm</code>:</p>
-			<pre><code class="language-sh">npm install git+https://github.com/novacbn/uristorage<span class="hljs-comment">#0.0.3</span></code></pre>
+			<pre><code class="language-sh">npm install git+https://github.com/novacbn/uristorage<span class="hljs-comment">#0.0.5</span></code></pre>
 			<p>Download current in-development code:</p>
 			<pre><code class="language-sh">npm install git+https://github.com/novacbn/uristorage</code></pre>
 			<a href="#documentation" id="documentation" style="color: inherit; text-decoration: none;">
@@ -224,19 +224,54 @@
 						</li>
 					</ul>
 				</li>
-				<li><p>Miscellaneous</p>
+				<li><p>Registries</p>
 					<ul>
-						<li><a href="https://novacbn.github.io/uristorage/classes/_storage_registry_.storageregistry.html"><code>StorageRegistry</code></a> — <strong>shared</strong></li>
+						<li><p><a href="https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html"><code>StorageRegistry</code></a> — <strong>base</strong></p>
+							<ul>
+								<li><p><a href="https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html#event_mounted"><code>StorageRegistry.EVENT_MOUNTED</code></a></p>
+								</li>
+								<li><p><a href="https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html#event_registered"><code>StorageRegistry.EVENT_REGISTERED</code></a></p>
+								</li>
+								<li><p><a href="https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html#event_unmounted"><code>StorageRegistry.EVENT_UNMOUNTED</code></a></p>
+								</li>
+								<li><p><a href="https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html#event_unregistered"><code>StorageRegistry.EVENT_UNREGISTERED</code></a></p>
+								</li>
+								<li><p><a href="https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html#register"><code>StorageRegistry.register</code></a></p>
+								</li>
+								<li><p><a href="https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html#resolve"><code>StorageRegistry.resolve</code></a></p>
+								</li>
+								<li><p><a href="https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html#unregister"><code>StorageRegistry.unregister</code></a></p>
+								</li>
+							</ul>
+						</li>
+						<li><p><a href="https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html"><code>FileSystemRegistry</code></a> — <strong>shared</strong></p>
+							<ul>
+								<li><a href="https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#create_directory"><code>FileSystemRegistry.create_directory</code></a></li>
+								<li><a href="https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#create_scope"><code>FileSystemRegistry.create_scope</code></a></li>
+								<li><a href="https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#create_url_object"><code>FileSystemRegistry.create_url_object</code></a></li>
+								<li><a href="https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#exists"><code>FileSystemRegistry.exists</code></a></li>
+								<li><a href="https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#get_stats"><code>FileSystemRegistry.get_stats</code></a></li>
+								<li><a href="https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#read_directory"><code>FileSystemRegistry.read_directory</code></a></li>
+								<li><a href="https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#read_file"><code>FileSystemRegistry.read_file</code></a></li>
+								<li><a href="https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#read_file_json"><code>FileSystemRegistry.read_file_json</code></a></li>
+								<li><a href="https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#read_file_text"><code>FileSystemRegistry.read_file_text</code></a></li>
+								<li><a href="https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#remove_directory"><code>FileSystemRegistry.remove_directory</code></a></li>
+								<li><a href="https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#remove_file"><code>FileSystemRegistry.remove_file</code></a></li>
+								<li><a href="https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#write_file"><code>FileSystemRegistry.write_file</code></a></li>
+								<li><a href="https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#write_file_json"><code>FileSystemRegistry.write_file_json</code></a></li>
+								<li><a href="https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#write_file_text"><code>FileSystemRegistry.write_file_text</code></a></li>
+							</ul>
+						</li>
 					</ul>
 				</li>
 				<li><p>Utilities</p>
 					<ul>
 						<li><p>Adapters</p>
 							<ul>
-								<li><a href="https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#create_url_object"><code>create_url_object</code></a> — <strong>shared</strong></li>
-								<li><a href="https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#can_watch"><code>can_watch</code></a> — <strong>shared</strong></li>
-								<li><a href="https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#filter_query"><code>filter_query</code></a> — <strong>shared</strong></li>
-								<li><a href="https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#hook_watcher"><code>hook_watcher</code></a> — <strong>shared</strong></li>
+								<li><a href="https://novacbn.github.io/uristorage/modules/_adapters_base_adapter_.html#create_url_object"><code>create_url_object</code></a> — <strong>shared</strong></li>
+								<li><a href="https://novacbn.github.io/uristorage/modules/_adapters_base_adapter_.html#can_watch"><code>can_watch</code></a> — <strong>shared</strong></li>
+								<li><a href="https://novacbn.github.io/uristorage/modules/_adapters_base_adapter_.html#filter_query"><code>filter_query</code></a> — <strong>shared</strong></li>
+								<li><a href="https://novacbn.github.io/uristorage/modules/_adapters_base_adapter_.html#hook_watcher"><code>hook_watcher</code></a> — <strong>shared</strong></li>
 							</ul>
 						</li>
 						<li><p>Compression</p>
@@ -291,10 +326,11 @@
 							<li class="tsd-kind-module"><a href="modules/_adapters_shared_memory_.html" class="tsd-kind-icon">&quot;adapters/shared_<wbr>memory&quot;</a></li>
 							<li class="tsd-kind-module"><a href="modules/_adapters_whatwg_indexeddb_.html" class="tsd-kind-icon">&quot;adapters/whatwg_<wbr>indexeddb&quot;</a></li>
 							<li class="tsd-kind-module"><a href="modules/_adapters_whatwg_webstorage_.html" class="tsd-kind-icon">&quot;adapters/whatwg_<wbr>webstorage&quot;</a></li>
-							<li class="tsd-kind-module tsd-is-external"><a href="modules/_data_mime_types_.html" class="tsd-kind-icon">&quot;data/mime_<wbr>types&quot;</a></li>
+							<li class="tsd-kind-module"><a href="modules/_data_mime_types_.html" class="tsd-kind-icon">&quot;data/mime_<wbr>types&quot;</a></li>
 							<li class="tsd-kind-module"><a href="modules/_overlays_base_overlay_.html" class="tsd-kind-icon">&quot;overlays/base_<wbr>overlay&quot;</a></li>
 							<li class="tsd-kind-module"><a href="modules/_overlays_file_system_.html" class="tsd-kind-icon">&quot;overlays/file_<wbr>system&quot;</a></li>
-							<li class="tsd-kind-module"><a href="modules/_storage_registry_.html" class="tsd-kind-icon">&quot;storage_<wbr>registry&quot;</a></li>
+							<li class="tsd-kind-module"><a href="modules/_registries_file_system_.html" class="tsd-kind-icon">&quot;registries/file_<wbr>system&quot;</a></li>
+							<li class="tsd-kind-module"><a href="modules/_registries_storage_.html" class="tsd-kind-icon">&quot;registries/storage&quot;</a></li>
 							<li class="tsd-kind-module"><a href="modules/_util_compression_.html" class="tsd-kind-icon">&quot;util/compression&quot;</a></li>
 							<li class="tsd-kind-module"><a href="modules/_util_constants_.html" class="tsd-kind-icon">&quot;util/constants&quot;</a></li>
 							<li class="tsd-kind-module"><a href="modules/_util_datetime_.html" class="tsd-kind-icon">&quot;util/datetime&quot;</a></li>
