@@ -59,7 +59,7 @@ for (const entry of entries) {
 Open your terminal and install via `npm`:
 
 ```sh
-npm install git+https://github.com/novacbn/uristorage#0.0.3
+npm install git+https://github.com/novacbn/uristorage#0.0.5
 ```
 
 Download current in-development code:
@@ -143,18 +143,44 @@ See TypeDoc documentation at [novacbn.github.io/uristorage](https://novacbn.gith
         -   [`FileSystemOverlay.write_file_json`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#write_file_json)
         -   [`FileSystemOverlay.write_file_text`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#write_file_text)
 
--   Miscellaneous
+-   Registries
 
-    -   [`StorageRegistry`](https://novacbn.github.io/uristorage/classes/_storage_registry_.storageregistry.html) — **shared**
+    -   [`StorageRegistry`](https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html) — **base**
+
+        -   [`StorageRegistry.EVENT_MOUNTED`](https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html#event_mounted)
+        -   [`StorageRegistry.EVENT_REGISTERED`](https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html#event_registered)
+        -   [`StorageRegistry.EVENT_UNMOUNTED`](https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html#event_unmounted)
+        -   [`StorageRegistry.EVENT_UNREGISTERED`](https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html#event_unregistered)
+
+        -   [`StorageRegistry.register`](https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html#register)
+        -   [`StorageRegistry.resolve`](https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html#resolve)
+        -   [`StorageRegistry.unregister`](https://novacbn.github.io/uristorage/classes/_registries_storage_.storageregistry.html#unregister)
+
+    -   [`FileSystemRegistry`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html) — **shared**
+
+        -   [`FileSystemRegistry.create_directory`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#create_directory)
+        -   [`FileSystemRegistry.create_scope`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#create_scope)
+        -   [`FileSystemRegistry.create_url_object`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#create_url_object)
+        -   [`FileSystemRegistry.exists`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#exists)
+        -   [`FileSystemRegistry.get_stats`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#get_stats)
+        -   [`FileSystemRegistry.read_directory`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#read_directory)
+        -   [`FileSystemRegistry.read_file`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#read_file)
+        -   [`FileSystemRegistry.read_file_json`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#read_file_json)
+        -   [`FileSystemRegistry.read_file_text`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#read_file_text)
+        -   [`FileSystemRegistry.remove_directory`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#remove_directory)
+        -   [`FileSystemRegistry.remove_file`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#remove_file)
+        -   [`FileSystemRegistry.write_file`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#write_file)
+        -   [`FileSystemRegistry.write_file_json`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#write_file_json)
+        -   [`FileSystemRegistry.write_file_text`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#write_file_text)
 
 -   Utilities
 
     -   Adapters
 
-        -   [`create_url_object`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#create_url_object) — **shared**
-        -   [`can_watch`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#can_watch) — **shared**
-        -   [`filter_query`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#filter_query) — **shared**
-        -   [`hook_watcher`](https://novacbn.github.io/uristorage/classes/_overlays_file_system_.filesystemoverlay.html#hook_watcher) — **shared**
+        -   [`create_url_object`](https://novacbn.github.io/uristorage/modules/_adapters_base_adapter_.html#create_url_object) — **shared**
+        -   [`can_watch`](https://novacbn.github.io/uristorage/modules/_adapters_base_adapter_.html#can_watch) — **shared**
+        -   [`filter_query`](https://novacbn.github.io/uristorage/modules/_adapters_base_adapter_.html#filter_query) — **shared**
+        -   [`hook_watcher`](https://novacbn.github.io/uristorage/modules/_adapters_base_adapter_.html#hook_watcher) — **shared**
 
     -   Compression
 
