@@ -6,4 +6,12 @@ export type IJSONArray = IJSONValue[];
 
 export type IJSONObject = {[key: string]: IJSONValue};
 
-export type IJSONValue = boolean | number | string | undefined | IJSONArray | IJSONObject;
+export type IJSONValue =
+    | boolean
+    | null
+    | number
+    | object
+    | string
+    | undefined
+    | IJSONArray
+    | IJSONObject;

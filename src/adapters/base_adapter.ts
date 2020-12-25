@@ -353,7 +353,12 @@ export function hook_watcher(
  */
 export class BaseAdapter {
     /**
-     * Represents of the Adapter can utilize [[BaseAdapter.create_url_object]]
+     * Represents a static identifier useful for handling of Adapters
+     */
+    static identifier: string = "base";
+
+    /**
+     * Represents if the Adapter can utilize [[BaseAdapter.create_url_object]]
      */
     static can_hotlink: boolean = false;
 

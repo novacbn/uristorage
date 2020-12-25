@@ -13,10 +13,10 @@ import {
     IURLObject,
     IWatchEvent,
     IWatchOptions,
-    BaseAdapter,
     create_url_object,
     filter_query,
     hook_watcher,
+    BaseAdapter,
 } from "./base_adapter";
 
 /**
@@ -139,6 +139,8 @@ function MemoryOptions(options: Partial<IMemoryOptions> = {}): Partial<IMemoryOp
  * > **NOTE**: As this Adapter backend persists data into memory, it is not shared between tabs, pages, nor browsing sessions
  */
 export class MemoryAdapter extends BaseAdapter {
+    static identifier = "memory";
+
     static can_hotlink = true;
 
     static can_watch = true;

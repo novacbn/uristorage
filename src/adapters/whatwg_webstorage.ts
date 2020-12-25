@@ -221,6 +221,8 @@ export class WebStorageAdapter extends BaseAdapter {
     // TODO: Hook [`StorageEvent`](https://developer.mozilla.org/en-US/docs/Web/API/StorageEvent) for cross-tab updates
     // also maybe utilize a global `EVENT_WATCH` instead of one per-instance?
 
+    static identifier = "webstorage";
+
     static can_hotlink = true;
 
     static can_watch = true;
@@ -372,6 +374,8 @@ export class WebStorageAdapter extends BaseAdapter {
  * > **NOTE**: Some Browsers may delete `localStorage` contents after a period of in-activity and may enforce harsh storage limits, e.g. 5 MB max
  */
 export class LocalStorageAdapter extends WebStorageAdapter {
+    static identifier = "localstorage";
+
     static is_available = !!(typeof window === "object" && window.localStorage);
 
     constructor(options: Partial<IWebStorageOptions> = {}) {
@@ -385,6 +389,8 @@ export class LocalStorageAdapter extends WebStorageAdapter {
  * > **NOTE**: Browsers delete `sessionStorage` contents after a browsing session is closed and may enforce harsh storage limits, e.g. 5 MB max
  */
 export class SessionStorageAdapter extends WebStorageAdapter {
+    static identifier = "sessionstorage";
+
     static is_available = !!(typeof window === "object" && window.sessionStorage);
 
     constructor(options: Partial<IWebStorageOptions> = {}) {

@@ -29,7 +29,7 @@
         "build:typedoc": "typedoc --out ./dist/docs --exclude '**/index.ts' --stripInternal --target es6 --theme minimal --mode modules src",
         "test:http": "sirv ./ --port 8080 --dev",
         "test:types": "tsc --noEmit",
-        "prebuild:clean": "rimraf ./dist;rimraf ./lib"
+        "prebuild:clean": "rimraf ./dist;rimraf ./lib;rimraf ./types"
     },
     "dependencies": {
         "base85": "git+https://github.com/novacbn/base85.git",

@@ -17,10 +17,10 @@ import {
     IQueryResult,
     IWatchEvent,
     IURLObject,
-    BaseAdapter,
-    create_url_object,
     IWatchOptions,
+    create_url_object,
     hook_watcher,
+    BaseAdapter,
 } from "./base_adapter";
 
 const INDEXEDDB_VERSION = 1;
@@ -127,6 +127,8 @@ class IndexedDBStorage extends Dexie {
  * Represents a URIStorage Adapter that persists all data into the Browser's [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
  */
 export class IndexedDBAdapter extends BaseAdapter {
+    static identifier = "indexeddb";
+
     static can_hotlink = true;
 
     static can_watch = true;

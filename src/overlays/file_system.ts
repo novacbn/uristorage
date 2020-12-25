@@ -216,6 +216,13 @@ function count_slashes(path: string): number {
     return matches.length;
 }
 
+/**
+ * ...
+ *
+ * @internal
+ *
+ * @param options
+ */
 function FileSystemOptions(options: Partial<IFileSystemOptions> = {}): IFileSystemOptions {
     let {scope = SCOPE_NOOP} = options;
 

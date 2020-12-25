@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.0.5 (2020/12/25)
+
+-   Added simple identifiers for Adapter handling
+-   Added missing package-level type exports
+-   Added docstrings to `FileSystemRegistry` / `StorageRegistry`
+-   Added `null` and `object` to `IJSONValue` type
+-   Updated `StorageRegistry.resolve`
+    -   Normalizes the returned path
+    -   Normalizes URI protocol before resolving
+-   Vendored `path-browserify`
+
 ## v0.0.4 (2020/12/21)
 
 -   Added `IJSONArray` / `IJSONObject` types to exports as shortcut aliases
