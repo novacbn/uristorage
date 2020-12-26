@@ -159,7 +159,6 @@ See TypeDoc documentation at [novacbn.github.io/uristorage](https://novacbn.gith
     -   [`FileSystemRegistry`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html) — **shared**
 
         -   [`FileSystemRegistry.create_directory`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#create_directory)
-        -   [`FileSystemRegistry.create_scope`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#create_scope)
         -   [`FileSystemRegistry.create_url_object`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#create_url_object)
         -   [`FileSystemRegistry.exists`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#exists)
         -   [`FileSystemRegistry.get_stats`](https://novacbn.github.io/uristorage/classes/_registries_file_system_.filesystemregistry.html#get_stats)
