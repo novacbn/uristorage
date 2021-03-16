@@ -2013,11 +2013,11 @@ var URIStorage = (() => {
     ENCODING_MODE2["text"] = "MODE_TEXT";
   })(ENCODING_MODE || (ENCODING_MODE = {}));
   var NODE_CHANGES;
-  (function(NODE_CHANGES3) {
-    NODE_CHANGES3["attached"] = "CHANGE_ATTACHED";
-    NODE_CHANGES3["created"] = "CHANGE_CREATED";
-    NODE_CHANGES3["updated"] = "CHANGE_UPDATED";
-    NODE_CHANGES3["removed"] = "CHANGE_REMOVED";
+  (function(NODE_CHANGES4) {
+    NODE_CHANGES4["attached"] = "CHANGE_ATTACHED";
+    NODE_CHANGES4["created"] = "CHANGE_CREATED";
+    NODE_CHANGES4["updated"] = "CHANGE_UPDATED";
+    NODE_CHANGES4["removed"] = "CHANGE_REMOVED";
   })(NODE_CHANGES || (NODE_CHANGES = {}));
   var NODE_TYPES;
   (function(NODE_TYPES2) {
@@ -4143,22 +4143,34 @@ var URIStorage = (() => {
   var intrinsicTypeNameSet = arrayToObject(intrinsicTypeNames, function(x) {
     return [x, true];
   });
+  var circularRefs = null;
   function deepClone(any) {
+    circularRefs = typeof WeakMap !== "undefined" && new WeakMap();
+    var rv = innerDeepClone(any);
+    circularRefs = null;
+    return rv;
+  }
+  function innerDeepClone(any) {
     if (!any || typeof any !== "object")
       return any;
-    var rv;
+    var rv = circularRefs && circularRefs.get(any);
+    if (rv)
+      return rv;
     if (isArray(any)) {
       rv = [];
+      circularRefs && circularRefs.set(any, rv);
       for (var i = 0, l = any.length; i < l; ++i) {
-        rv.push(deepClone(any[i]));
+        rv.push(innerDeepClone(any[i]));
       }
     } else if (intrinsicTypes.indexOf(any.constructor) >= 0) {
       rv = any;
     } else {
-      rv = any.constructor ? Object.create(any.constructor.prototype) : {};
+      var proto = getProto(any);
+      rv = proto === Object.prototype ? {} : Object.create(proto);
+      circularRefs && circularRefs.set(any, rv);
       for (var prop in any) {
         if (hasOwn(any, prop)) {
-          rv[prop] = deepClone(any[prop]);
+          rv[prop] = innerDeepClone(any[prop]);
         }
       }
     }
@@ -4185,7 +4197,7 @@ var URIStorage = (() => {
           var apTypeName = toStringTag(ap);
           var bpTypeName = toStringTag(bp);
           if (apTypeName === bpTypeName) {
-            if (intrinsicTypeNameSet[apTypeName]) {
+            if (intrinsicTypeNameSet[apTypeName] || isArray(ap)) {
               if (getValueOf(ap, apTypeName) !== getValueOf(bp, bpTypeName)) {
                 rv[prfx + prop] = b[prop];
               }
@@ -4206,8 +4218,8 @@ var URIStorage = (() => {
     });
     return rv;
   }
-  var iteratorSymbol = typeof Symbol !== "undefined" && Symbol.iterator;
-  var getIteratorOf = iteratorSymbol ? function(x) {
+  var iteratorSymbol = typeof Symbol !== "undefined" ? Symbol.iterator : "@@iterator";
+  var getIteratorOf = typeof iteratorSymbol === "symbol" ? function(x) {
     var i;
     return x != null && (i = x[iteratorSymbol]) && i.apply(x);
   } : function() {
@@ -4317,7 +4329,8 @@ var URIStorage = (() => {
     VersionChanged: "Database version changed by other database connection",
     DatabaseClosed: "Database has been closed",
     Abort: "Transaction aborted",
-    TransactionInactive: "Transaction has already completed or failed"
+    TransactionInactive: "Transaction has already completed or failed",
+    MissingAPI: "IndexedDB API missing. Please visit https://tinyurl.com/y2uuvskb"
   };
   function DexieError(name, msg) {
     this._e = getErrorWithStack();
@@ -4352,7 +4365,10 @@ var URIStorage = (() => {
   function BulkError(msg, failures) {
     this._e = getErrorWithStack();
     this.name = "BulkError";
-    this.failures = failures;
+    this.failures = Object.keys(failures).map(function(pos) {
+      return failures[pos];
+    });
+    this.failuresByPos = failures;
     this.message = getMultiErrorMessage(msg, failures);
   }
   derive(BulkError).from(DexieError);
@@ -4505,11 +4521,11 @@ var URIStorage = (() => {
   var _a = typeof Promise === "undefined" ? [] : function() {
     var globalP = Promise.resolve();
     if (typeof crypto === "undefined" || !crypto.subtle)
-      return [globalP, globalP.__proto__, globalP];
+      return [globalP, getProto(globalP), globalP];
     var nativeP = crypto.subtle.digest("SHA-512", new Uint8Array([0]));
     return [
       nativeP,
-      nativeP.__proto__,
+      getProto(nativeP),
       globalP
     ];
   }();
@@ -4598,10 +4614,9 @@ var URIStorage = (() => {
       function then(onFulfilled, onRejected) {
         var _this = this;
         var possibleAwait = !psd.global && (psd !== PSD || microTaskId !== totalEchoes);
-        if (possibleAwait)
-          decrementExpectedAwaits();
+        var cleanup = possibleAwait && !decrementExpectedAwaits();
         var rv = new DexiePromise(function(resolve3, reject) {
-          propagateToListener(_this, new Listener(nativeAwaitCompatibleWrap(onFulfilled, psd, possibleAwait), nativeAwaitCompatibleWrap(onRejected, psd, possibleAwait), resolve3, reject, psd));
+          propagateToListener(_this, new Listener(nativeAwaitCompatibleWrap(onFulfilled, psd, possibleAwait, cleanup), nativeAwaitCompatibleWrap(onRejected, psd, possibleAwait, cleanup), resolve3, reject, psd));
         });
         debug && linkToPreviousPromise(rv, this);
         return rv;
@@ -4722,6 +4737,9 @@ var URIStorage = (() => {
         return PSD = value;
       }
     },
+    totalEchoes: {get: function() {
+      return totalEchoes;
+    }},
     newPSD: newScope,
     usePSD,
     scheduler: {
@@ -5051,12 +5069,13 @@ var URIStorage = (() => {
     task.echoes += ZONE_ECHO_LIMIT;
     return task.id;
   }
-  function decrementExpectedAwaits(sourceTaskId) {
-    if (!task.awaits || sourceTaskId && sourceTaskId !== task.id)
-      return;
+  function decrementExpectedAwaits() {
+    if (!task.awaits)
+      return false;
     if (--task.awaits === 0)
       task.id = 0;
     task.echoes = task.awaits * ZONE_ECHO_LIMIT;
+    return true;
   }
   if (("" + nativePromiseThen).indexOf("[native code]") === -1) {
     incrementExpectedAwaits = decrementExpectedAwaits = nop;
@@ -5142,7 +5161,7 @@ var URIStorage = (() => {
   function enqueueNativeMicroTask(job) {
     nativePromiseThen.call(resolvedNativePromise, job);
   }
-  function nativeAwaitCompatibleWrap(fn, zone, possibleAwait) {
+  function nativeAwaitCompatibleWrap(fn, zone, possibleAwait, cleanup) {
     return typeof fn !== "function" ? fn : function() {
       var outerZone = PSD;
       if (possibleAwait)
@@ -5152,12 +5171,14 @@ var URIStorage = (() => {
         return fn.apply(this, arguments);
       } finally {
         switchToZone(outerZone, false);
+        if (cleanup)
+          enqueueNativeMicroTask(decrementExpectedAwaits);
       }
     };
   }
   function getPatchedPromiseThen(origThen, zone) {
     return function(onResolved, onRejected) {
-      return origThen.call(this, nativeAwaitCompatibleWrap(onResolved, zone, false), nativeAwaitCompatibleWrap(onRejected, zone, false));
+      return origThen.call(this, nativeAwaitCompatibleWrap(onResolved, zone), nativeAwaitCompatibleWrap(onRejected, zone));
     };
   }
   var UNHANDLEDREJECTION = "unhandledrejection";
@@ -5222,7 +5243,7 @@ var URIStorage = (() => {
       });
     }
   }
-  var DEXIE_VERSION = "3.0.2";
+  var DEXIE_VERSION = "3.1.0-alpha.8";
   var maxString = String.fromCharCode(65535);
   var minKey = -Infinity;
   var INVALID_KEY_ARGUMENT = "Invalid key provided. Keys must be of type string, number, Date or Array<string | number | Date>.";
@@ -5242,13 +5263,50 @@ var URIStorage = (() => {
       return filter1.apply(this, arguments) && filter2.apply(this, arguments);
     } : filter1 : filter2;
   }
+  var domDeps;
+  try {
+    domDeps = {
+      indexedDB: _global.indexedDB || _global.mozIndexedDB || _global.webkitIndexedDB || _global.msIndexedDB,
+      IDBKeyRange: _global.IDBKeyRange || _global.webkitIDBKeyRange
+    };
+  } catch (e) {
+    domDeps = {indexedDB: null, IDBKeyRange: null};
+  }
+  function safariMultiStoreFix(storeNames) {
+    return storeNames.length === 1 ? storeNames[0] : storeNames;
+  }
+  var getMaxKey = function(IdbKeyRange) {
+    try {
+      IdbKeyRange.only([[]]);
+      getMaxKey = function() {
+        return [[]];
+      };
+      return [[]];
+    } catch (e) {
+      getMaxKey = function() {
+        return maxString;
+      };
+      return maxString;
+    }
+  };
   var AnyRange = {
     type: 3,
     lower: -Infinity,
     lowerOpen: false,
-    upper: [[]],
+    get upper() {
+      return getMaxKey(domDeps.IDBKeyRange);
+    },
     upperOpen: false
   };
+  function workaroundForUndefinedPrimKey(keyPath) {
+    return function(obj) {
+      if (getByKeyPath(obj, keyPath) === void 0) {
+        obj = deepClone(obj);
+        delByKeyPath(obj, keyPath);
+      }
+      return obj;
+    };
+  }
   var Table = function() {
     function Table2() {
     }
@@ -5384,14 +5442,19 @@ var URIStorage = (() => {
     };
     Table2.prototype.add = function(obj, key) {
       var _this = this;
+      var _a2 = this.schema.primKey, auto = _a2.auto, keyPath = _a2.keyPath;
+      var objToAdd = obj;
+      if (keyPath && auto) {
+        objToAdd = workaroundForUndefinedPrimKey(keyPath)(obj);
+      }
       return this._trans("readwrite", function(trans) {
-        return _this.core.mutate({trans, type: "add", keys: key != null ? [key] : null, values: [obj]});
+        return _this.core.mutate({trans, type: "add", keys: key != null ? [key] : null, values: [objToAdd]});
       }).then(function(res) {
         return res.numFailures ? DexiePromise.reject(res.failures[0]) : res.lastResult;
       }).then(function(lastResult) {
-        if (!_this.core.schema.primaryKey.outbound) {
+        if (keyPath) {
           try {
-            setByKeyPath(obj, _this.core.schema.primaryKey.keyPath, lastResult);
+            setByKeyPath(obj, keyPath, lastResult);
           } catch (_) {
           }
         }
@@ -5399,15 +5462,20 @@ var URIStorage = (() => {
       });
     };
     Table2.prototype.update = function(keyOrObject, modifications) {
-      if (typeof modifications !== "object" || isArray(modifications))
-        throw new exceptions.InvalidArgument("Modifications must be an object.");
       if (typeof keyOrObject === "object" && !isArray(keyOrObject)) {
-        keys(modifications).forEach(function(keyPath) {
-          setByKeyPath(keyOrObject, keyPath, modifications[keyPath]);
-        });
         var key = getByKeyPath(keyOrObject, this.schema.primKey.keyPath);
         if (key === void 0)
           return rejection(new exceptions.InvalidArgument("Given object does not contain its primary key"));
+        try {
+          if (typeof modifications !== "function") {
+            keys(modifications).forEach(function(keyPath) {
+              setByKeyPath(keyOrObject, keyPath, modifications[keyPath]);
+            });
+          } else {
+            modifications(keyOrObject, {value: keyOrObject, primKey: key});
+          }
+        } catch (_a2) {
+        }
         return this.where(":id").equals(key).modify(modifications);
       } else {
         return this.where(":id").equals(keyOrObject).modify(modifications);
@@ -5415,14 +5483,19 @@ var URIStorage = (() => {
     };
     Table2.prototype.put = function(obj, key) {
       var _this = this;
+      var _a2 = this.schema.primKey, auto = _a2.auto, keyPath = _a2.keyPath;
+      var objToAdd = obj;
+      if (keyPath && auto) {
+        objToAdd = workaroundForUndefinedPrimKey(keyPath)(obj);
+      }
       return this._trans("readwrite", function(trans) {
-        return _this.core.mutate({trans, type: "put", values: [obj], keys: key != null ? [key] : null});
+        return _this.core.mutate({trans, type: "put", values: [objToAdd], keys: key != null ? [key] : null});
       }).then(function(res) {
         return res.numFailures ? DexiePromise.reject(res.failures[0]) : res.lastResult;
       }).then(function(lastResult) {
-        if (!_this.core.schema.primaryKey.outbound) {
+        if (keyPath) {
           try {
-            setByKeyPath(obj, _this.core.schema.primaryKey.keyPath, lastResult);
+            setByKeyPath(obj, keyPath, lastResult);
           } catch (_) {
           }
         }
@@ -5464,20 +5537,19 @@ var URIStorage = (() => {
       options = options || (keys$$1 ? void 0 : keysOrOptions);
       var wantResults = options ? options.allKeys : void 0;
       return this._trans("readwrite", function(trans) {
-        var outbound = _this.core.schema.primaryKey.outbound;
-        if (!outbound && keys$$1)
+        var _a2 = _this.schema.primKey, auto = _a2.auto, keyPath = _a2.keyPath;
+        if (keyPath && keys$$1)
           throw new exceptions.InvalidArgument("bulkAdd(): keys argument invalid on tables with inbound keys");
         if (keys$$1 && keys$$1.length !== objects.length)
           throw new exceptions.InvalidArgument("Arguments objects and keys must have the same length");
         var numObjects = objects.length;
-        return _this.core.mutate({trans, type: "add", keys: keys$$1, values: objects, wantResults}).then(function(_a2) {
-          var numFailures = _a2.numFailures, results = _a2.results, lastResult = _a2.lastResult, failures = _a2.failures;
+        var objectsToAdd = keyPath && auto ? objects.map(workaroundForUndefinedPrimKey(keyPath)) : objects;
+        return _this.core.mutate({trans, type: "add", keys: keys$$1, values: objectsToAdd, wantResults}).then(function(_a3) {
+          var numFailures = _a3.numFailures, results = _a3.results, lastResult = _a3.lastResult, failures = _a3.failures;
           var result = wantResults ? results : lastResult;
           if (numFailures === 0)
             return result;
-          throw new BulkError(_this.name + ".bulkAdd(): " + numFailures + " of " + numObjects + " operations failed", Object.keys(failures).map(function(pos) {
-            return failures[pos];
-          }));
+          throw new BulkError(_this.name + ".bulkAdd(): " + numFailures + " of " + numObjects + " operations failed", failures);
         });
       });
     };
@@ -5487,20 +5559,19 @@ var URIStorage = (() => {
       options = options || (keys$$1 ? void 0 : keysOrOptions);
       var wantResults = options ? options.allKeys : void 0;
       return this._trans("readwrite", function(trans) {
-        var outbound = _this.core.schema.primaryKey.outbound;
-        if (!outbound && keys$$1)
+        var _a2 = _this.schema.primKey, auto = _a2.auto, keyPath = _a2.keyPath;
+        if (keyPath && keys$$1)
           throw new exceptions.InvalidArgument("bulkPut(): keys argument invalid on tables with inbound keys");
         if (keys$$1 && keys$$1.length !== objects.length)
           throw new exceptions.InvalidArgument("Arguments objects and keys must have the same length");
         var numObjects = objects.length;
-        return _this.core.mutate({trans, type: "put", keys: keys$$1, values: objects, wantResults}).then(function(_a2) {
-          var numFailures = _a2.numFailures, results = _a2.results, lastResult = _a2.lastResult, failures = _a2.failures;
+        var objectsToPut = keyPath && auto ? objects.map(workaroundForUndefinedPrimKey(keyPath)) : objects;
+        return _this.core.mutate({trans, type: "put", keys: keys$$1, values: objectsToPut, wantResults}).then(function(_a3) {
+          var numFailures = _a3.numFailures, results = _a3.results, lastResult = _a3.lastResult, failures = _a3.failures;
           var result = wantResults ? results : lastResult;
           if (numFailures === 0)
             return result;
-          throw new BulkError(_this.name + ".bulkPut(): " + numFailures + " of " + numObjects + " operations failed", Object.keys(failures).map(function(pos) {
-            return failures[pos];
-          }));
+          throw new BulkError(_this.name + ".bulkPut(): " + numFailures + " of " + numObjects + " operations failed", failures);
         });
       });
     };
@@ -5989,8 +6060,8 @@ var URIStorage = (() => {
         }
         var coreTable = ctx.table.core;
         var _a2 = coreTable.schema.primaryKey, outbound = _a2.outbound, extractKey = _a2.extractKey;
-        var limit = "testmode" in Dexie ? 1 : 2e3;
-        var cmp = _this.db.core.cmp;
+        var limit = _this.db._options.modifyChunkSize || 200;
+        var cmp2 = _this.db.core.cmp;
         var totalFailures = [];
         var successCount = 0;
         var failedKeys = [];
@@ -6005,7 +6076,11 @@ var URIStorage = (() => {
         return _this.clone().primaryKeys().then(function(keys$$1) {
           var nextChunk = function(offset) {
             var count = Math.min(limit, keys$$1.length - offset);
-            return coreTable.getMany({trans, keys: keys$$1.slice(offset, offset + count)}).then(function(values) {
+            return coreTable.getMany({
+              trans,
+              keys: keys$$1.slice(offset, offset + count),
+              cache: "immutable"
+            }).then(function(values) {
               var addValues = [];
               var putValues = [];
               var putKeys = outbound ? [] : null;
@@ -6019,7 +6094,7 @@ var URIStorage = (() => {
                 if (modifyer.call(ctx_1, ctx_1.value, ctx_1) !== false) {
                   if (ctx_1.value == null) {
                     deleteKeys.push(keys$$1[offset + i]);
-                  } else if (!outbound && cmp(extractKey(origValue), extractKey(ctx_1.value)) !== 0) {
+                  } else if (!outbound && cmp2(extractKey(origValue), extractKey(ctx_1.value)) !== 0) {
                     deleteKeys.push(keys$$1[offset + i]);
                     addValues.push(ctx_1.value);
                   } else {
@@ -6034,9 +6109,9 @@ var URIStorage = (() => {
                   deleteKeys.splice(parseInt(pos), 1);
                 }
                 applyMutateResult(addValues.length, res);
-              })).then(function(res) {
-                return putValues.length > 0 && coreTable.mutate({trans, type: "put", keys: putKeys, values: putValues}).then(function(res2) {
-                  return applyMutateResult(putValues.length, res2);
+              })).then(function() {
+                return putValues.length > 0 && coreTable.mutate({trans, type: "put", keys: putKeys, values: putValues}).then(function(res) {
+                  return applyMutateResult(putValues.length, res);
                 });
               }).then(function() {
                 return deleteKeys.length > 0 && coreTable.mutate({trans, type: "delete", keys: deleteKeys}).then(function(res) {
@@ -6143,21 +6218,21 @@ var URIStorage = (() => {
       return s.toUpperCase();
     };
   }
-  function nextCasing(key, lowerKey, upperNeedle, lowerNeedle, cmp, dir) {
+  function nextCasing(key, lowerKey, upperNeedle, lowerNeedle, cmp2, dir) {
     var length = Math.min(key.length, lowerNeedle.length);
     var llp = -1;
     for (var i = 0; i < length; ++i) {
       var lwrKeyChar = lowerKey[i];
       if (lwrKeyChar !== lowerNeedle[i]) {
-        if (cmp(key[i], upperNeedle[i]) < 0)
+        if (cmp2(key[i], upperNeedle[i]) < 0)
           return key.substr(0, i) + upperNeedle[i] + upperNeedle.substr(i + 1);
-        if (cmp(key[i], lowerNeedle[i]) < 0)
+        if (cmp2(key[i], lowerNeedle[i]) < 0)
           return key.substr(0, i) + lowerNeedle[i] + upperNeedle.substr(i + 1);
         if (llp >= 0)
           return key.substr(0, llp) + lowerKey[llp] + upperNeedle.substr(llp + 1);
         return null;
       }
-      if (cmp(key[i], lwrKeyChar) < 0)
+      if (cmp2(key[i], lwrKeyChar) < 0)
         llp = i;
     }
     if (length < lowerNeedle.length && dir === "next")
@@ -6268,6 +6343,8 @@ var URIStorage = (() => {
       }
     };
     WhereClause2.prototype.equals = function(value) {
+      if (value == null)
+        return fail(this, INVALID_KEY_ARGUMENT);
       return new this.Collection(this, function() {
         return rangeEqual(value);
       });
@@ -6394,7 +6471,7 @@ var URIStorage = (() => {
     };
     WhereClause2.prototype.inAnyRange = function(ranges, options) {
       var _this = this;
-      var cmp = this._cmp, ascending = this._ascending, descending = this._descending, min = this._min, max = this._max;
+      var cmp2 = this._cmp, ascending = this._ascending, descending = this._descending, min = this._min, max = this._max;
       if (ranges.length === 0)
         return emptyCollection(this);
       if (!ranges.every(function(range) {
@@ -6404,11 +6481,11 @@ var URIStorage = (() => {
       }
       var includeLowers = !options || options.includeLowers !== false;
       var includeUppers = options && options.includeUppers === true;
-      function addRange(ranges2, newRange) {
+      function addRange2(ranges2, newRange) {
         var i = 0, l = ranges2.length;
         for (; i < l; ++i) {
           var range = ranges2[i];
-          if (cmp(newRange[0], range[1]) < 0 && cmp(newRange[1], range[0]) > 0) {
+          if (cmp2(newRange[0], range[1]) < 0 && cmp2(newRange[1], range[0]) > 0) {
             range[0] = min(range[0], newRange[0]);
             range[1] = max(range[1], newRange[1]);
             break;
@@ -6424,7 +6501,7 @@ var URIStorage = (() => {
       }
       var set;
       try {
-        set = ranges.reduce(addRange, []);
+        set = ranges.reduce(addRange2, []);
         set.sort(rangeSorter);
       } catch (ex) {
         return fail(this, INVALID_KEY_ARGUMENT);
@@ -6507,7 +6584,7 @@ var URIStorage = (() => {
       };
       var indexedDB = db._deps.indexedDB;
       if (!indexedDB)
-        throw new exceptions.MissingAPI("indexedDB API missing");
+        throw new exceptions.MissingAPI();
       this._cmp = this._ascending = indexedDB.cmp.bind(indexedDB);
       this._descending = function(a, b) {
         return indexedDB.cmp(b, a);
@@ -6520,17 +6597,6 @@ var URIStorage = (() => {
       };
       this._IDBKeyRange = db._deps.IDBKeyRange;
     });
-  }
-  function safariMultiStoreFix(storeNames) {
-    return storeNames.length === 1 ? storeNames[0] : storeNames;
-  }
-  function getMaxKey(IdbKeyRange) {
-    try {
-      IdbKeyRange.only([[]]);
-      return [[]];
-    } catch (e) {
-      return maxString;
-    }
   }
   function eventRejectHandler(reject) {
     return wrap(function(event9) {
@@ -6545,6 +6611,7 @@ var URIStorage = (() => {
     if (event9.preventDefault)
       event9.preventDefault();
   }
+  var globalEvents = Events(null, "txcommitted");
   var Transaction = function() {
     function Transaction2() {
     }
@@ -6607,6 +6674,9 @@ var URIStorage = (() => {
       idbtrans.oncomplete = wrap(function() {
         _this.active = false;
         _this._resolve();
+        if ("mutatedParts" in idbtrans) {
+          globalEvents.txcommitted.fire(idbtrans["mutatedParts"]);
+        }
       });
       return this;
     };
@@ -6784,14 +6854,6 @@ var URIStorage = (() => {
       };
     }
   }
-  function getEffectiveKeys(primaryKey, req) {
-    if (req.type === "delete")
-      return req.keys;
-    return req.keys || req.values.map(primaryKey.extractKey);
-  }
-  function getExistingValues(table, req, effectiveKeys) {
-    return req.type === "add" ? Promise.resolve(new Array(req.values.length)) : table.getMany({trans: req.trans, keys: effectiveKeys});
-  }
   function arrayify(arrayLike) {
     return [].slice.call(arrayLike);
   }
@@ -6800,7 +6862,7 @@ var URIStorage = (() => {
     return keyPath == null ? ":id" : typeof keyPath === "string" ? keyPath : "[" + keyPath.join("+") + "]";
   }
   function createDBCore(db, indexedDB, IdbKeyRange, tmpTrans) {
-    var cmp = indexedDB.cmp.bind(indexedDB);
+    var cmp2 = indexedDB.cmp.bind(indexedDB);
     function extractSchema(db2, trans) {
       var tables2 = arrayify(db2.objectStoreNames);
       return {
@@ -6867,7 +6929,7 @@ var URIStorage = (() => {
     function createDbCoreTable(tableSchema) {
       var tableName = tableSchema.name;
       function mutate(_a3) {
-        var trans = _a3.trans, type = _a3.type, keys$$1 = _a3.keys, values = _a3.values, range = _a3.range, wantResults = _a3.wantResults;
+        var trans = _a3.trans, type = _a3.type, keys$$1 = _a3.keys, values = _a3.values, range = _a3.range;
         return new Promise(function(resolve3, reject) {
           resolve3 = wrap(resolve3);
           var store = trans.objectStore(tableName);
@@ -6881,55 +6943,46 @@ var URIStorage = (() => {
           }
           if (length === 0)
             return resolve3({numFailures: 0, failures: {}, results: [], lastResult: void 0});
-          var results = wantResults && __spreadArrays(keys$$1 ? keys$$1 : getEffectiveKeys(tableSchema.primaryKey, {type, keys: keys$$1, values}));
           var req;
+          var reqs = [];
           var failures = [];
           var numFailures = 0;
           var errorHandler = function(event9) {
             ++numFailures;
             preventDefault(event9);
-            if (results)
-              results[event9.target._reqno] = void 0;
-            failures[event9.target._reqno] = event9.target.error;
-          };
-          var setResult = function(_a5) {
-            var target = _a5.target;
-            results[target._reqno] = target.result;
           };
           if (type === "deleteRange") {
             if (range.type === 4)
-              return resolve3({numFailures, failures, results, lastResult: void 0});
+              return resolve3({numFailures, failures, results: [], lastResult: void 0});
             if (range.type === 3)
-              req = store.clear();
+              reqs.push(req = store.clear());
             else
-              req = store.delete(makeIDBKeyRange(range));
+              reqs.push(req = store.delete(makeIDBKeyRange(range)));
           } else {
             var _a4 = isAddOrPut ? outbound ? [values, keys$$1] : [values, null] : [keys$$1, null], args1 = _a4[0], args2 = _a4[1];
             if (isAddOrPut) {
               for (var i = 0; i < length; ++i) {
-                req = args2 && args2[i] !== void 0 ? store[type](args1[i], args2[i]) : store[type](args1[i]);
-                req._reqno = i;
-                if (results && results[i] === void 0) {
-                  req.onsuccess = setResult;
-                }
+                reqs.push(req = args2 && args2[i] !== void 0 ? store[type](args1[i], args2[i]) : store[type](args1[i]));
                 req.onerror = errorHandler;
               }
             } else {
               for (var i = 0; i < length; ++i) {
-                req = store[type](args1[i]);
-                req._reqno = i;
+                reqs.push(req = store[type](args1[i]));
                 req.onerror = errorHandler;
               }
             }
           }
           var done = function(event9) {
             var lastResult = event9.target.result;
-            if (results)
-              results[length - 1] = lastResult;
+            reqs.forEach(function(req2, i2) {
+              return req2.error != null && (failures[i2] = req2.error);
+            });
             resolve3({
               numFailures,
               failures,
-              results,
+              results: type === "delete" ? keys$$1 : reqs.map(function(req2) {
+                return req2.result;
+              }),
               lastResult
             });
           };
@@ -7140,7 +7193,7 @@ var URIStorage = (() => {
           throw new Error("Table '" + name + "' not found");
         return tableMap[name];
       },
-      cmp,
+      cmp: cmp2,
       MIN_KEY: -Infinity,
       MAX_KEY: getMaxKey(IdbKeyRange),
       schema
@@ -7179,7 +7232,8 @@ var URIStorage = (() => {
     tableNames.forEach(function(tableName) {
       var schema = dbschema[tableName];
       objs.forEach(function(obj) {
-        if (!(tableName in obj)) {
+        var propDesc = getPropertyDescriptor(obj, tableName);
+        if (!propDesc || "value" in propDesc && propDesc.value === void 0) {
           if (obj === db.Transaction.prototype || obj instanceof db.Transaction) {
             setProp(obj, tableName, {
               get: function() {
@@ -7268,6 +7322,7 @@ var URIStorage = (() => {
         var contentUpgrade = version._cfg.contentUpgrade;
         if (contentUpgrade && version._cfg.version > oldVersion) {
           generateMiddlewareStacks(db, idbUpgradeTrans);
+          trans._memoizedTables = {};
           anyContentUpgraderHasRun = true;
           var upgradeSchema_1 = shallowClone(newSchema);
           diff.del.forEach(function(table) {
@@ -7336,7 +7391,7 @@ var URIStorage = (() => {
           add: [],
           change: []
         };
-        if (oldDef.primKey.src !== newDef.primKey.src && !isIEOrEdge) {
+        if ("" + (oldDef.primKey.keyPath || "") !== "" + (newDef.primKey.keyPath || "") || oldDef.primKey.auto !== newDef.primKey.auto && !isIEOrEdge) {
           change.recreate = true;
           diff.change.push(change);
         } else {
@@ -7410,6 +7465,13 @@ var URIStorage = (() => {
     var globalSchema = db._dbSchema = buildGlobalSchema(db, idbdb, tmpTrans);
     db._storeNames = slice(idbdb.objectStoreNames, 0);
     setApiOnPlace(db, [db._allTables], keys(globalSchema), globalSchema);
+  }
+  function verifyInstalledSchema(db, tmpTrans) {
+    var installedSchema = buildGlobalSchema(db, db.idbdb, tmpTrans);
+    var diff = getSchemaDiff(installedSchema, db._dbSchema);
+    return !(diff.add.length || diff.change.some(function(ch) {
+      return ch.add.length || ch.change.length;
+    }));
   }
   function adjustToExistingIndexNames(db, schema, idbtrans) {
     var storeNames = idbtrans.db.objectStoreNames;
@@ -7498,38 +7560,38 @@ var URIStorage = (() => {
       };
     });
   }
-  var databaseEnumerator;
-  function DatabaseEnumerator(indexedDB) {
-    var hasDatabasesNative = indexedDB && typeof indexedDB.databases === "function";
-    var dbNamesTable;
-    if (!hasDatabasesNative) {
-      var db = new Dexie(DBNAMES_DB, {addons: []});
-      db.version(1).stores({dbnames: "name"});
-      dbNamesTable = db.table("dbnames");
+  function getDbNamesTable(indexedDB, IDBKeyRange) {
+    var dbNamesDB = indexedDB["_dbNamesDB"];
+    if (!dbNamesDB) {
+      dbNamesDB = indexedDB["_dbNamesDB"] = new Dexie(DBNAMES_DB, {
+        addons: [],
+        indexedDB,
+        IDBKeyRange
+      });
+      dbNamesDB.version(1).stores({dbnames: "name"});
     }
-    return {
-      getDatabaseNames: function() {
-        return hasDatabasesNative ? DexiePromise.resolve(indexedDB.databases()).then(function(infos) {
-          return infos.map(function(info) {
-            return info.name;
-          }).filter(function(name) {
-            return name !== DBNAMES_DB;
-          });
-        }) : dbNamesTable.toCollection().primaryKeys();
-      },
-      add: function(name) {
-        return !hasDatabasesNative && name !== DBNAMES_DB && dbNamesTable.put({name}).catch(nop);
-      },
-      remove: function(name) {
-        return !hasDatabasesNative && name !== DBNAMES_DB && dbNamesTable.delete(name).catch(nop);
-      }
-    };
+    return dbNamesDB.table("dbnames");
   }
-  function initDatabaseEnumerator(indexedDB) {
-    try {
-      databaseEnumerator = DatabaseEnumerator(indexedDB);
-    } catch (e) {
-    }
+  function hasDatabasesNative(indexedDB) {
+    return indexedDB && typeof indexedDB.databases === "function";
+  }
+  function getDatabaseNames(_a2) {
+    var indexedDB = _a2.indexedDB, IDBKeyRange = _a2.IDBKeyRange;
+    return hasDatabasesNative(indexedDB) ? Promise.resolve(indexedDB.databases()).then(function(infos) {
+      return infos.map(function(info) {
+        return info.name;
+      }).filter(function(name) {
+        return name !== DBNAMES_DB;
+      });
+    }) : getDbNamesTable(indexedDB, IDBKeyRange).toCollection().primaryKeys();
+  }
+  function _onDatabaseCreated(_a2, name) {
+    var indexedDB = _a2.indexedDB, IDBKeyRange = _a2.IDBKeyRange;
+    !hasDatabasesNative(indexedDB) && name !== DBNAMES_DB && getDbNamesTable(indexedDB, IDBKeyRange).put({name}).catch(nop);
+  }
+  function _onDatabaseDeleted(_a2, name) {
+    var indexedDB = _a2.indexedDB, IDBKeyRange = _a2.IDBKeyRange;
+    !hasDatabasesNative(indexedDB) && name !== DBNAMES_DB && getDbNamesTable(indexedDB, IDBKeyRange).delete(name).catch(nop);
   }
   function vip(fn) {
     return newScope(function() {
@@ -7551,11 +7613,11 @@ var URIStorage = (() => {
     var resolveDbReady = state.dbReadyResolve, upgradeTransaction = null;
     return DexiePromise.race([state.openCanceller, new DexiePromise(function(resolve3, reject) {
       if (!indexedDB)
-        throw new exceptions.MissingAPI("indexedDB API not found. If using IE10+, make sure to run your code on a server URL (not locally). If using old Safari versions, make sure to include indexedDB polyfill.");
+        throw new exceptions.MissingAPI();
       var dbName = db.name;
       var req = state.autoSchema ? indexedDB.open(dbName) : indexedDB.open(dbName, Math.round(db.verno * 10));
       if (!req)
-        throw new exceptions.MissingAPI("IndexedDB API not available");
+        throw new exceptions.MissingAPI();
       req.onerror = eventRejectHandler(reject);
       req.onblocked = wrap(db._fireOnBlocked);
       req.onupgradeneeded = wrap(function(e) {
@@ -7584,8 +7646,12 @@ var URIStorage = (() => {
             var tmpTrans = idbdb.transaction(safariMultiStoreFix(objectStoreNames), "readonly");
             if (state.autoSchema)
               readGlobalSchema(db, idbdb, tmpTrans);
-            else
+            else {
               adjustToExistingIndexNames(db, db._dbSchema, tmpTrans);
+              if (!verifyInstalledSchema(db, tmpTrans)) {
+                console.warn("Dexie SchemaDiff: Schema was extended without increasing the number passed to db.version(). Some queries may fail.");
+              }
+            }
             generateMiddlewareStacks(db, tmpTrans);
           } catch (e) {
           }
@@ -7594,7 +7660,10 @@ var URIStorage = (() => {
           state.vcFired = true;
           db.on("versionchange").fire(ev);
         });
-        databaseEnumerator.add(dbName);
+        idbdb.onclose = wrap(function(ev) {
+          db.on("close").fire(ev);
+        });
+        _onDatabaseCreated(db._deps, dbName);
         resolve3();
       }, reject);
     })]).then(function() {
@@ -7810,6 +7879,11 @@ var URIStorage = (() => {
     level: 1,
     create: createVirtualIndexMiddleware
   };
+  function getEffectiveKeys(primaryKey, req) {
+    if (req.type === "delete")
+      return req.keys;
+    return req.keys || req.values.map(primaryKey.extractKey);
+  }
   var hooksMiddleware = {
     stack: "dbcore",
     name: "HooksMiddleware",
@@ -7853,7 +7927,7 @@ var URIStorage = (() => {
             var keys$$1 = req2.keys || getEffectiveKeys(primaryKey, req2);
             if (!keys$$1)
               throw new Error("Keys missing");
-            req2 = req2.type === "add" || req2.type === "put" ? __assign(__assign({}, req2), {keys: keys$$1, wantResults: true}) : __assign({}, req2);
+            req2 = req2.type === "add" || req2.type === "put" ? __assign(__assign({}, req2), {keys: keys$$1}) : __assign({}, req2);
             if (req2.type !== "delete")
               req2.values = __spreadArrays(req2.values);
             if (req2.keys)
@@ -7879,7 +7953,11 @@ var URIStorage = (() => {
                   if (additionalChanges_1) {
                     var requestedValue_1 = req2.values[i];
                     Object.keys(additionalChanges_1).forEach(function(keyPath) {
-                      setByKeyPath(requestedValue_1, keyPath, additionalChanges_1[keyPath]);
+                      if (hasOwn(requestedValue_1, keyPath)) {
+                        requestedValue_1[keyPath] = additionalChanges_1[keyPath];
+                      } else {
+                        setByKeyPath(requestedValue_1, keyPath, additionalChanges_1[keyPath]);
+                      }
                     });
                   }
                 }
@@ -7927,6 +8005,375 @@ var URIStorage = (() => {
       }});
     }
   };
+  function getExistingValues(table, req, effectiveKeys) {
+    return req.type === "add" ? Promise.resolve([]) : table.getMany({trans: req.trans, keys: effectiveKeys, cache: "immutable"});
+  }
+  var _cmp;
+  function cmp(a, b) {
+    if (_cmp)
+      return _cmp(a, b);
+    var indexedDB = domDeps.indexedDB;
+    if (!indexedDB)
+      throw new exceptions.MissingAPI();
+    _cmp = function(a2, b2) {
+      try {
+        return a2 == null || b2 == null ? NaN : indexedDB.cmp(a2, b2);
+      } catch (_a2) {
+        return NaN;
+      }
+    };
+    return _cmp(a, b);
+  }
+  function getFromTransactionCache(keys$$1, cache, clone) {
+    try {
+      if (!cache)
+        return null;
+      if (cache.keys.length < keys$$1.length)
+        return null;
+      var result = [];
+      for (var i = 0, j = 0; i < cache.keys.length && j < keys$$1.length; ++i) {
+        if (cmp(cache.keys[i], keys$$1[j]) !== 0)
+          continue;
+        result.push(clone ? deepClone(cache.values[i]) : cache.values[i]);
+        ++j;
+      }
+      return result.length === keys$$1.length ? result : null;
+    } catch (_a2) {
+      return null;
+    }
+  }
+  var cacheExistingValuesMiddleware = {
+    stack: "dbcore",
+    level: -1,
+    create: function(core) {
+      return {
+        table: function(tableName) {
+          var table = core.table(tableName);
+          return __assign(__assign({}, table), {getMany: function(req) {
+            if (!req.cache) {
+              return table.getMany(req);
+            }
+            var cachedResult = getFromTransactionCache(req.keys, req.trans["_cache"], req.cache === "clone");
+            if (cachedResult) {
+              return DexiePromise.resolve(cachedResult);
+            }
+            return table.getMany(req).then(function(res) {
+              req.trans["_cache"] = {
+                keys: req.keys,
+                values: req.cache === "clone" ? deepClone(res) : res
+              };
+              return res;
+            });
+          }, mutate: function(req) {
+            if (req.type !== "add")
+              req.trans["_cache"] = null;
+            return table.mutate(req);
+          }});
+        }
+      };
+    }
+  };
+  var _a$1;
+  function isEmptyRange(node) {
+    return !("from" in node);
+  }
+  var RangeSet = function(fromOrTree, to) {
+    if (this) {
+      extend(this, arguments.length ? {d: 1, from: fromOrTree, to: arguments.length > 1 ? to : fromOrTree} : {d: 0});
+    } else {
+      var rv = new RangeSet();
+      if (fromOrTree && "d" in fromOrTree) {
+        extend(rv, fromOrTree);
+      }
+      return rv;
+    }
+  };
+  props(RangeSet.prototype, (_a$1 = {
+    add: function(rangeSet) {
+      mergeRanges(this, rangeSet);
+      return this;
+    },
+    addKey: function(key) {
+      addRange(this, key, key);
+      return this;
+    },
+    addKeys: function(keys$$1) {
+      var _this = this;
+      keys$$1.forEach(function(key) {
+        return addRange(_this, key, key);
+      });
+      return this;
+    }
+  }, _a$1[iteratorSymbol] = function() {
+    return getRangeSetIterator(this);
+  }, _a$1));
+  function addRange(target, from, to) {
+    if (cmp(from, to) > 0)
+      throw RangeError();
+    if (isEmptyRange(target))
+      return extend(target, {from, to, d: 1});
+    var left = target.l;
+    var right = target.r;
+    if (cmp(to, target.from) < 0) {
+      left ? addRange(left, from, to) : target.l = {from, to, d: 1, l: null, r: null};
+      return rebalance(target);
+    }
+    if (cmp(from, target.to) > 0) {
+      right ? addRange(right, from, to) : target.r = {from, to, d: 1, l: null, r: null};
+      return rebalance(target);
+    }
+    if (cmp(from, target.from) < 0) {
+      target.from = from;
+      target.l = null;
+      target.d = right ? right.d + 1 : 1;
+    }
+    if (cmp(to, target.to) > 0) {
+      target.to = to;
+      target.r = null;
+      target.d = target.l ? target.l.d + 1 : 1;
+    }
+    if (left && !target.l) {
+      mergeRanges(target, left);
+    }
+    if (right && !target.r) {
+      mergeRanges(target, right);
+    }
+  }
+  function mergeRanges(target, newSet) {
+    function _addRangeSet(target2, _a2) {
+      var from = _a2.from, to = _a2.to, l = _a2.l, r = _a2.r;
+      addRange(target2, from, to);
+      if (l)
+        _addRangeSet(target2, l);
+      if (r)
+        _addRangeSet(target2, r);
+    }
+    if (!isEmptyRange(newSet))
+      _addRangeSet(target, newSet);
+  }
+  function rangesOverlap(rangeSet1, rangeSet2) {
+    var i1 = getRangeSetIterator(rangeSet2);
+    var nextResult1 = i1.next();
+    if (nextResult1.done)
+      return false;
+    var a = nextResult1.value;
+    var i2 = getRangeSetIterator(rangeSet1);
+    var nextResult2 = i2.next(a.from);
+    var b = nextResult2.value;
+    while (!nextResult1.done && !nextResult2.done) {
+      if (cmp(b.from, a.to) <= 0 && cmp(b.to, a.from) >= 0)
+        return true;
+      cmp(a.from, b.from) < 0 ? a = (nextResult1 = i1.next(b.from)).value : b = (nextResult2 = i2.next(a.from)).value;
+    }
+    return false;
+  }
+  function getRangeSetIterator(node) {
+    var state = isEmptyRange(node) ? null : {s: 0, n: node};
+    return {
+      next: function(key) {
+        var keyProvided = arguments.length > 0;
+        while (state) {
+          switch (state.s) {
+            case 0:
+              state.s = 1;
+              if (keyProvided) {
+                while (state.n.l && cmp(key, state.n.from) < 0)
+                  state = {up: state, n: state.n.l, s: 1};
+              } else {
+                while (state.n.l)
+                  state = {up: state, n: state.n.l, s: 1};
+              }
+            case 1:
+              state.s = 2;
+              if (!keyProvided || cmp(key, state.n.to) <= 0)
+                return {value: state.n, done: false};
+            case 2:
+              if (state.n.r) {
+                state.s = 3;
+                state = {up: state, n: state.n.r, s: 0};
+                continue;
+              }
+            case 3:
+              state = state.up;
+          }
+        }
+        return {done: true};
+      }
+    };
+  }
+  function rebalance(target) {
+    var _a2, _b;
+    var clone = __assign({}, target);
+    var diff = (((_a2 = target.r) === null || _a2 === void 0 ? void 0 : _a2.d) || 0) - (((_b = target.l) === null || _b === void 0 ? void 0 : _b.d) || 0);
+    var r = diff > 1 ? "r" : diff < -1 ? "l" : "";
+    if (r) {
+      var l = r === "r" ? "l" : "r";
+      extend(target, clone[r]);
+      extend(clone[r], clone);
+      clone[r][r] = target[l];
+      target[l] = clone[r];
+      clone[r].d = computeDepth(clone[r]);
+    }
+    target.d = computeDepth(target);
+  }
+  function computeDepth(_a2) {
+    var r = _a2.r, l = _a2.l;
+    return (r ? l ? Math.max(r.d, l.d) : r.d : l ? l.d : 0) + 1;
+  }
+  var observabilityMiddleware = {
+    stack: "dbcore",
+    level: 0,
+    create: function(core) {
+      var dbName = core.schema.name;
+      var FULL_RANGE = new RangeSet(core.MIN_KEY, core.MAX_KEY);
+      return __assign(__assign({}, core), {table: function(tableName) {
+        var table = core.table(tableName);
+        var schema = table.schema;
+        var primaryKey = schema.primaryKey;
+        var extractKey = primaryKey.extractKey, outbound = primaryKey.outbound;
+        var tableClone = __assign(__assign({}, table), {mutate: function(req) {
+          var trans = req.trans;
+          var mutatedParts = trans.mutatedParts || (trans.mutatedParts = {});
+          var getRangeSet = function(indexName) {
+            var part = "idb://" + dbName + "/" + tableName + "/" + indexName;
+            return mutatedParts[part] || (mutatedParts[part] = new RangeSet());
+          };
+          var pkRangeSet = getRangeSet("");
+          var delsRangeSet = getRangeSet(":dels");
+          var type = req.type;
+          var _a2 = req.type === "deleteRange" ? [req.range] : req.type === "delete" ? [req.keys] : req.values.length < 50 ? [[], req.values] : [], keys$$1 = _a2[0], newObjs = _a2[1];
+          var oldCache = req.trans["_cache"];
+          return table.mutate(req).then(function(res) {
+            if (isArray(keys$$1)) {
+              if (type !== "delete")
+                keys$$1 = res.results;
+              pkRangeSet.addKeys(keys$$1);
+              var oldObjs = getFromTransactionCache(keys$$1, oldCache);
+              if (!oldObjs && type !== "add") {
+                delsRangeSet.addKeys(keys$$1);
+              }
+              if (oldObjs || newObjs) {
+                trackAffectedIndexes(getRangeSet, schema, oldObjs, newObjs);
+              }
+            } else if (keys$$1) {
+              var range = {from: keys$$1.lower, to: keys$$1.upper};
+              delsRangeSet.add(range);
+              pkRangeSet.add(range);
+            } else {
+              pkRangeSet.add(FULL_RANGE);
+              delsRangeSet.add(FULL_RANGE);
+              schema.indexes.forEach(function(idx) {
+                return getRangeSet(idx.name).add(FULL_RANGE);
+              });
+            }
+            return res;
+          });
+        }});
+        var getRange = function(_a2) {
+          var _b = _a2.query, index = _b.index, range = _b.range;
+          var _c, _d;
+          return [
+            index,
+            new RangeSet((_c = range.lower) !== null && _c !== void 0 ? _c : core.MIN_KEY, (_d = range.upper) !== null && _d !== void 0 ? _d : core.MAX_KEY)
+          ];
+        };
+        var readSubscribers = {
+          get: function(req) {
+            return [primaryKey, new RangeSet(req.key)];
+          },
+          getMany: function(req) {
+            return [primaryKey, new RangeSet().addKeys(req.keys)];
+          },
+          count: getRange,
+          query: getRange,
+          openCursor: getRange
+        };
+        keys(readSubscribers).forEach(function(method) {
+          tableClone[method] = function(req) {
+            var subscr = PSD.subscr;
+            if (subscr) {
+              var getRangeSet = function(indexName) {
+                var part = "idb://" + dbName + "/" + tableName + "/" + indexName;
+                return subscr[part] || (subscr[part] = new RangeSet());
+              };
+              var pkRangeSet_1 = getRangeSet("");
+              var delsRangeSet_1 = getRangeSet(":dels");
+              var _a2 = readSubscribers[method](req), queriedIndex = _a2[0], queriedRanges = _a2[1];
+              getRangeSet(queriedIndex.name || "").add(queriedRanges);
+              if (!queriedIndex.isPrimaryKey) {
+                if (method === "count") {
+                  delsRangeSet_1.add(FULL_RANGE);
+                } else {
+                  var keysPromise_1 = method === "query" && outbound && req.values && table.query(__assign(__assign({}, req), {values: false}));
+                  return table[method].apply(this, arguments).then(function(res) {
+                    if (method === "query") {
+                      if (outbound && req.values) {
+                        return keysPromise_1.then(function(_a3) {
+                          var resultingKeys = _a3.result;
+                          pkRangeSet_1.addKeys(resultingKeys);
+                          return res;
+                        });
+                      }
+                      var pKeys = req.values ? res.result.map(extractKey) : res.result;
+                      if (req.values) {
+                        pkRangeSet_1.addKeys(pKeys);
+                      } else {
+                        delsRangeSet_1.addKeys(pKeys);
+                      }
+                    } else if (method === "openCursor") {
+                      var cursor_1 = res;
+                      var wantValues_1 = req.values;
+                      return cursor_1 && Object.create(cursor_1, {
+                        key: {
+                          get: function() {
+                            delsRangeSet_1.addKey(cursor_1.primaryKey);
+                            return cursor_1.key;
+                          }
+                        },
+                        primaryKey: {
+                          get: function() {
+                            var pkey = cursor_1.primaryKey;
+                            delsRangeSet_1.addKey(pkey);
+                            return pkey;
+                          }
+                        },
+                        value: {
+                          get: function() {
+                            wantValues_1 && pkRangeSet_1.addKey(cursor_1.primaryKey);
+                            return cursor_1.value;
+                          }
+                        }
+                      });
+                    }
+                    return res;
+                  });
+                }
+              }
+            }
+            return table[method].apply(this, arguments);
+          };
+        });
+        return tableClone;
+      }});
+    }
+  };
+  function trackAffectedIndexes(getRangeSet, schema, oldObjs, newObjs) {
+    function addAffectedIndex(ix) {
+      var rangeSet = getRangeSet(ix.name || "");
+      function extractKey(obj) {
+        return obj != null ? ix.extractKey(obj) : null;
+      }
+      (oldObjs || newObjs).forEach(function(_, i) {
+        var oldKey = oldObjs && extractKey(oldObjs[i]);
+        var newKey = newObjs && extractKey(newObjs[i]);
+        if (cmp(oldKey, newKey) !== 0) {
+          oldKey && rangeSet.addKey(oldKey);
+          newKey && rangeSet.addKey(newKey);
+        }
+      });
+    }
+    schema.indexes.forEach(addAffectedIndex);
+  }
   var Dexie = function() {
     function Dexie2(name, options) {
       var _this = this;
@@ -7968,7 +8415,7 @@ var URIStorage = (() => {
       });
       this._state = state;
       this.name = name;
-      this.on = Events(this, "populate", "blocked", "versionchange", {ready: [promisableChain, nop]});
+      this.on = Events(this, "populate", "blocked", "versionchange", "close", {ready: [promisableChain, nop]});
       this.on.ready.subscribe = override(this.on.ready.subscribe, function(subscribe) {
         return function(subscriber, bSticky) {
           Dexie2.vip(function() {
@@ -8026,6 +8473,8 @@ var URIStorage = (() => {
       };
       this.use(virtualIndexMiddleware);
       this.use(hooksMiddleware);
+      this.use(observabilityMiddleware);
+      this.use(cacheExistingValuesMiddleware);
       addons.forEach(function(addon) {
         return addon(_this);
       });
@@ -8117,7 +8566,7 @@ var URIStorage = (() => {
           _this.close();
           var req = _this._deps.indexedDB.deleteDatabase(_this.name);
           req.onsuccess = wrap(function() {
-            databaseEnumerator.remove(_this.name);
+            _onDatabaseDeleted(_this._deps, _this.name);
             resolve3();
           });
           req.onerror = eventRejectHandler(reject);
@@ -8222,6 +8671,99 @@ var URIStorage = (() => {
     };
     return Dexie2;
   }();
+  var symbolObservable = typeof Symbol !== "undefined" && "observable" in Symbol ? Symbol["observable"] : "@@observable";
+  var Observable = function() {
+    function Observable2(subscribe) {
+      this._subscribe = subscribe;
+    }
+    Observable2.prototype.subscribe = function(x, error, complete) {
+      return this._subscribe(typeof x === "function" ? {next: x, error, complete} : x);
+    };
+    Observable2.prototype[symbolObservable] = function() {
+      return this;
+    };
+    return Observable2;
+  }();
+  function extendObservabilitySet(target, newSet) {
+    keys(newSet).forEach(function(part) {
+      var rangeSet = target[part] || (target[part] = new RangeSet());
+      mergeRanges(rangeSet, newSet[part]);
+    });
+    return target;
+  }
+  function liveQuery(querier) {
+    return new Observable(function(observer) {
+      var scopeFuncIsAsync = isAsyncFunction(querier);
+      function execute(subscr) {
+        if (scopeFuncIsAsync) {
+          incrementExpectedAwaits();
+        }
+        var exec = function() {
+          return newScope(querier, {subscr, trans: null});
+        };
+        var rv = PSD.trans ? usePSD(PSD.transless, exec) : exec();
+        if (scopeFuncIsAsync) {
+          rv.then(decrementExpectedAwaits, decrementExpectedAwaits);
+        }
+        return rv;
+      }
+      var closed = false;
+      var accumMuts = {};
+      var currentObs = {};
+      var subscription = {
+        get closed() {
+          return closed;
+        },
+        unsubscribe: function() {
+          closed = true;
+          globalEvents.txcommitted.unsubscribe(mutationListener);
+        }
+      };
+      observer.start && observer.start(subscription);
+      var querying = false, startedListening = false;
+      function shouldNotify() {
+        return keys(currentObs).some(function(key) {
+          return accumMuts[key] && rangesOverlap(accumMuts[key], currentObs[key]);
+        });
+      }
+      var mutationListener = function(parts) {
+        extendObservabilitySet(accumMuts, parts);
+        if (shouldNotify()) {
+          doQuery();
+        }
+      };
+      var doQuery = function() {
+        if (querying || closed)
+          return;
+        accumMuts = {};
+        var subscr = {};
+        var ret = execute(subscr);
+        if (!startedListening) {
+          globalEvents("txcommitted", mutationListener);
+          startedListening = true;
+        }
+        querying = true;
+        Promise.resolve(ret).then(function(result) {
+          querying = false;
+          if (closed)
+            return;
+          if (shouldNotify()) {
+            doQuery();
+          } else {
+            accumMuts = {};
+            currentObs = subscr;
+            observer.next && observer.next(result);
+          }
+        }, function(err) {
+          querying = false;
+          observer.error && observer.error(err);
+          subscription.unsubscribe();
+        });
+      };
+      doQuery();
+      return subscription;
+    });
+  }
   var Dexie$1 = Dexie;
   props(Dexie$1, __assign(__assign({}, fullNameExceptions), {
     delete: function(databaseName) {
@@ -8237,7 +8779,11 @@ var URIStorage = (() => {
       });
     },
     getDatabaseNames: function(cb) {
-      return databaseEnumerator ? databaseEnumerator.getDatabaseNames().then(cb) : DexiePromise.resolve([]);
+      try {
+        return getDatabaseNames(Dexie$1.dependencies).then(cb);
+      } catch (_a2) {
+        return rejection(new exceptions.MissingAPI());
+      }
     },
     defineClass: function() {
       function Class(content) {
@@ -8296,6 +8842,9 @@ var URIStorage = (() => {
     props,
     override,
     Events,
+    on: globalEvents,
+    liveQuery,
+    extendObservabilitySet,
     getByKeyPath,
     setByKeyPath,
     delByKeyPath,
@@ -8307,771 +8856,76 @@ var URIStorage = (() => {
     addons: [],
     connections,
     errnames,
-    dependencies: function() {
-      try {
-        return {
-          indexedDB: _global.indexedDB || _global.mozIndexedDB || _global.webkitIndexedDB || _global.msIndexedDB,
-          IDBKeyRange: _global.IDBKeyRange || _global.webkitIDBKeyRange
-        };
-      } catch (e) {
-        return {indexedDB: null, IDBKeyRange: null};
-      }
-    }(),
+    dependencies: domDeps,
     semVer: DEXIE_VERSION,
     version: DEXIE_VERSION.split(".").map(function(n) {
       return parseInt(n);
     }).reduce(function(p, c, i) {
       return p + c / Math.pow(10, i * 2);
-    }),
-    default: Dexie$1,
-    Dexie: Dexie$1
+    })
   }));
   Dexie$1.maxKey = getMaxKey(Dexie$1.dependencies.IDBKeyRange);
-  initDatabaseEnumerator(Dexie.dependencies.indexedDB);
+  function fireLocally(updateParts) {
+    var wasMe = propagatingLocally;
+    try {
+      propagatingLocally = true;
+      globalEvents.txcommitted.fire(updateParts);
+    } finally {
+      propagatingLocally = wasMe;
+    }
+  }
+  var propagateLocally = fireLocally;
+  var propagatingLocally = false;
+  var accumulatedParts = {};
+  if (typeof document !== "undefined" && document.addEventListener) {
+    var fireIfVisible_1 = function() {
+      if (document.visibilityState === "visible") {
+        if (Object.keys(accumulatedParts).length > 0) {
+          fireLocally(accumulatedParts);
+        }
+        accumulatedParts = {};
+      }
+    };
+    document.addEventListener("visibilitychange", fireIfVisible_1);
+    propagateLocally = function(changedParts) {
+      extendObservabilitySet(accumulatedParts, changedParts);
+      fireIfVisible_1();
+    };
+  }
+  if (typeof BroadcastChannel !== "undefined") {
+    var bc_1 = new BroadcastChannel("dexie-txcommitted");
+    globalEvents("txcommitted", function(changedParts) {
+      if (!propagatingLocally) {
+        bc_1.postMessage(changedParts);
+      }
+    });
+    bc_1.onmessage = function(ev) {
+      if (ev.data)
+        propagateLocally(ev.data);
+    };
+  } else if (typeof localStorage !== "undefined") {
+    globalEvents("txcommitted", function(changedParts) {
+      try {
+        if (!propagatingLocally) {
+          localStorage.setItem("dexie-txcommitted", JSON.stringify({
+            trig: Math.random(),
+            changedParts
+          }));
+        }
+      } catch (_a2) {
+      }
+    });
+    addEventListener("storage", function(ev) {
+      if (ev.key === "dexie-txcommitted") {
+        var data = JSON.parse(ev.newValue);
+        if (data)
+          propagateLocally(data.changedParts);
+      }
+    });
+  }
   DexiePromise.rejectionMapper = mapError;
   setDebug(debug, dexieStackFrameFilter);
   var dexie_default = Dexie;
-
-  // node_modules/dexie-observable/dist/dexie-observable.es.js
-  function nop2() {
-  }
-  function promisableChain2(f1, f2) {
-    if (f1 === nop2)
-      return f2;
-    return function() {
-      var res = f1.apply(this, arguments);
-      if (res && typeof res.then === "function") {
-        var thiz = this, args = arguments;
-        return res.then(function() {
-          return f2.apply(thiz, args);
-        });
-      }
-      return f2.apply(this, arguments);
-    };
-  }
-  function createUUID() {
-    var d = Date.now();
-    var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-      var r = (d + Math.random() * 16) % 16 | 0;
-      d = Math.floor(d / 16);
-      return (c === "x" ? r : r & 7 | 8).toString(16);
-    });
-    return uuid;
-  }
-  function initOverrideCreateTransaction(db, wakeupObservers) {
-    return function overrideCreateTransaction(origFunc) {
-      return function(mode, storenames, dbschema, parent) {
-        if (db.dynamicallyOpened())
-          return origFunc.apply(this, arguments);
-        var addChanges = false;
-        if (mode === "readwrite" && storenames.some(function(storeName) {
-          return dbschema[storeName] && dbschema[storeName].observable;
-        })) {
-          addChanges = true;
-          storenames = storenames.slice(0);
-          if (storenames.indexOf("_changes") === -1)
-            storenames.push("_changes");
-        }
-        var trans = origFunc.call(this, mode, storenames, dbschema, parent);
-        if (addChanges) {
-          trans._lastWrittenRevision = 0;
-          trans.on("complete", function() {
-            if (trans._lastWrittenRevision) {
-              if (!parent) {
-                if (wakeupObservers.timeoutHandle)
-                  clearTimeout(wakeupObservers.timeoutHandle);
-                wakeupObservers.timeoutHandle = setTimeout(function() {
-                  delete wakeupObservers.timeoutHandle;
-                  wakeupObservers(trans._lastWrittenRevision);
-                }, 25);
-              } else {
-                var rootTransaction = function findRootTransaction(trans2) {
-                  return trans2.parent ? findRootTransaction(trans2.parent) : trans2;
-                }(parent);
-                rootTransaction._lastWrittenRevision = Math.max(trans._lastWrittenRevision, rootTransaction.lastWrittenRevision || 0);
-              }
-            }
-          });
-          if (trans.parent && trans.parent.source)
-            trans.source = trans.parent.source;
-        }
-        return trans;
-      };
-    };
-  }
-  function initWakeupObservers(db, Observable2, localStorage) {
-    return function wakeupObservers(lastWrittenRevision) {
-      if (Observable2.latestRevision[db.name] < lastWrittenRevision) {
-        Observable2.latestRevision[db.name] = lastWrittenRevision;
-        dexie_default.ignoreTransaction(function() {
-          Observable2.on("latestRevisionIncremented").fire(db.name, lastWrittenRevision);
-        });
-        if (localStorage)
-          localStorage.setItem("Dexie.Observable/latestRevision/" + db.name, lastWrittenRevision);
-      }
-    };
-  }
-  var CREATE = 1;
-  var UPDATE = 2;
-  var DELETE = 3;
-  function initCreatingHook(db, table) {
-    return function creatingHook(primKey, obj, trans) {
-      var rv = void 0;
-      if (primKey === void 0 && table.schema.primKey.uuid) {
-        primKey = rv = createUUID();
-        if (table.schema.primKey.keyPath) {
-          dexie_default.setByKeyPath(obj, table.schema.primKey.keyPath, primKey);
-        }
-      }
-      var change = {
-        source: trans.source || null,
-        table: table.name,
-        key: primKey === void 0 ? null : primKey,
-        type: CREATE,
-        obj
-      };
-      var promise = db._changes.add(change).then(function(rev) {
-        trans._lastWrittenRevision = Math.max(trans._lastWrittenRevision, rev);
-        return rev;
-      });
-      this.onsuccess = function(resultKey) {
-        if (primKey != resultKey)
-          promise._then(function() {
-            change.key = resultKey;
-            db._changes.put(change);
-          });
-      };
-      this.onerror = function() {
-        promise._then(function(rev) {
-          db._changes.delete(rev);
-        });
-      };
-      return rv;
-    };
-  }
-  function initUpdatingHook(db, tableName) {
-    return function updatingHook(mods, primKey, oldObj, trans) {
-      var modsWithoutUndefined = {};
-      var anythingChanged = false;
-      var newObj = dexie_default.deepClone(oldObj);
-      for (var propPath in mods) {
-        var mod = mods[propPath];
-        if (typeof mod === "undefined") {
-          dexie_default.delByKeyPath(newObj, propPath);
-          modsWithoutUndefined[propPath] = null;
-          anythingChanged = true;
-        } else {
-          var currentValue = dexie_default.getByKeyPath(oldObj, propPath);
-          if (mod !== currentValue && JSON.stringify(mod) !== JSON.stringify(currentValue)) {
-            dexie_default.setByKeyPath(newObj, propPath, mod);
-            modsWithoutUndefined[propPath] = mod;
-            anythingChanged = true;
-          }
-        }
-      }
-      if (anythingChanged) {
-        var change = {
-          source: trans.source || null,
-          table: tableName,
-          key: primKey,
-          type: UPDATE,
-          mods: modsWithoutUndefined,
-          oldObj,
-          obj: newObj
-        };
-        var promise = db._changes.add(change);
-        this.onsuccess = function() {
-          promise._then(function(rev) {
-            trans._lastWrittenRevision = Math.max(trans._lastWrittenRevision, rev);
-          });
-        };
-        this.onerror = function() {
-          promise._then(function(rev) {
-            db._changes.delete(rev);
-          });
-        };
-      }
-    };
-  }
-  function initDeletingHook(db, tableName) {
-    return function deletingHook(primKey, obj, trans) {
-      var promise = db._changes.add({
-        source: trans.source || null,
-        table: tableName,
-        key: primKey,
-        type: DELETE,
-        oldObj: obj
-      }).then(function(rev) {
-        trans._lastWrittenRevision = Math.max(trans._lastWrittenRevision, rev);
-        return rev;
-      }).catch(function(e) {
-        console.log(obj);
-        console.log(e.stack);
-      });
-      this.onerror = function() {
-        promise._then(function(rev) {
-          db._changes.delete(rev);
-        });
-      };
-    };
-  }
-  function initCrudMonitor(db) {
-    return function crudMonitor(table) {
-      if (table.hook._observing)
-        return;
-      table.hook._observing = true;
-      var tableName = table.name;
-      table.hook("creating").subscribe(initCreatingHook(db, table));
-      table.hook("updating").subscribe(initUpdatingHook(db, tableName));
-      table.hook("deleting").subscribe(initDeletingHook(db, tableName));
-    };
-  }
-  function initOnStorage(Observable2) {
-    return function onStorage(event9) {
-      if (event9.key && event9.key.indexOf("Dexie.Observable/") === 0) {
-        var parts = event9.key.split("/");
-        var prop = parts[1];
-        var dbname = parts[2];
-        if (prop === "latestRevision") {
-          var rev = parseInt(event9.newValue, 10);
-          if (!isNaN(rev) && rev > Observable2.latestRevision[dbname]) {
-            Observable2.latestRevision[dbname] = rev;
-            dexie_default.ignoreTransaction(function() {
-              Observable2.on("latestRevisionIncremented").fire(dbname, rev);
-            });
-          }
-        } else if (prop.indexOf("deadnode:") === 0) {
-          var nodeID = parseInt(prop.split(":")[1], 10);
-          if (event9.newValue) {
-            Observable2.on.suicideNurseCall.fire(dbname, nodeID);
-          }
-        } else if (prop === "intercomm") {
-          if (event9.newValue) {
-            Observable2.on.intercomm.fire(dbname);
-          }
-        }
-      }
-    };
-  }
-  function initOverrideOpen(db, SyncNode, crudMonitor) {
-    return function overrideOpen(origOpen) {
-      return function() {
-        Object.keys(db._allTables).forEach(function(tableName) {
-          var table = db._allTables[tableName];
-          if (table.schema.observable) {
-            crudMonitor(table);
-          }
-          if (table.name === "_syncNodes") {
-            table.mapToClass(SyncNode);
-          }
-        });
-        return origOpen.apply(this, arguments);
-      };
-    };
-  }
-  var Promise2 = dexie_default.Promise;
-  function initIntercomm(db, Observable2, SyncNode, mySyncNode, localStorage) {
-    var requestsWaitingForReply = {};
-    db.observable.sendMessage = function(type, message, destinationNode, options) {
-      options = options || {};
-      if (!mySyncNode.node)
-        return options.wantReply ? Promise2.reject(new dexie_default.DatabaseClosedError()) : Promise2.resolve();
-      var msg = {message, destinationNode, sender: mySyncNode.node.id, type};
-      dexie_default.extend(msg, options);
-      return dexie_default.ignoreTransaction(function() {
-        var tables = ["_intercomm"];
-        if (options.wantReply)
-          tables.push("_syncNodes");
-        var promise = db.transaction("rw", tables, function() {
-          if (options.wantReply) {
-            return db._syncNodes.where("id").equals(destinationNode).count(function(receiverAlive) {
-              if (receiverAlive)
-                return db._intercomm.add(msg);
-              else
-                return db._syncNodes.where("isMaster").above(0).first(function(masterNode) {
-                  msg.destinationNode = masterNode.id;
-                  return db._intercomm.add(msg);
-                });
-            });
-          } else {
-            return db._intercomm.add(msg);
-          }
-        }).then(function(messageId) {
-          var rv = null;
-          if (options.wantReply) {
-            rv = new Promise2(function(resolve3, reject) {
-              requestsWaitingForReply[messageId.toString()] = {resolve: resolve3, reject};
-            });
-          }
-          if (localStorage) {
-            localStorage.setItem("Dexie.Observable/intercomm/" + db.name, messageId.toString());
-          }
-          Observable2.on.intercomm.fire(db.name);
-          return rv;
-        });
-        if (!options.wantReply) {
-          promise.catch(function() {
-          });
-          return;
-        } else {
-          return promise;
-        }
-      });
-    };
-    db.observable.broadcastMessage = function(type, message, bIncludeSelf) {
-      if (!mySyncNode.node)
-        return;
-      var mySyncNodeId = mySyncNode.node.id;
-      dexie_default.ignoreTransaction(function() {
-        db._syncNodes.toArray(function(nodes) {
-          return Promise2.all(nodes.filter(function(node) {
-            return node.type === "local" && (bIncludeSelf || node.id !== mySyncNodeId);
-          }).map(function(node) {
-            return db.observable.sendMessage(type, message, node.id);
-          }));
-        }).catch(function() {
-        });
-      });
-    };
-    function consumeIntercommMessages() {
-      if (!mySyncNode.node)
-        return Promise2.reject(new dexie_default.DatabaseClosedError());
-      return dexie_default.ignoreTransaction(function() {
-        return db.transaction("rw", "_intercomm", function() {
-          return db._intercomm.where({destinationNode: mySyncNode.node.id}).toArray(function(messages) {
-            messages.forEach(function(msg) {
-              return consumeMessage(msg);
-            });
-            return db._intercomm.where("id").anyOf(messages.map(function(msg) {
-              return msg.id;
-            })).delete();
-          });
-        });
-      });
-    }
-    function consumeMessage(msg) {
-      if (msg.type === "response") {
-        var request = requestsWaitingForReply[msg.requestId.toString()];
-        if (request) {
-          if (msg.isFailure) {
-            request.reject(msg.message.error);
-          } else {
-            request.resolve(msg.message.result);
-          }
-          delete requestsWaitingForReply[msg.requestId.toString()];
-        }
-      } else {
-        msg.resolve = function(result) {
-          db.observable.sendMessage("response", {result}, msg.sender, {requestId: msg.id});
-        };
-        msg.reject = function(error) {
-          db.observable.sendMessage("response", {error: error.toString()}, msg.sender, {isFailure: true, requestId: msg.id});
-        };
-        db.on.message.fire(msg);
-      }
-    }
-    function onIntercomm(dbname) {
-      if (dbname === db.name) {
-        consumeIntercommMessages().catch("DatabaseClosedError", function() {
-        });
-      }
-    }
-    return {
-      onIntercomm,
-      consumeIntercommMessages
-    };
-  }
-  function overrideParseStoresSpec(origFunc) {
-    return function(stores, dbSchema) {
-      stores["_changes"] = "++rev";
-      stores["_syncNodes"] = "++id,myRevision,lastHeartBeat,&url,isMaster,type,status";
-      stores["_intercomm"] = "++id,destinationNode";
-      stores["_uncommittedChanges"] = "++id,node";
-      origFunc.call(this, stores, dbSchema);
-      Object.keys(dbSchema).forEach(function(tableName) {
-        var schema = dbSchema[tableName];
-        if (schema.primKey.name.indexOf("$$") === 0) {
-          schema.primKey.uuid = true;
-          schema.primKey.name = schema.primKey.name.substr(2);
-          schema.primKey.keyPath = schema.primKey.keyPath.substr(2);
-        }
-      });
-      Object.keys(dbSchema).forEach(function(tableName) {
-        if (tableName.indexOf("_") !== 0 && tableName.indexOf("$") !== 0) {
-          dbSchema[tableName].observable = true;
-        }
-      });
-    };
-  }
-  function deleteOldChanges(db) {
-    var CHUNK_SIZE = 100;
-    dexie_default.ignoreTransaction(function() {
-      return db._syncNodes.orderBy("myRevision").first(function(oldestNode) {
-        return db._changes.where("rev").below(oldestNode.myRevision).limit(CHUNK_SIZE).primaryKeys();
-      }).then(function(keysToDelete) {
-        if (keysToDelete.length === 0)
-          return;
-        return db._changes.bulkDelete(keysToDelete).then(function() {
-          if (keysToDelete.length === CHUNK_SIZE) {
-            setTimeout(function() {
-              return db.isOpen() && deleteOldChanges(db);
-            }, 500);
-          }
-        });
-      });
-    }).catch(function() {
-    });
-  }
-  var global2 = self;
-  var DatabaseChange = dexie_default.defineClass({
-    rev: Number,
-    source: String,
-    table: String,
-    key: Object,
-    type: Number,
-    obj: Object,
-    mods: Object,
-    oldObj: Object
-  });
-  var override2 = dexie_default.override;
-  var Promise$1 = dexie_default.Promise;
-  var browserIsShuttingDown = false;
-  function Observable(db) {
-    if (!/^3\./.test(dexie_default.version))
-      throw new Error("Missing dexie version 3.x");
-    if (db.observable) {
-      if (db.observable.version !== "{version}")
-        throw new Error("Mixed versions of dexie-observable");
-      return;
-    }
-    var NODE_TIMEOUT = 2e4, HIBERNATE_GRACE_PERIOD = 2e4, LOCAL_POLL = 500, HEARTBEAT_INTERVAL = NODE_TIMEOUT - 5e3;
-    var localStorage = Observable.localStorageImpl;
-    var SyncNode = dexie_default.defineClass({
-      myRevision: Number,
-      type: String,
-      lastHeartBeat: Number,
-      deleteTimeStamp: Number,
-      url: String,
-      isMaster: Number,
-      syncProtocol: String,
-      syncContext: null,
-      syncOptions: Object,
-      connected: false,
-      status: Number,
-      appliedRemoteRevision: null,
-      remoteBaseRevisions: [{local: Number, remote: null}],
-      dbUploadState: {
-        tablesToUpload: [String],
-        currentTable: String,
-        currentKey: null,
-        localBaseRevision: Number
-      }
-    });
-    db.observable = {version: "{version}"};
-    db.observable.SyncNode = SyncNode;
-    var wakeupObservers = initWakeupObservers(db, Observable, localStorage);
-    var overrideCreateTransaction = initOverrideCreateTransaction(db, wakeupObservers);
-    var crudMonitor = initCrudMonitor(db);
-    var overrideOpen = initOverrideOpen(db, SyncNode, crudMonitor);
-    var mySyncNode = {node: null};
-    var intercomm = initIntercomm(db, Observable, SyncNode, mySyncNode, localStorage);
-    var onIntercomm = intercomm.onIntercomm;
-    var consumeIntercommMessages = intercomm.consumeIntercommMessages;
-    Object.defineProperty(db, "_localSyncNode", {
-      get: function() {
-        return mySyncNode.node;
-      }
-    });
-    var pollHandle = null, heartbeatHandle = null;
-    if (dexie_default.fake) {
-      db.version(1).stores({
-        _syncNodes: "++id,myRevision,lastHeartBeat",
-        _changes: "++rev",
-        _intercomm: "++id,destinationNode",
-        _uncommittedChanges: "++id,node"
-      });
-      db._syncNodes.mapToClass(SyncNode);
-      db._changes.mapToClass(DatabaseChange);
-      mySyncNode.node = new SyncNode({
-        myRevision: 0,
-        type: "local",
-        lastHeartBeat: Date.now(),
-        deleteTimeStamp: null
-      });
-    }
-    db.Version.prototype._parseStoresSpec = override2(db.Version.prototype._parseStoresSpec, overrideParseStoresSpec);
-    db.on.addEventType({
-      changes: "asap",
-      cleanup: [promisableChain2, nop2],
-      message: "asap"
-    });
-    db._createTransaction = override2(db._createTransaction, overrideCreateTransaction);
-    Observable.latestRevision[db.name] = Observable.latestRevision[db.name] || 0;
-    db.open = override2(db.open, overrideOpen);
-    db.close = override2(db.close, function(origClose) {
-      return function() {
-        if (db.dynamicallyOpened())
-          return origClose.apply(this, arguments);
-        if (wakeupObservers.timeoutHandle) {
-          clearTimeout(wakeupObservers.timeoutHandle);
-          delete wakeupObservers.timeoutHandle;
-        }
-        Observable.on("latestRevisionIncremented").unsubscribe(onLatestRevisionIncremented);
-        Observable.on("suicideNurseCall").unsubscribe(onSuicide);
-        Observable.on("intercomm").unsubscribe(onIntercomm);
-        Observable.on("beforeunload").unsubscribe(onBeforeUnload);
-        if (mySyncNode.node && mySyncNode.node.id) {
-          Observable.on.suicideNurseCall.fire(db.name, mySyncNode.node.id);
-          if (localStorage) {
-            localStorage.setItem("Dexie.Observable/deadnode:" + mySyncNode.node.id.toString() + "/" + db.name, "dead");
-          }
-          mySyncNode.node.deleteTimeStamp = 1;
-          mySyncNode.node.lastHeartBeat = 0;
-          db._syncNodes.put(mySyncNode.node);
-          mySyncNode.node = null;
-        }
-        if (pollHandle)
-          clearTimeout(pollHandle);
-        pollHandle = null;
-        if (heartbeatHandle)
-          clearTimeout(heartbeatHandle);
-        heartbeatHandle = null;
-        return origClose.apply(this, arguments);
-      };
-    });
-    db.delete = override2(db.delete, function(origDelete) {
-      return function() {
-        return origDelete.apply(this, arguments).then(function(result) {
-          Observable.latestRevision[db.name] = 0;
-          return result;
-        });
-      };
-    });
-    db.on("ready", function startObserving() {
-      if (db.dynamicallyOpened())
-        return db;
-      return db.table("_changes").orderBy("rev").last(function(lastChange) {
-        var latestRevision = lastChange ? lastChange.rev : 0;
-        mySyncNode.node = new SyncNode({
-          myRevision: latestRevision,
-          type: "local",
-          lastHeartBeat: Date.now(),
-          deleteTimeStamp: null,
-          isMaster: 0
-        });
-        if (Observable.latestRevision[db.name] < latestRevision) {
-          Observable.latestRevision[db.name] = latestRevision;
-          dexie_default.ignoreTransaction(function() {
-            Observable.on.latestRevisionIncremented.fire(latestRevision);
-          });
-        }
-        return db._syncNodes.put(mySyncNode.node).then(dexie_default.ignoreTransaction(function() {
-          var mySyncNodeShouldBecomeMaster = 1;
-          return db._syncNodes.orderBy("isMaster").reverse().modify(function(existingNode) {
-            if (existingNode.isMaster) {
-              if (existingNode.lastHeartBeat < Date.now() - NODE_TIMEOUT) {
-                existingNode.isMaster = 0;
-              } else {
-                mySyncNodeShouldBecomeMaster = 0;
-              }
-            }
-            if (!mySyncNode.node)
-              return;
-            if (existingNode.id === mySyncNode.node.id) {
-              existingNode.isMaster = mySyncNode.node.isMaster = mySyncNodeShouldBecomeMaster;
-            }
-          });
-        })).then(function() {
-          Observable.on("latestRevisionIncremented", onLatestRevisionIncremented);
-          Observable.on("beforeunload", onBeforeUnload);
-          Observable.on("suicideNurseCall", onSuicide);
-          Observable.on("intercomm", onIntercomm);
-          pollHandle = setTimeout(poll, LOCAL_POLL);
-          heartbeatHandle = setTimeout(heartbeat, HEARTBEAT_INTERVAL);
-        }).then(function() {
-          cleanup();
-        });
-      });
-    }, true);
-    var handledRevision = 0;
-    function onLatestRevisionIncremented(dbname, latestRevision) {
-      if (dbname === db.name) {
-        if (handledRevision >= latestRevision)
-          return;
-        handledRevision = latestRevision;
-        dexie_default.vip(function() {
-          readChanges(latestRevision).catch("DatabaseClosedError", function() {
-          });
-        });
-      }
-    }
-    function readChanges(latestRevision, recursion, wasPartial) {
-      if (!recursion && readChanges.ongoingOperation) {
-        return readChanges.ongoingOperation;
-      }
-      var partial = false;
-      var ourSyncNode = mySyncNode.node;
-      if (!ourSyncNode) {
-        return Promise$1.reject(new dexie_default.DatabaseClosedError());
-      }
-      var LIMIT = 1e3;
-      var promise = db._changes.where("rev").above(ourSyncNode.myRevision).limit(LIMIT).toArray(function(changes) {
-        if (changes.length > 0) {
-          var lastChange = changes[changes.length - 1];
-          partial = changes.length === LIMIT;
-          db.on("changes").fire(changes, partial);
-          ourSyncNode.myRevision = lastChange.rev;
-        } else if (wasPartial) {
-          db.on("changes").fire([], false);
-        }
-        var ourNodeStillExists = false;
-        return db._syncNodes.where(":id").equals(ourSyncNode.id).modify(function(syncNode) {
-          ourNodeStillExists = true;
-          syncNode.lastHeartBeat = Date.now();
-          syncNode.deleteTimeStamp = null;
-          syncNode.myRevision = Math.max(syncNode.myRevision, ourSyncNode.myRevision);
-        }).then(function() {
-          return ourNodeStillExists;
-        });
-      }).then(function(ourNodeStillExists) {
-        if (!ourNodeStillExists) {
-          if (browserIsShuttingDown) {
-            throw new Error("Browser is shutting down");
-          } else {
-            db.close();
-            console.error("Out of sync");
-            if (global2.location)
-              global2.location.reload(true);
-            throw new Error("Out of sync");
-          }
-        }
-        if (partial || Observable.latestRevision[db.name] > ourSyncNode.myRevision) {
-          return readChanges(Observable.latestRevision[db.name], (recursion || 0) + 1, partial);
-        }
-      }).finally(function() {
-        delete readChanges.ongoingOperation;
-      });
-      if (!recursion) {
-        readChanges.ongoingOperation = promise;
-      }
-      return promise;
-    }
-    function heartbeat() {
-      heartbeatHandle = null;
-      var currentInstance = mySyncNode.node && mySyncNode.node.id;
-      if (!currentInstance)
-        return;
-      db.transaction("rw!", db._syncNodes, function() {
-        db._syncNodes.where({id: currentInstance}).first(function(ourSyncNode) {
-          if (!ourSyncNode) {
-            if (db.isOpen())
-              db.close();
-            return;
-          }
-          ourSyncNode.lastHeartBeat = Date.now();
-          ourSyncNode.deleteTimeStamp = null;
-          return db._syncNodes.put(ourSyncNode);
-        });
-      }).catch("DatabaseClosedError", function() {
-      }).finally(function() {
-        if (mySyncNode.node && mySyncNode.node.id === currentInstance && db.isOpen()) {
-          heartbeatHandle = setTimeout(heartbeat, HEARTBEAT_INTERVAL);
-        }
-      });
-    }
-    function poll() {
-      pollHandle = null;
-      var currentInstance = mySyncNode.node && mySyncNode.node.id;
-      if (!currentInstance)
-        return;
-      dexie_default.vip(function() {
-        readChanges(Observable.latestRevision[db.name]).then(cleanup).then(consumeIntercommMessages).catch("DatabaseClosedError", function() {
-        }).finally(function() {
-          if (mySyncNode.node && mySyncNode.node.id === currentInstance && db.isOpen()) {
-            pollHandle = setTimeout(poll, LOCAL_POLL);
-          }
-        });
-      });
-    }
-    function cleanup() {
-      var ourSyncNode = mySyncNode.node;
-      if (!ourSyncNode)
-        return Promise$1.reject(new dexie_default.DatabaseClosedError());
-      return db.transaction("rw", "_syncNodes", "_changes", "_intercomm", function() {
-        var weBecameMaster = false;
-        db._syncNodes.where("lastHeartBeat").below(Date.now() - NODE_TIMEOUT).filter(function(node) {
-          return node.type === "local";
-        }).modify(function(node) {
-          if (node.deleteTimeStamp && node.deleteTimeStamp < Date.now()) {
-            delete this.value;
-            if (localStorage) {
-              localStorage.removeItem("Dexie.Observable/deadnode:" + node.id + "/" + db.name);
-            }
-            if (node.isMaster) {
-              db._syncNodes.update(ourSyncNode, {isMaster: 1});
-              weBecameMaster = true;
-            }
-            db._intercomm.where({destinationNode: node.id}).modify(function(msg) {
-              if (msg.wantReply)
-                msg.destinationNode = ourSyncNode.id;
-              else
-                delete this.value;
-            });
-          } else if (!node.deleteTimeStamp) {
-            node.deleteTimeStamp = Date.now() + HIBERNATE_GRACE_PERIOD;
-          }
-        }).then(function() {
-          Observable.deleteOldChanges(db);
-          return db.on("cleanup").fire(weBecameMaster);
-        });
-      });
-    }
-    function onBeforeUnload() {
-      if (!mySyncNode.node)
-        return;
-      browserIsShuttingDown = true;
-      mySyncNode.node.deleteTimeStamp = 1;
-      mySyncNode.node.lastHeartBeat = 0;
-      db._syncNodes.put(mySyncNode.node);
-      Observable.wereTheOneDying = true;
-      if (localStorage) {
-        localStorage.setItem("Dexie.Observable/deadnode:" + mySyncNode.node.id.toString() + "/" + db.name, "dead");
-      }
-    }
-    function onSuicide(dbname, nodeID) {
-      if (dbname === db.name && !Observable.wereTheOneDying) {
-        dexie_default.vip(function() {
-          db._syncNodes.update(nodeID, {deleteTimeStamp: 1, lastHeartBeat: 0}).then(cleanup);
-        });
-      }
-    }
-  }
-  Observable.version = "{version}";
-  Observable.latestRevision = {};
-  Observable.on = dexie_default.Events(null, "latestRevisionIncremented", "suicideNurseCall", "intercomm", "beforeunload");
-  Observable.createUUID = createUUID;
-  Observable.deleteOldChanges = deleteOldChanges;
-  Observable._onStorage = initOnStorage(Observable);
-  Observable._onBeforeUnload = function() {
-    Observable.on.beforeunload.fire();
-  };
-  try {
-    Observable.localStorageImpl = global2.localStorage;
-  } catch (ex) {
-  }
-  if (global2.addEventListener) {
-    global2.addEventListener("storage", Observable._onStorage);
-    global2.addEventListener("beforeunload", Observable._onBeforeUnload);
-  }
-  if (dexie_default.Observable) {
-    if (dexie_default.Observable.version !== "{version}") {
-      throw new Error("Mixed versions of dexie-observable");
-    }
-  } else {
-    dexie_default.Observable = Observable;
-    dexie_default.addons.push(Observable);
-  }
-  var Dexie_Observable = dexie_default.Observable;
 
   // src/adapters/whatwg_indexeddb.ts
   const INDEXEDDB_VERSION = 1;
@@ -9083,43 +8937,6 @@ var URIStorage = (() => {
       });
       this.nodes = this.table("nodes");
       this.EVENT_WATCH = event((dispatch) => {
-        function on_change(event9) {
-          for (const change of event9) {
-            switch (change.type) {
-              case 1:
-                dispatch({
-                  change: NODE_CHANGES.created,
-                  path: change.obj.path,
-                  type: change.obj.type
-                });
-                break;
-              case 3:
-                dispatch({
-                  change: NODE_CHANGES.removed,
-                  path: change.oldObj.path,
-                  type: change.oldObj.path
-                });
-                break;
-              case 2:
-                if (change.mods.payload) {
-                  dispatch({
-                    change: NODE_CHANGES.attached,
-                    path: change.oldObj.path,
-                    type: change.oldObj.path
-                  });
-                } else {
-                  dispatch({
-                    change: NODE_CHANGES.updated,
-                    path: change.oldObj.path,
-                    type: change.oldObj.path
-                  });
-                }
-                break;
-            }
-          }
-        }
-        const context = this.on("changes", on_change);
-        return () => context.unsubscribe(on_change);
       });
     }
   }

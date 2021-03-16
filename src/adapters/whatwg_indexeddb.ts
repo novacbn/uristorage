@@ -1,7 +1,4 @@
-import Dexie, {DexieEvent} from "dexie";
-
-import "dexie-observable";
-import {IDatabaseChange} from "dexie-observable/api";
+import Dexie, {DexieEvent, liveQuery} from "dexie";
 
 import {DEFAULT_MIME_TYPE, NODE_CHANGES, NODE_TYPES} from "../util/constants";
 import {get_epoch_timestamp} from "../util/datetime";
@@ -59,66 +56,9 @@ class IndexedDBStorage extends Dexie {
 
         this.nodes = this.table("nodes");
 
+        // @ts-ignore
         this.EVENT_WATCH = event((dispatch) => {
-            function on_change(event: IDatabaseChange[]) {
-                for (const change of event) {
-                    // HACK: `DatabaseChangeType` from `dexie-observable` is a const expression
-                    // enumeration. So we can't use it as a variable. Thus we need TypeScript to ignore
-                    // errors about types it cannot determine
-                    switch (change.type) {
-                        case 1: // DatabaseChangeType.Create
-                            dispatch({
-                                change: NODE_CHANGES.created,
-                                // @ts-ignore
-                                path: change.obj.path,
-                                // @ts-ignore
-                                type: change.obj.type,
-                            });
-
-                            break;
-
-                        case 3: // DatabaseChangeType.Delete
-                            dispatch({
-                                change: NODE_CHANGES.removed,
-                                // @ts-ignore
-                                path: change.oldObj.path,
-                                // @ts-ignore
-                                type: change.oldObj.path,
-                            });
-
-                            break;
-
-                        case 2: // DatabaseChangeType.Update
-                            // @ts-ignore
-                            if (change.mods.payload) {
-                                dispatch({
-                                    change: NODE_CHANGES.attached,
-                                    // @ts-ignore
-                                    path: change.oldObj.path,
-                                    // @ts-ignore
-                                    type: change.oldObj.path,
-                                });
-                            } else {
-                                dispatch({
-                                    change: NODE_CHANGES.updated,
-                                    // @ts-ignore
-                                    path: change.oldObj.path,
-                                    // @ts-ignore
-                                    type: change.oldObj.path,
-                                });
-                            }
-
-                            break;
-                    }
-                }
-            }
-
-            // HACK: Like above, the types for `dexie-observable` are meh. So
-            // we need have TypeScript to ignore errors again
-
-            // @ts-ignore
-            const context = this.on("changes", on_change) as DexieEvent;
-            return () => context.unsubscribe(on_change);
+            // TODO: Figure out how to integrate with `liveQuery`
         });
     }
 }

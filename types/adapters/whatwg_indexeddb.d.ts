@@ -1,5 +1,4 @@
 import Dexie from "dexie";
-import "dexie-observable";
 import { NODE_TYPES } from "../util/constants";
 import { IEvent } from "../util/event";
 import { IBaseAdapterOptions, INode, IQueryOptions, IQueryResult, IWatchEvent, IURLObject, IWatchOptions, BaseAdapter } from "./base_adapter";
