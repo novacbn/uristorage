@@ -1,6 +1,6 @@
 {
     "name": "uristorage",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "description": "Provides abstractions for working with different backends as a simplistic Object Storage",
     "author": "novacbn",
     "main": "lib/index.js",
@@ -26,13 +26,13 @@
         "build:lib": "node ./scripts/build.js",
         "build:mime-types": "node ./scripts/build_mime_types.js",
         "build:types": "tsc --emitDeclarationOnly",
-        "build:typedoc": "typedoc --out ./dist/docs --exclude '**/index.ts' --stripInternal --target es6 --theme minimal --mode modules src",
+        "build:typedoc": "typedoc --out ./dist/docs --exclude '**/index.ts' --theme minimal src",
         "test:http": "sirv ./ --port 8080 --dev",
         "test:types": "tsc --noEmit",
         "prebuild:clean": "rimraf ./dist;rimraf ./lib;rimraf ./types"
     },
     "dependencies": {
-        "base85": "git+https://github.com/novacbn/base85.git",
+        "base85": "github:novacbn/base85",
         "dexie": "^3.0.2",
         "dexie-observable": "^3.0.0-beta.10",
         "glob-to-regexp": "^0.4.1",
@@ -46,7 +46,7 @@
         "prettier": "^2.0.5",
         "rimraf": "^3.0.2",
         "sirv-cli": "^1.0.6",
-        "typedoc": "^0.19.2",
+        "typedoc": "^0.20.32",
         "typescript": "^4.0.3"
     }
 }

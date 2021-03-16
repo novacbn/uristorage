@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.0.6 (2021/03/16)
+
+-   Updated `base85` to latest
+
 ## v0.0.5 (2020/12/25)
 
 -   Added simple identifiers for Adapter handling
